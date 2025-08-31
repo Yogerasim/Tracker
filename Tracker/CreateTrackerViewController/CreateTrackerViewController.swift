@@ -27,11 +27,7 @@ final class CreateTrackerViewController: UIViewController {
     @objc private func habitButtonTapped() {
         let newHabitVC = NewHabitViewController()
         
-        // Передаем замыкание
-        newHabitVC.onHabitCreated = { [weak self] tracker in
-            self?.onTrackerCreated?(tracker)
-            self?.dismiss(animated: true)
-        }
+        
         
         presentFullScreenSheet(newHabitVC)
     }
@@ -41,7 +37,7 @@ final class CreateTrackerViewController: UIViewController {
         presentFullScreenSheet(irregularVC)
     }
     
-    var onTrackerCreated: ((Tracker) -> Void)?
+    
     
     
 

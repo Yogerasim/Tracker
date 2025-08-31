@@ -2,13 +2,25 @@ import UIKit
 
 final class ScheduleViewController: UIViewController {
 
+    // MARK: - Properties
+    var trackerName: String!  // Имя трекера из NewHabitVC
+    var onTrackerCreated: ((Tracker) -> Void)?
+
+    private var selectedDays: [WeekDay] = []
+    private let daysOfWeek: [(title: String, day: WeekDay)] = [
+        ("Понедельник", .monday),
+        ("Вторник", .tuesday),
+        ("Среда", .wednesday),
+        ("Четверг", .thursday),
+        ("Пятница", .friday),
+        ("Суббота", .saturday),
+        ("Воскресенье", .sunday)
+    ]
+
     // MARK: - UI
     private let modalHeader = ModalHeaderView(title: "Расписание")
     private let tableContainer = ContainerTableView()
     private let bottomButtons = ButonsPanelView()
-
-    // Дни недели
-    private let daysOfWeek = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"]
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -21,13 +33,13 @@ final class ScheduleViewController: UIViewController {
         tableView.register(ContainerTableViewCell.self, forCellReuseIdentifier: "cell")
         tableView.separatorStyle = .none
         tableView.isScrollEnabled = false
-        tableView.rowHeight = 75 // фиксированная высота строки
+        tableView.rowHeight = 75
 
         setupLayout()
         setupActions()
-
-        // обновляем высоту контейнера в зависимости от количества строк
         tableContainer.updateHeight(forRows: daysOfWeek.count)
+
+        print("📅 ScheduleViewController загружен для трекера '\(trackerName ?? "Без имени")'")
     }
 
     // MARK: - Layout
@@ -38,17 +50,14 @@ final class ScheduleViewController: UIViewController {
         }
 
         NSLayoutConstraint.activate([
-            // Заголовок
             modalHeader.topAnchor.constraint(equalTo: view.topAnchor),
             modalHeader.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             modalHeader.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 
-            // Таблица
             tableContainer.topAnchor.constraint(equalTo: modalHeader.bottomAnchor, constant: AppLayout.padding),
             tableContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: UIConstants.horizontalPadding),
             tableContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -UIConstants.horizontalPadding),
 
-            // Нижние кнопки
             bottomButtons.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             bottomButtons.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             bottomButtons.bottomAnchor.constraint(equalTo: view.bottomAnchor)
@@ -62,44 +71,41 @@ final class ScheduleViewController: UIViewController {
     }
 
     @objc private func cancelTapped() {
+        print("✖️ ScheduleViewController: отмена — возвращаемся в NewHabitViewController")
         dismiss(animated: true)
     }
 
     @objc private func createTapped() {
-        // Логика сохранения расписания
+        print("✅ ScheduleViewController: Создать трекер '\(trackerName!)' с выбранными днями: \(selectedDays.map { $0.rawValue })")
+
+        let tracker = Tracker(
+            id: UUID(),
+            name: trackerName,
+            color: "#FD4C49",
+            emoji: "📚",
+            schedule: selectedDays
+        )
+
+        onTrackerCreated?(tracker)
     }
 }
 
 // MARK: - UITableViewDataSource
 extension ScheduleViewController: UITableViewDataSource {
-
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return daysOfWeek.count
-    }
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { daysOfWeek.count }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell
+        let item = daysOfWeek[indexPath.row]
 
-        // Текст — день недели
-        cell.textLabel?.text = daysOfWeek[indexPath.row]
+        cell.textLabel?.text = item.title
+        cell.isLastCell = (indexPath.row == daysOfWeek.count - 1)
 
-        // Последняя ячейка — скрываем разделитель
-        cell.isLastCell = indexPath.row == daysOfWeek.count - 1
-
-        // Убираем стрелку
-        cell.accessoryType = .none
-
-        // Добавляем UISwitch справа (один раз на ячейку)
-        if cell.contentView.viewWithTag(100) == nil {
-            let toggle = UISwitch()
-            toggle.tag = 100
-            toggle.translatesAutoresizingMaskIntoConstraints = false
-            cell.contentView.addSubview(toggle)
-            NSLayoutConstraint.activate([
-                toggle.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -16),
-                toggle.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor)
-            ])
-        }
+        let toggle = UISwitch()
+        toggle.tag = indexPath.row
+        toggle.isOn = selectedDays.contains(item.day)
+        toggle.addTarget(self, action: #selector(toggleChanged(_:)), for: .valueChanged)
+        cell.accessoryView = toggle
 
         return cell
     }
@@ -107,7 +113,19 @@ extension ScheduleViewController: UITableViewDataSource {
 
 // MARK: - UITableViewDelegate
 extension ScheduleViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return tableView.rowHeight // всегда 75
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat { tableView.rowHeight }
+}
+
+// MARK: - UISwitch Handler
+extension ScheduleViewController {
+    @objc private func toggleChanged(_ sender: UISwitch) {
+        let day = daysOfWeek[sender.tag].day
+        if sender.isOn {
+            if !selectedDays.contains(day) { selectedDays.append(day) }
+            print("➕ Schedule: добавлен день \(day)")
+        } else {
+            selectedDays.removeAll { $0 == day }
+            print("➖ Schedule: удалён день \(day)")
+        }
     }
 }

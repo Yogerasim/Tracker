@@ -1,7 +1,47 @@
 import UIKit
 
 final class TrackersViewController: UIViewController {
+
+    // MARK: - Stores
+    private let categoryStore = TrackerCategoryStore()
+    private let recordStore = TrackerRecordStore()
+
+    // MARK: - State
+    private let defaultCategoryTitle = "Мои трекеры"
+    var currentDate: Date = Date() {
+        didSet {
+            print("📅 Выбрана новая дата: \(currentDate)")
+            updateDateText()
+            collectionView.reloadData()
+            updatePlaceholder()
+        }
+    }
     
+    // MARK: - Add New Tracker
+    func addTrackerToDefaultCategory(_ tracker: Tracker) {
+        categoryStore.addTracker(tracker, to: defaultCategoryTitle)
+        print("📌 Трекер '\(tracker.name)' добавлен в категорию '\(defaultCategoryTitle)'")
+
+        collectionView.reloadData()
+        updatePlaceholder()
+    }
+
+    // MARK: - Computed Data
+    var categories: [TrackerCategory] {
+        categoryStore.categories
+    }
+
+    var completedTrackers: [TrackerRecord] {
+        recordStore.completedTrackers
+    }
+
+    var trackers: [Tracker] {
+        let day = weekDay(from: currentDate)
+        return categories
+            .flatMap { $0.trackers }
+            .filter { $0.schedule.isEmpty || $0.schedule.contains(day) }
+    }
+
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -18,45 +58,8 @@ final class TrackersViewController: UIViewController {
 
         ensureDefaultCategory()
         updatePlaceholder()
-    }
 
-    // MARK: - Data
-    private let trackerStore = TrackerStore()
-    private let defaultCategoryTitle = "Мои трекеры"
-
-    private let colorPool: [String] = [
-        "#FD4C49","#FF881E","#FFCD1E","#34A853","#46E69D",
-        "#007BFA","#6E7DE3","#AE3DFF","#E84393","#2D3436"
-    ]
-    private var nextColorIndex = 0
-
-    private let emojiPool: [String] = [
-        "📚","🏃‍♂️","🧘","💧","☀️","🌙","🍎","📝","🎧","🧠",
-        "💪","🧹","📵","🛏️","🚿","🧴","☕️","💼","🧑‍💻","📖"
-    ]
-
-    // MARK: - State
-    var currentDate: Date = Date() {
-        didSet {
-            updateDateText()
-            collectionView.reloadData()
-            updatePlaceholder()
-        }
-    }
-
-    var completedTrackers: [TrackerRecord] {
-        trackerStore.completedTrackers
-    }
-
-    var categories: [TrackerCategory] {
-        trackerStore.categories
-    }
-
-    var trackers: [Tracker] {
-        let day = weekDay(from: currentDate)
-        return categories
-            .flatMap { $0.trackers }
-            .filter { $0.schedule.contains(day) }
+        print("✅ TrackersViewController загружен")
     }
 
     // MARK: - UI
@@ -72,7 +75,7 @@ final class TrackersViewController: UIViewController {
     let searchBar: UISearchBar = {
         let sb = UISearchBar()
         sb.placeholder = "Поиск"
-        sb.backgroundImage = UIImage()  
+        sb.backgroundImage = UIImage()
         sb.translatesAutoresizingMaskIntoConstraints = false
         return sb
     }()
@@ -107,8 +110,6 @@ final class TrackersViewController: UIViewController {
         dp.addTarget(self, action: #selector(dateChanged(_:)), for: .valueChanged)
         return dp
     }()
-
-    
 
     lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -163,28 +164,33 @@ final class TrackersViewController: UIViewController {
         button.setImage(UIImage(named: "plus"), for: .normal)
         button.tintColor = AppColors.backgroundBlackButton
         button.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
-        
+
         button.widthAnchor.constraint(equalToConstant: 24).isActive = true
         button.heightAnchor.constraint(equalToConstant: 24).isActive = true
-        
+
         return UIBarButtonItem(customView: button)
     }()
 
-    // MARK: - Helpers
+    // MARK: - Actions
+    
     @objc func addButtonTapped() {
-        let createVC = CreateTrackerViewController()
-        createVC.modalPresentationStyle = .pageSheet
-        if let sheet = createVC.sheetPresentationController {
-            sheet.detents = [.large()]
-            sheet.prefersGrabberVisible = true
-            sheet.preferredCornerRadius = AppLayout.cornerRadius
+        let newHabitVC = NewHabitViewController()
+        newHabitVC.onHabitCreated = { [weak self] tracker in
+            guard let self = self else { return }
+            print("🟢 TrackersViewController: получили новый трекер '\(tracker.name)' — добавляем в хранилище")
+            self.categoryStore.addTracker(tracker, to: self.defaultCategoryTitle)
+            self.collectionView.reloadData()
+            self.updatePlaceholder()
         }
-        present(createVC, animated: true)
+        present(newHabitVC, animated: true)
     }
-
+    
     func ensureDefaultCategory() {
         if !categories.contains(where: { $0.title == defaultCategoryTitle }) {
-            trackerStore.addCategory(TrackerCategory(title: defaultCategoryTitle, trackers: []))
+            categoryStore.addCategory(
+                TrackerCategory(title: defaultCategoryTitle, trackers: [])
+            )
+            print("📂 Создана категория по умолчанию '\(defaultCategoryTitle)'")
         }
     }
 
@@ -195,14 +201,16 @@ final class TrackersViewController: UIViewController {
     }
 
     func markTrackerAsCompleted(_ tracker: Tracker, on date: Date) {
-        trackerStore.addRecord(for: tracker.id, date: date)
+        recordStore.addRecord(for: tracker.id, date: date)
+        collectionView.reloadData()
     }
 
     func unmarkTrackerAsCompleted(_ tracker: Tracker, on date: Date) {
-        trackerStore.removeRecord(for: tracker.id, date: date)
+        recordStore.removeRecord(for: tracker.id, date: date)
+        collectionView.reloadData()
     }
 
     func isTrackerCompleted(_ tracker: Tracker, on date: Date) -> Bool {
-        trackerStore.isCompleted(trackerId: tracker.id, date: date)
+        recordStore.isCompleted(trackerId: tracker.id, date: date)
     }
 }
