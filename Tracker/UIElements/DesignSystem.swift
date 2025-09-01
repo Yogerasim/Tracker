@@ -6,7 +6,8 @@ enum AppColors {
     static let primaryBlue = UIColor(hex: "#4685FF")
     static let textPrimary = UIColor.white
     static let textSecondary = UIColor(hex: "#8E8E93")
-    static let errorRed = UIColor(hex: "#F56B6C")     
+    static let errorRed = UIColor(hex: "#F56B6C")
+    static let gray = UIColor(hex: "#AEAFB4")
 }
 
 enum AppFonts {

@@ -69,6 +69,8 @@ final class ScheduleViewController: UIViewController {
         bottomButtons.cancelButton.addTarget(self, action: #selector(cancelTapped), for: .touchUpInside)
         bottomButtons.createButton.addTarget(self, action: #selector(createTapped), for: .touchUpInside)
     }
+    
+    
 
     @objc private func cancelTapped() {
         print("✖️ ScheduleViewController: отмена — возвращаемся в NewHabitViewController")
@@ -122,10 +124,9 @@ extension ScheduleViewController {
         let day = daysOfWeek[sender.tag].day
         if sender.isOn {
             if !selectedDays.contains(day) { selectedDays.append(day) }
-            print("➕ Schedule: добавлен день \(day)")
         } else {
             selectedDays.removeAll { $0 == day }
-            print("➖ Schedule: удалён день \(day)")
         }
+        bottomButtons.setCreateButton(enabled: !selectedDays.isEmpty)
     }
 }

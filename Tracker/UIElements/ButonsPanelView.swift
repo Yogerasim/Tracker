@@ -18,8 +18,6 @@ final class ButonsPanelView: UIView {
     let createButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Создать", for: .normal)
-        button.backgroundColor = AppColors.backgroundBlackButton
-        button.setTitleColor(AppColors.textPrimary, for: .normal)
         button.layer.cornerRadius = AppLayout.cornerRadius
         button.titleLabel?.font = AppFonts.subheadline
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -34,8 +32,6 @@ final class ButonsPanelView: UIView {
         stack.translatesAutoresizingMaskIntoConstraints = false
         return stack
     }()
-    
-    
 
     // MARK: - Init
     var onCreateTapped: (() -> Void)?
@@ -44,6 +40,7 @@ final class ButonsPanelView: UIView {
         super.init(frame: frame)
         setupLayout()
         createButton.addTarget(self, action: #selector(createTapped), for: .touchUpInside)
+        setCreateButton(enabled: false) 
     }
     
     @objc private func createTapped() {
@@ -52,6 +49,13 @@ final class ButonsPanelView: UIView {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    // MARK: - Public
+    func setCreateButton(enabled: Bool) {
+        createButton.isEnabled = enabled
+        createButton.backgroundColor = enabled ? AppColors.backgroundBlackButton : .systemGray3
+        createButton.setTitleColor(AppColors.textPrimary, for: .normal)
     }
 
     // MARK: - Layout

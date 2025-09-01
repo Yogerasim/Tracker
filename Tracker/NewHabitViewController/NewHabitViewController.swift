@@ -1,6 +1,6 @@
 import UIKit
 
-final class NewHabitViewController: UIViewController {
+final class NewHabitViewController: UIViewController, UITextFieldDelegate {
 
     // MARK: - UI
     private let modalHeader = ModalHeaderView(title: "Новая привычка")
@@ -19,6 +19,7 @@ final class NewHabitViewController: UIViewController {
         setupTable()
         setupLayout()
         setupActions()
+        nameTextField.delegate = self
         print("➕ NewHabitViewController загружен")
     }
 
@@ -115,8 +116,38 @@ extension NewHabitViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        print("📌 NewHabitViewController: выбран ряд \(indexPath.row) — открытие Schedule только через кнопку 'Создать'")
+        
+        if indexPath.row == 1 { // "Расписание"
+            guard let title = nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !title.isEmpty else {
+                print("⚠️ NewHabitViewController: имя трекера не задано")
+                return
+            }
+
+            let scheduleVC = ScheduleViewController()
+            scheduleVC.trackerName = title
+            scheduleVC.onTrackerCreated = { [weak self] tracker in
+                guard let self = self else { return }
+                print("🟢 Schedule -> NewHabit: создан Tracker '\(tracker.name)' с расписанием: \(tracker.schedule.map { $0.rawValue })")
+
+                // Проброс наружу в TrackersViewController
+                self.onHabitCreated?(tracker)
+
+                // Закрываем оба экрана
+                self.dismiss(animated: true)
+            }
+
+            present(scheduleVC, animated: true)
+            print("📅 NewHabitViewController: открыт ScheduleViewController через выбор строки")
+        } else {
+            print("📌 NewHabitViewController: выбран ряд \(indexPath.row)")
+        }
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat { tableView.rowHeight }
+    
+    func textFieldDidChangeSelection(_ textField: UITextField) {
+            let hasText = !(textField.text?.trimmingCharacters(in: .whitespaces).isEmpty ?? true)
+            bottomButtons.setCreateButton(enabled: hasText)
+        }
 }
