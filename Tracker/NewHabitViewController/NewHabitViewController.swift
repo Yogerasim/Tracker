@@ -5,7 +5,7 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
     // MARK: - UI
     private let modalHeader = ModalHeaderView(title: "Новая привычка")
     private let nameTextField = AppTextField(placeholder: "Введите название трекера")
-    private let tableContainer = ContainerTableView(backgroundColor: .systemGray6, cornerRadius: AppLayout.cornerRadius)
+    private let tableContainer = ContainerTableView()
     private let bottomButtons = ButonsPanelView()
 
     // MARK: - Callback

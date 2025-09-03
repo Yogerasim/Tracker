@@ -1,34 +1,38 @@
 import UIKit
 
-final class NewIrregularEventViewController: UIViewController {
+final class NewIrregularEventViewController: UIViewController, UITextFieldDelegate {
 
     // MARK: - UI
     private let modalHeader = ModalHeaderView(title: "Новое нерегулярное событие")
     private let nameTextField = AppTextField(placeholder: "Введите название трекера")
-    private let tableContainer = ContainerTableView(
-        backgroundColor: .systemGray6,
-        cornerRadius: AppLayout.cornerRadius
-    )
+    private let tableContainer = ContainerTableView()
     private let bottomButtons = ButonsPanelView()
+
+    // MARK: - Callback
+    var onEventCreated: ((Tracker) -> Void)?
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = AppColors.background
 
+        setupTable()
+        setupLayout()
+        setupActions()
+        nameTextField.delegate = self
+
+        print("➕ NewIrregularEventViewController загружен")
+    }
+
+    // MARK: - Table setup
+    private func setupTable() {
         let tableView = tableContainer.tableView
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(ContainerTableViewCell.self, forCellReuseIdentifier: "cell")
-        tableView.separatorStyle = .none
-        tableView.contentInset = .zero
-        tableView.layoutMargins = .zero
-        tableView.backgroundColor = .clear
-
-        setupLayout()
-        setupActions()
-
-        tableContainer.updateHeight(forRows: 2)
+        tableView.isScrollEnabled = false
+        tableView.rowHeight = 75
+        tableContainer.updateHeight(forRows: 1)
     }
 
     // MARK: - Layout
@@ -39,23 +43,19 @@ final class NewIrregularEventViewController: UIViewController {
         }
 
         NSLayoutConstraint.activate([
-            // Заголовок
             modalHeader.topAnchor.constraint(equalTo: view.topAnchor),
             modalHeader.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             modalHeader.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 
-            // Текстовое поле
             nameTextField.topAnchor.constraint(equalTo: modalHeader.bottomAnchor, constant: AppLayout.padding),
             nameTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: UIConstants.horizontalPadding),
             nameTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -UIConstants.horizontalPadding),
             nameTextField.heightAnchor.constraint(equalToConstant: 75),
 
-            // Таблица (одна ячейка)
             tableContainer.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: AppLayout.padding),
             tableContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: UIConstants.horizontalPadding),
             tableContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -UIConstants.horizontalPadding),
 
-            // Панель кнопок снизу
             bottomButtons.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             bottomButtons.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             bottomButtons.bottomAnchor.constraint(equalTo: view.bottomAnchor)
@@ -73,28 +73,43 @@ final class NewIrregularEventViewController: UIViewController {
     }
 
     @objc private func createTapped() {
-        // логика создания нерегулярного события
+        guard let title = nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty else { return }
+
+        let tracker = Tracker(
+            id: UUID(),
+            name: title,
+            color: "#4CAF50",  // цвет для нерегулярного события
+            emoji: "🎯",
+            schedule: []       // пустой, так как нерегулярное событие
+        )
+
+        onEventCreated?(tracker)
+        dismiss(animated: true)
+    }
+
+    // MARK: - UITextField
+    func textFieldDidChangeSelection(_ textField: UITextField) {
+        let hasText = !(textField.text?.trimmingCharacters(in: .whitespaces).isEmpty ?? true)
+        bottomButtons.setCreateButton(enabled: hasText)
     }
 }
 
-// MARK: - UITableViewDataSource
-extension NewIrregularEventViewController: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 1
-    }
+// MARK: - UITableView
+extension NewIrregularEventViewController: UITableViewDataSource, UITableViewDelegate {
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 1 }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell
         cell.textLabel?.text = "Категория"
-        cell.accessoryType = .disclosureIndicator
+        cell.accessoryType = .disclosureIndicator // стрелочка справа
         cell.isLastCell = true
         return cell
     }
-}
 
-// MARK: - UITableViewDelegate
-extension NewIrregularEventViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return tableView.rowHeight
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        // Здесь можно открыть экран выбора категории
+        print("Категория выбрана")
     }
 }

@@ -196,19 +196,15 @@ final class TrackersViewController: UIViewController {
     // MARK: - Actions
     
     @objc func addButtonTapped() {
-        let newHabitVC = NewHabitViewController()
-        newHabitVC.onHabitCreated = { [weak self] tracker in
+        let createTrackerVC = CreateTrackerViewController()
+        
+        createTrackerVC.onTrackerCreated = { [weak self] tracker in
             guard let self = self else { return }
             print("🟢 TrackersViewController: получили новый трекер '\(tracker.name)' — добавляем в хранилище")
-            self.categoryStore.addTracker(tracker, to: self.defaultCategoryTitle)
-            
-            // Обновляем UI на главном потоке
-            DispatchQueue.main.async {
-                self.collectionView.reloadData()
-                self.updatePlaceholder()
-            }
+            self.addTrackerToDefaultCategory(tracker)
         }
-        present(newHabitVC, animated: true)
+        
+        present(createTrackerVC, animated: true)
     }
     
     func ensureDefaultCategory() {

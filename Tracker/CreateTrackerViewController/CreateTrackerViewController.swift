@@ -7,12 +7,14 @@ final class CreateTrackerViewController: UIViewController {
     private let habitButton = BlackButton(title: "Привычка")
     private let irregularButton = BlackButton(title: "Нерегулярное событие")
 
+    // MARK: - Callback
+    var onTrackerCreated: ((Tracker) -> Void)?
+
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = AppColors.background
 
-        // Добавляем модальный заголовок и кнопки
         [modalHeader, habitButton, irregularButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
@@ -24,31 +26,31 @@ final class CreateTrackerViewController: UIViewController {
         setupConstraints()
     }
 
+    // MARK: - Actions
+
     @objc private func habitButtonTapped() {
         let newHabitVC = NewHabitViewController()
-        
-        
-        
+        newHabitVC.onHabitCreated = { [weak self] tracker in
+            self?.onTrackerCreated?(tracker)
+        }
         presentFullScreenSheet(newHabitVC)
     }
-
+    
     @objc private func irregularButtonTapped() {
         let irregularVC = NewIrregularEventViewController()
+        irregularVC.onEventCreated = { [weak self] tracker in
+            self?.onTrackerCreated?(tracker)
+        }
         presentFullScreenSheet(irregularVC)
     }
-    
-    
-    
-    
 
     // MARK: - Constraints
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            // Модальный заголовок по верхней границе и растянут по ширине родителя
+            // Заголовок
             modalHeader.topAnchor.constraint(equalTo: view.topAnchor),
             modalHeader.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             modalHeader.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            
 
             // Кнопка "Привычка"
             habitButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: UIConstants.horizontalPadding),

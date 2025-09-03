@@ -36,7 +36,7 @@ final class ContainerTableView: UIView {
         ])
     }
 
-    /// Обновляем высоту контейнера в зависимости от количества строк
+    
     func updateHeight(forRows count: Int) {
         let newHeight = CGFloat(count) * tableView.rowHeight
         if let heightConstraint = heightConstraint {
