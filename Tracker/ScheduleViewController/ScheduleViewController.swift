@@ -70,6 +70,8 @@ final class ScheduleViewController: UIViewController {
     }
 
     @objc private func doneTapped() {
+        print("🔹 onDone selectedDays перед dismiss: \(selectedDays)") 
+
         onDone?(selectedDays)
         dismiss(animated: true)
     }
@@ -113,6 +115,10 @@ extension ScheduleViewController {
         } else {
             selectedDays.removeAll { $0 == day }
         }
+
+        print("🔹 Toggle: \(day) isOn: \(sender.isOn)")
+        print("🔹 selectedDays сейчас: \(selectedDays)")      //сразу после обновления массива
+
         updateDoneButtonState()
     }
 }

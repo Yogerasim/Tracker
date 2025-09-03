@@ -20,10 +20,32 @@ final class TrackersViewController: UIViewController {
     // MARK: - Add New Tracker
     func addTrackerToDefaultCategory(_ tracker: Tracker) {
         categoryStore.addTracker(tracker, to: defaultCategoryTitle)
+        updateCurrentDateForNewTracker(tracker)  // <- добавить сюда
         print("📌 Трекер '\(tracker.name)' добавлен в категорию '\(defaultCategoryTitle)'")
-
         collectionView.reloadData()
         updatePlaceholder()
+    }
+    
+    // MARK: - Обновление currentDate для нового трекера
+    private func updateCurrentDateForNewTracker(_ tracker: Tracker) {
+        guard !tracker.schedule.isEmpty else { return }
+
+        let todayWeekday = Calendar.current.component(.weekday, from: Date()) // 1 = Sunday
+        let weekdaysMap: [Int: WeekDay] = [
+            1: .sunday, 2: .monday, 3: .tuesday, 4: .wednesday,
+            5: .thursday, 6: .friday, 7: .saturday
+        ]
+
+        let sortedDays = tracker.schedule.sorted { $0.rawValue < $1.rawValue }
+
+        for offset in 0..<7 {
+            let nextDayIndex = (todayWeekday + offset - 1) % 7 + 1
+            if let day = weekdaysMap[nextDayIndex], sortedDays.contains(day),
+               let nextDate = Calendar.current.date(byAdding: .day, value: offset, to: Date()) {
+                currentDate = nextDate
+                break
+            }
+        }
     }
 
     // MARK: - Computed Data

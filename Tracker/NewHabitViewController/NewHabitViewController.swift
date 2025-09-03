@@ -13,6 +13,8 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
 
     // MARK: - State
     private var selectedDays: [WeekDay] = []
+    
+    private var scheduleVC: ScheduleViewController?
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -76,11 +78,9 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
     }
 
     @objc private func createTapped() {
-        guard let title = nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
-              !title.isEmpty else {
-            print("⚠️ NewHabitViewController: имя трекера не задано")
-            return
-        }
+        guard let title = nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty else { return }
+
+        print("🔹 selectedDays при создании трекера: \(selectedDays)")
 
         let tracker = Tracker(
             id: UUID(),
@@ -90,7 +90,6 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
             schedule: selectedDays
         )
 
-        print("🟢 NewHabitViewController: создан трекер '\(title)' с днями: \(selectedDays.map { $0.rawValue })")
         onHabitCreated?(tracker)
         dismiss(animated: true)
     }

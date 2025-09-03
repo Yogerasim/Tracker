@@ -28,8 +28,7 @@ final class NewIrregularEventViewController: UIViewController {
         setupLayout()
         setupActions()
 
-        // Высота под количество строк (1 строка = 75)
-        tableContainer.updateHeight(forRows: tableView.numberOfRows(inSection: 0))
+        tableContainer.updateHeight(forRows: 2)
     }
 
     // MARK: - Layout
