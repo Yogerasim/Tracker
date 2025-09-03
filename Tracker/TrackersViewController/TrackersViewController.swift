@@ -137,8 +137,8 @@ final class TrackersViewController: UIViewController {
 
         let label = UILabel()
         label.text = "Что будем отслеживать?"
-        label.textColor = AppColors.textSecondary
-        label.font = AppFonts.caption
+        label.textColor = AppColors.backgroundBlackButton
+        label.font = AppFonts.plug
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
 
@@ -179,8 +179,12 @@ final class TrackersViewController: UIViewController {
             guard let self = self else { return }
             print("🟢 TrackersViewController: получили новый трекер '\(tracker.name)' — добавляем в хранилище")
             self.categoryStore.addTracker(tracker, to: self.defaultCategoryTitle)
-            self.collectionView.reloadData()
-            self.updatePlaceholder()
+            
+            // Обновляем UI на главном потоке
+            DispatchQueue.main.async {
+                self.collectionView.reloadData()
+                self.updatePlaceholder()
+            }
         }
         present(newHabitVC, animated: true)
     }

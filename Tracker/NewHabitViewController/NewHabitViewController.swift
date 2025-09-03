@@ -8,9 +8,11 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
     private let tableContainer = ContainerTableView(backgroundColor: .systemGray6, cornerRadius: AppLayout.cornerRadius)
     private let bottomButtons = ButonsPanelView()
 
-    // MARK: - Callbacks
-    /// TrackersViewController подпишется на это, чтобы получить итоговый Tracker
+    // MARK: - Callback
     var onHabitCreated: ((Tracker) -> Void)?
+
+    // MARK: - State
+    private var selectedDays: [WeekDay] = []
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -23,17 +25,16 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
         print("➕ NewHabitViewController загружен")
     }
 
-    // MARK: - Setup Table
+    // MARK: - Table setup
     private func setupTable() {
         let tableView = tableContainer.tableView
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(ContainerTableViewCell.self, forCellReuseIdentifier: "cell")
         tableView.separatorStyle = .none
-        tableView.contentInset = .zero
-        tableView.layoutMargins = .zero
-        tableView.backgroundColor = .clear
-        tableContainer.updateHeight(forRows: tableView.numberOfRows(inSection: 0))
+        tableView.isScrollEnabled = false
+        tableView.rowHeight = 75
+        tableContainer.updateHeight(forRows: 2)
     }
 
     // MARK: - Layout
@@ -74,7 +75,6 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
         dismiss(animated: true)
     }
 
-    /// Переход в ScheduleViewController
     @objc private func createTapped() {
         guard let title = nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
               !title.isEmpty else {
@@ -82,28 +82,29 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
             return
         }
 
-        print("✏️ NewHabitViewController: введено имя '\(title)' — открываем ScheduleViewController")
+        let tracker = Tracker(
+            id: UUID(),
+            name: title,
+            color: "#FD4C49",
+            emoji: "📚",
+            schedule: selectedDays
+        )
 
-        let scheduleVC = ScheduleViewController()
-        scheduleVC.trackerName = title
-        scheduleVC.onTrackerCreated = { [weak self] tracker in
-            guard let self = self else { return }
-            print("🟢 Schedule -> NewHabit: создан Tracker '\(tracker.name)' с расписанием: \(tracker.schedule.map { $0.rawValue })")
+        print("🟢 NewHabitViewController: создан трекер '\(title)' с днями: \(selectedDays.map { $0.rawValue })")
+        onHabitCreated?(tracker)
+        dismiss(animated: true)
+    }
 
-            // Проброс наружу в TrackersViewController
-            self.onHabitCreated?(tracker)
-
-            // Закрываем оба экрана
-            self.dismiss(animated: true)
-        }
-
-        present(scheduleVC, animated: true)
-        print("📅 NewHabitViewController: открыт ScheduleViewController")
+    // MARK: - UITextField
+    func textFieldDidChangeSelection(_ textField: UITextField) {
+        let hasText = !(textField.text?.trimmingCharacters(in: .whitespaces).isEmpty ?? true)
+        bottomButtons.setCreateButton(enabled: hasText)
     }
 }
 
 // MARK: - UITableView
 extension NewHabitViewController: UITableViewDataSource, UITableViewDelegate {
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 2 }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -116,38 +117,13 @@ extension NewHabitViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        
-        if indexPath.row == 1 { // "Расписание"
-            guard let title = nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
-                  !title.isEmpty else {
-                print("⚠️ NewHabitViewController: имя трекера не задано")
-                return
-            }
-
+        if indexPath.row == 1 {
             let scheduleVC = ScheduleViewController()
-            scheduleVC.trackerName = title
-            scheduleVC.onTrackerCreated = { [weak self] tracker in
-                guard let self = self else { return }
-                print("🟢 Schedule -> NewHabit: создан Tracker '\(tracker.name)' с расписанием: \(tracker.schedule.map { $0.rawValue })")
-
-                // Проброс наружу в TrackersViewController
-                self.onHabitCreated?(tracker)
-
-                // Закрываем оба экрана
-                self.dismiss(animated: true)
+            scheduleVC.selectedDays = selectedDays
+            scheduleVC.onDone = { [weak self] days in
+                self?.selectedDays = days
             }
-
             present(scheduleVC, animated: true)
-            print("📅 NewHabitViewController: открыт ScheduleViewController через выбор строки")
-        } else {
-            print("📌 NewHabitViewController: выбран ряд \(indexPath.row)")
         }
     }
-
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat { tableView.rowHeight }
-    
-    func textFieldDidChangeSelection(_ textField: UITextField) {
-            let hasText = !(textField.text?.trimmingCharacters(in: .whitespaces).isEmpty ?? true)
-            bottomButtons.setCreateButton(enabled: hasText)
-        }
 }

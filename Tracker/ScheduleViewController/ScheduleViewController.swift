@@ -3,10 +3,9 @@ import UIKit
 final class ScheduleViewController: UIViewController {
 
     // MARK: - Properties
-    var trackerName: String!  // Имя трекера из NewHabitVC
-    var onTrackerCreated: ((Tracker) -> Void)?
+    var selectedDays: [WeekDay] = []
+    var onDone: (([WeekDay]) -> Void)?
 
-    private var selectedDays: [WeekDay] = []
     private let daysOfWeek: [(title: String, day: WeekDay)] = [
         ("Понедельник", .monday),
         ("Вторник", .tuesday),
@@ -20,7 +19,7 @@ final class ScheduleViewController: UIViewController {
     // MARK: - UI
     private let modalHeader = ModalHeaderView(title: "Расписание")
     private let tableContainer = ContainerTableView()
-    private let bottomButtons = ButonsPanelView()
+    private let doneButton = DoneButton()
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -38,13 +37,13 @@ final class ScheduleViewController: UIViewController {
         setupLayout()
         setupActions()
         tableContainer.updateHeight(forRows: daysOfWeek.count)
-
-        print("📅 ScheduleViewController загружен для трекера '\(trackerName ?? "Без имени")'")
+        updateDoneButtonState()
+        print("📅 ScheduleViewController загружен")
     }
 
     // MARK: - Layout
     private func setupLayout() {
-        [modalHeader, tableContainer, bottomButtons].forEach {
+        [modalHeader, tableContainer, doneButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
@@ -58,63 +57,50 @@ final class ScheduleViewController: UIViewController {
             tableContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: UIConstants.horizontalPadding),
             tableContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -UIConstants.horizontalPadding),
 
-            bottomButtons.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            bottomButtons.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            bottomButtons.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            doneButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            doneButton.heightAnchor.constraint(equalToConstant: 60)
         ])
     }
 
     // MARK: - Actions
     private func setupActions() {
-        bottomButtons.cancelButton.addTarget(self, action: #selector(cancelTapped), for: .touchUpInside)
-        bottomButtons.createButton.addTarget(self, action: #selector(createTapped), for: .touchUpInside)
+        doneButton.addTarget(self, action: #selector(doneTapped), for: .touchUpInside)
     }
-    
-    
 
-    @objc private func cancelTapped() {
-        print("✖️ ScheduleViewController: отмена — возвращаемся в NewHabitViewController")
+    @objc private func doneTapped() {
+        onDone?(selectedDays)
         dismiss(animated: true)
     }
 
-    @objc private func createTapped() {
-        print("✅ ScheduleViewController: Создать трекер '\(trackerName!)' с выбранными днями: \(selectedDays.map { $0.rawValue })")
-
-        let tracker = Tracker(
-            id: UUID(),
-            name: trackerName,
-            color: "#FD4C49",
-            emoji: "📚",
-            schedule: selectedDays
-        )
-
-        onTrackerCreated?(tracker)
+    private func updateDoneButtonState() {
+        let enabled = true
+        doneButton.isEnabled = enabled
+        doneButton.backgroundColor = enabled ? AppColors.backgroundBlackButton : .systemGray3
+        doneButton.setTitleColor(AppColors.textPrimary, for: .normal)
     }
 }
 
-// MARK: - UITableViewDataSource
-extension ScheduleViewController: UITableViewDataSource {
+// MARK: - UITableView
+extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { daysOfWeek.count }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell
         let item = daysOfWeek[indexPath.row]
-
         cell.textLabel?.text = item.title
-        cell.isLastCell = (indexPath.row == daysOfWeek.count - 1)
+        cell.isLastCell = indexPath.row == daysOfWeek.count - 1
 
         let toggle = UISwitch()
         toggle.tag = indexPath.row
         toggle.isOn = selectedDays.contains(item.day)
         toggle.addTarget(self, action: #selector(toggleChanged(_:)), for: .valueChanged)
         cell.accessoryView = toggle
-
         return cell
     }
-}
 
-// MARK: - UITableViewDelegate
-extension ScheduleViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat { tableView.rowHeight }
 }
 
@@ -127,6 +113,6 @@ extension ScheduleViewController {
         } else {
             selectedDays.removeAll { $0 == day }
         }
-        bottomButtons.setCreateButton(enabled: !selectedDays.isEmpty)
+        updateDoneButtonState()
     }
 }

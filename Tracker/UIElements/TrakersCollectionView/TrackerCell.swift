@@ -3,6 +3,10 @@ import UIKit
 final class TrackerCell: UICollectionViewCell {
     static let reuseIdentifier = "TrackerCell"
     var onToggleCompletion: (() -> Void)?
+    
+    // MARK: - State
+    private var isCompleted: Bool = false
+    private var daysCount: Int = 0
 
     // MARK: - UI
     private let cardView: UIView = {
@@ -17,7 +21,7 @@ final class TrackerCell: UICollectionViewCell {
         label.font = .systemFont(ofSize: 12, weight: .medium)
         label.textAlignment = .center
         label.backgroundColor = UIColor.white.withAlphaComponent(0.5)
-        label.layer.cornerRadius = 12 
+        label.layer.cornerRadius = 12
         label.layer.masksToBounds = true
         return label
     }()
@@ -68,13 +72,23 @@ final class TrackerCell: UICollectionViewCell {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     // MARK: - Actions
-    @objc private func toggleTapped() { onToggleCompletion?() }
+    @objc private func toggleTapped() {
+        isCompleted.toggle()
+        daysCount += isCompleted ? 1 : -1
+        if daysCount < 0 { daysCount = 0 } // защита от отрицательных значений
 
-    // MARK: - Configure
+        updateDayLabel()
+        updateButton()
+
+        onToggleCompletion?()
+    }
+
     func configure(with tracker: Tracker, isCompleted: Bool, count: Int) {
+        self.isCompleted = isCompleted
+        self.daysCount = count
+
         emojiLabel.text = tracker.emoji
         titleLabel.text = tracker.name
-        dayLabel.text = "\(count) день"
 
         if let c = UIColor(hexString: tracker.color) {
             cardView.backgroundColor = c
@@ -84,8 +98,27 @@ final class TrackerCell: UICollectionViewCell {
             toggleButton.backgroundColor = .lightGray
         }
 
-        let symbol = isCompleted ? "✓" : "+"
-        toggleButton.setTitle(symbol, for: .normal)
+        updateDayLabel()
+        updateButton()
+    }
+
+    private func updateDayLabel() {
+        let dayWord: String
+        switch daysCount {
+        case 1: dayWord = "день"
+        case 2...4: dayWord = "дня"
+        default: dayWord = "дней"
+        }
+        dayLabel.text = "\(daysCount) \(dayWord)"
+    }
+
+    private func updateButton() {
+        let symbolName = isCompleted ? "checkmark" : "plus"
+        let config = UIImage.SymbolConfiguration(pointSize: 11, weight: .bold)
+        let image = UIImage(systemName: symbolName, withConfiguration: config)
+        toggleButton.setImage(image, for: .normal)
+        toggleButton.tintColor = .white
+        toggleButton.setTitle(nil, for: .normal)
     }
 
     // MARK: - Layout
@@ -98,35 +131,29 @@ final class TrackerCell: UICollectionViewCell {
         toggleButton.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            // cardView сверху
             cardView.topAnchor.constraint(equalTo: contentView.topAnchor),
             cardView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             cardView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             cardView.heightAnchor.constraint(equalToConstant: 90),
 
-            // emojiLabel слева сверху карточки
             emojiLabel.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 8),
             emojiLabel.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 8),
             emojiLabel.widthAnchor.constraint(equalToConstant: 24),
             emojiLabel.heightAnchor.constraint(equalToConstant: 24),
 
-            // titleLabel слева снизу карточки
             titleLabel.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 8),
             titleLabel.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -8),
             titleLabel.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -8),
 
-            // bottomContainer под карточкой
             bottomContainer.topAnchor.constraint(equalTo: cardView.bottomAnchor, constant: 4),
             bottomContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             bottomContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             bottomContainer.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             bottomContainer.heightAnchor.constraint(equalToConstant: 34),
 
-            // dayLabel слева в bottomContainer
             dayLabel.centerYAnchor.constraint(equalTo: bottomContainer.centerYAnchor),
             dayLabel.leadingAnchor.constraint(equalTo: bottomContainer.leadingAnchor, constant: 8),
 
-            // toggleButton справа в bottomContainer
             toggleButton.centerYAnchor.constraint(equalTo: bottomContainer.centerYAnchor),
             toggleButton.trailingAnchor.constraint(equalTo: bottomContainer.trailingAnchor, constant: -12),
             toggleButton.widthAnchor.constraint(equalToConstant: 34),
