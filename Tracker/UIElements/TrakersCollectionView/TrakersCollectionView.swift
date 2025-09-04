@@ -25,9 +25,15 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         print("🟡 Настраиваем ячейку для трекера '\(tracker.name)' | isCompleted: \(isCompleted) | count: \(count)")
 
         cell.configure(with: tracker, isCompleted: isCompleted, count: count)
+
+        // Проверка: будущая дата?
+        let isFuture = Calendar.current.startOfDay(for: currentDate) > Calendar.current.startOfDay(for: Date())
+        cell.setCompletionEnabled(!isFuture)
+
         cell.onToggleCompletion = { [weak self, weak collectionView] in
             guard let self = self, let collectionView = collectionView else { return }
-            if self.currentDate > Date() {
+
+            if isFuture {
                 print("⚠️ Невозможно изменить трекер на будущую дату")
                 return
             }
@@ -42,7 +48,6 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
 
             collectionView.reloadItems(at: [indexPath])
         }
-
         return cell
     }
 

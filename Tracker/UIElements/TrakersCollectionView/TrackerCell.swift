@@ -73,14 +73,12 @@ final class TrackerCell: UICollectionViewCell {
 
     // MARK: - Actions
     @objc private func toggleTapped() {
-        isCompleted.toggle()
-        daysCount += isCompleted ? 1 : -1
-        if daysCount < 0 { daysCount = 0 } // защита от отрицательных значений
-
-        updateDayLabel()
-        updateButton()
-
         onToggleCompletion?()
+    }
+    
+    func setCompletionEnabled(_ enabled: Bool) {
+        toggleButton.isEnabled = enabled
+        toggleButton.alpha = enabled ? 1.0 : 0.5
     }
 
     func configure(with tracker: Tracker, isCompleted: Bool, count: Int) {

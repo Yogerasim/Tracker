@@ -58,10 +58,8 @@ final class TrackersViewController: UIViewController {
     }
 
     var trackers: [Tracker] {
-        let day = weekDay(from: currentDate)
-        return categories
-            .flatMap { $0.trackers }
-            .filter { $0.schedule.isEmpty || $0.schedule.contains(day) }
+        // Пока не фильтруем по расписанию
+        categories.flatMap { $0.trackers }
     }
 
     // MARK: - Lifecycle
@@ -223,6 +221,14 @@ final class TrackersViewController: UIViewController {
     }
 
     func markTrackerAsCompleted(_ tracker: Tracker, on date: Date) {
+        let today = Calendar.current.startOfDay(for: Date())
+        let selectedDay = Calendar.current.startOfDay(for: date)
+        
+        guard selectedDay <= today else {
+            print("⚠️ Нельзя отмечать трекеры в будущем: \(selectedDay)")
+            return
+        }
+
         recordStore.addRecord(for: tracker.id, date: date)
         collectionView.reloadData()
     }
