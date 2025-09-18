@@ -20,6 +20,7 @@ enum AppFonts {
     static let headline = AppFonts.semibold(17)
     static let subheadline = AppFonts.medium(15)
     static let plug = AppFonts.medium(12)
+    static let bold = AppFonts.bold(19)
     
     // MARK: - System SF Pro
     static func regular(_ size: CGFloat) -> UIFont {

@@ -15,6 +15,7 @@ final class ModalHeaderView: UIView {
     // MARK: - Init
     init(title: String) {
         super.init(frame: .zero)
+        backgroundColor = AppColors.background 
         titleLabel.text = title
         setupLayout()
     }

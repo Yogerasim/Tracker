@@ -39,6 +39,7 @@ final class ButonsPanelView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupLayout()
+        backgroundColor = AppColors.background 
         createButton.addTarget(self, action: #selector(createTapped), for: .touchUpInside)
         setCreateButton(enabled: false) 
     }
