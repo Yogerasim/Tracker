@@ -13,6 +13,7 @@ enum WeekDay: Int, CaseIterable, Codable {
 }
 
 struct TrackerCategory {
+    let id: UUID
     let title: String
     let trackers: [Tracker]
 }

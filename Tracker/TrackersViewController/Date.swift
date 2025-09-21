@@ -1,6 +1,7 @@
 import UIKit
 
 extension TrackersViewController {
+
     @objc func openDatePicker() {
         dateTextField.becomeFirstResponder()
     }

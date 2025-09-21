@@ -3,8 +3,8 @@ import UIKit
 final class TrackersViewController: UIViewController {
 
     // MARK: - Stores
-    private let categoryStore = TrackerCategoryStore()
-    private let recordStore = TrackerRecordStore()
+    private let categoryStore: TrackerCategoryStore
+    private let recordStore: TrackerRecordStore
 
     // MARK: - State
     private let defaultCategoryTitle = "Мои трекеры"
@@ -17,16 +17,36 @@ final class TrackersViewController: UIViewController {
         }
     }
     
+    // MARK: - Init
+    init() {
+        let context = CoreDataStack.shared.context
+        self.categoryStore = TrackerCategoryStore(context: context)
+        self.recordStore = TrackerRecordStore(context: context)
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        let context = CoreDataStack.shared.context
+        self.categoryStore = TrackerCategoryStore(context: context)
+        self.recordStore = TrackerRecordStore(context: context)
+        super.init(coder: coder)
+    }
+    
     // MARK: - Add New Tracker
     func addTrackerToDefaultCategory(_ tracker: Tracker) {
         categoryStore.addTracker(tracker, to: defaultCategoryTitle)
-        updateCurrentDateForNewTracker(tracker)  // <- добавить сюда
+        
+        // Обновляем категории
+        let _ = categories // если нужно, можно сохранить в отдельный массив
+        updateCurrentDateForNewTracker(tracker)
+        
         print("📌 Трекер '\(tracker.name)' добавлен в категорию '\(defaultCategoryTitle)'")
+        
         collectionView.reloadData()
         updatePlaceholder()
     }
     
-    // MARK: - Обновление currentDate для нового трекера
+    // MARK: - Update currentDate for new tracker
     private func updateCurrentDateForNewTracker(_ tracker: Tracker) {
         guard !tracker.schedule.isEmpty else { return }
 
@@ -50,7 +70,7 @@ final class TrackersViewController: UIViewController {
 
     // MARK: - Computed Data
     var categories: [TrackerCategory] {
-        categoryStore.categories
+        categoryStore.fetchAll()
     }
 
     var completedTrackers: [TrackerRecord] {
@@ -58,7 +78,6 @@ final class TrackersViewController: UIViewController {
     }
 
     var trackers: [Tracker] {
-        // Пока не фильтруем по расписанию
         categories.flatMap { $0.trackers }
     }
 
@@ -81,6 +100,34 @@ final class TrackersViewController: UIViewController {
 
         print("✅ TrackersViewController загружен")
     }
+    
+    // MARK: - UI Elements для Date.swift и Layout.swift
+        lazy var dateTextField: UITextField = {
+            let tf = UITextField()
+            tf.borderStyle = .roundedRect
+            tf.font = AppFonts.caption
+            tf.textAlignment = .center
+            tf.translatesAutoresizingMaskIntoConstraints = false
+            tf.inputView = datePicker
+            tf.tintColor = .clear
+            return tf
+        }()
+
+        lazy var titleStack: UIStackView = {
+            let stack = UIStackView(arrangedSubviews: [titleLabel, dateTextField])
+            stack.axis = .horizontal
+            stack.spacing = 8
+            stack.alignment = .center
+            stack.translatesAutoresizingMaskIntoConstraints = false
+            return stack
+        }()
+
+        let searchBar: UISearchBar = {
+            let sb = UISearchBar()
+            sb.placeholder = "Поиск трекеров"
+            sb.translatesAutoresizingMaskIntoConstraints = false
+            return sb
+        }()
 
     // MARK: - UI
     let titleLabel: UILabel = {
@@ -90,35 +137,6 @@ final class TrackersViewController: UIViewController {
         label.textColor = AppColors.backgroundBlackButton
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
-    }()
-
-    let searchBar: UISearchBar = {
-        let sb = UISearchBar()
-        sb.placeholder = "Поиск"
-        sb.backgroundImage = UIImage()
-        sb.translatesAutoresizingMaskIntoConstraints = false
-        return sb
-    }()
-
-    lazy var dateTextField: UITextField = {
-        let tf = UITextField()
-        tf.borderStyle = .roundedRect
-        tf.font = AppFonts.caption
-        tf.textAlignment = .center
-        tf.translatesAutoresizingMaskIntoConstraints = false
-        tf.inputView = datePicker
-        tf.tintColor = .clear
-        tf.widthAnchor.constraint(equalToConstant: 110).isActive = true
-        return tf
-    }()
-
-    lazy var titleStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [titleLabel, datePicker])
-        stack.axis = .horizontal
-        stack.spacing = 8
-        stack.alignment = .center
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        return stack
     }()
 
     lazy var datePicker: UIDatePicker = {
@@ -192,14 +210,11 @@ final class TrackersViewController: UIViewController {
     }()
 
     // MARK: - Actions
-    
     @objc func addButtonTapped() {
         let createTrackerVC = CreateTrackerViewController()
         
         createTrackerVC.onTrackerCreated = { [weak self] tracker in
-            guard let self = self else { return }
-            print("🟢 TrackersViewController: получили новый трекер '\(tracker.name)' — добавляем в хранилище")
-            self.addTrackerToDefaultCategory(tracker)
+            self?.addTrackerToDefaultCategory(tracker)
         }
         
         present(createTrackerVC, animated: true)
@@ -207,17 +222,11 @@ final class TrackersViewController: UIViewController {
     
     func ensureDefaultCategory() {
         if !categories.contains(where: { $0.title == defaultCategoryTitle }) {
-            categoryStore.addCategory(
-                TrackerCategory(title: defaultCategoryTitle, trackers: [])
+            categoryStore.add(
+                TrackerCategory(id: UUID(), title: defaultCategoryTitle, trackers: [])
             )
             print("📂 Создана категория по умолчанию '\(defaultCategoryTitle)'")
         }
-    }
-
-    func weekDay(from date: Date) -> WeekDay {
-        let wd = Calendar.current.component(.weekday, from: date)
-        let map = [6, 0, 1, 2, 3, 4, 5]
-        return WeekDay(rawValue: map[wd - 1]) ?? .monday
     }
 
     func markTrackerAsCompleted(_ tracker: Tracker, on date: Date) {
@@ -242,3 +251,5 @@ final class TrackersViewController: UIViewController {
         recordStore.isCompleted(trackerId: tracker.id, date: date)
     }
 }
+
+
