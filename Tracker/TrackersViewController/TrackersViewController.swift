@@ -5,9 +5,12 @@ final class TrackersViewController: UIViewController {
     // MARK: - Stores
     private let categoryStore: TrackerCategoryStore
     private let recordStore: TrackerRecordStore
+    private let trackerStore: TrackerStore
 
     // MARK: - State
     private let defaultCategoryTitle = "Мои трекеры"
+    private(set) var trackers: [Tracker] = []
+    
     var currentDate: Date = Date() {
         didSet {
             print("📅 Выбрана новая дата: \(currentDate)")
@@ -18,39 +21,38 @@ final class TrackersViewController: UIViewController {
     }
     
     // MARK: - Init
-    init() {
-        let context = CoreDataStack.shared.context
-        self.categoryStore = TrackerCategoryStore(context: context)
-        self.recordStore = TrackerRecordStore(context: context)
-        super.init(nibName: nil, bundle: nil)
-    }
-    
-    required init?(coder: NSCoder) {
-        let context = CoreDataStack.shared.context
-        self.categoryStore = TrackerCategoryStore(context: context)
-        self.recordStore = TrackerRecordStore(context: context)
-        super.init(coder: coder)
-    }
+        init() {
+            let context = CoreDataStack.shared.context
+            self.categoryStore = TrackerCategoryStore(context: context)
+            self.recordStore = TrackerRecordStore(context: context)
+            self.trackerStore = TrackerStore(context: context)
+            super.init(nibName: nil, bundle: nil)
+            self.trackerStore.delegate = self
+        }
+        
+        required init?(coder: NSCoder) {
+            let context = CoreDataStack.shared.context
+            self.categoryStore = TrackerCategoryStore(context: context)
+            self.recordStore = TrackerRecordStore(context: context)
+            self.trackerStore = TrackerStore(context: context)
+            super.init(coder: coder)
+            self.trackerStore.delegate = self
+        }
     
     // MARK: - Add New Tracker
     func addTrackerToDefaultCategory(_ tracker: Tracker) {
         categoryStore.addTracker(tracker, to: defaultCategoryTitle)
-        
-        // Обновляем категории
-        let _ = categories // если нужно, можно сохранить в отдельный массив
+        trackerStore.add(tracker)
+
         updateCurrentDateForNewTracker(tracker)
-        
         print("📌 Трекер '\(tracker.name)' добавлен в категорию '\(defaultCategoryTitle)'")
-        
-        collectionView.reloadData()
-        updatePlaceholder()
     }
     
     // MARK: - Update currentDate for new tracker
     private func updateCurrentDateForNewTracker(_ tracker: Tracker) {
         guard !tracker.schedule.isEmpty else { return }
 
-        let todayWeekday = Calendar.current.component(.weekday, from: Date()) // 1 = Sunday
+        let todayWeekday = Calendar.current.component(.weekday, from: Date())
         let weekdaysMap: [Int: WeekDay] = [
             1: .sunday, 2: .monday, 3: .tuesday, 4: .wednesday,
             5: .thursday, 6: .friday, 7: .saturday
@@ -70,15 +72,11 @@ final class TrackersViewController: UIViewController {
 
     // MARK: - Computed Data
     var categories: [TrackerCategory] {
-        categoryStore.fetchAll()
+        categoryStore.categories
     }
 
     var completedTrackers: [TrackerRecord] {
         recordStore.completedTrackers
-    }
-
-    var trackers: [Tracker] {
-        categories.flatMap { $0.trackers }
     }
 
     // MARK: - Lifecycle
@@ -97,6 +95,10 @@ final class TrackersViewController: UIViewController {
 
         ensureDefaultCategory()
         updatePlaceholder()
+        
+        categoryStore.delegate = self
+        
+        collectionView.reloadData()
 
         print("✅ TrackersViewController загружен")
     }
@@ -122,12 +124,14 @@ final class TrackersViewController: UIViewController {
             return stack
         }()
 
-        let searchBar: UISearchBar = {
-            let sb = UISearchBar()
-            sb.placeholder = "Поиск трекеров"
-            sb.translatesAutoresizingMaskIntoConstraints = false
-            return sb
-        }()
+    let searchBar: UISearchBar = {
+        let sb = UISearchBar()
+        sb.placeholder = "Поиск"
+        sb.searchBarStyle = .minimal
+        sb.backgroundImage = UIImage()
+        sb.translatesAutoresizingMaskIntoConstraints = false
+        return sb
+    }()
 
     // MARK: - UI
     let titleLabel: UILabel = {
@@ -252,4 +256,21 @@ final class TrackersViewController: UIViewController {
     }
 }
 
+
+// MARK: - TrackerStoreDelegate
+extension TrackersViewController: TrackerStoreDelegate {
+    func didUpdateTrackers(_ trackers: [Tracker]) {
+        print("🔄 Обновлено \(trackers.count) трекеров из Core Data")
+        self.trackers = trackers
+        collectionView.reloadData()
+        updatePlaceholder()
+    }
+}
+
+// MARK: - TrackerCategoryStoreDelegate
+extension TrackersViewController: TrackerCategoryStoreDelegate {
+    func didUpdateCategories() {
+        collectionView.reloadData()
+    }
+}
 

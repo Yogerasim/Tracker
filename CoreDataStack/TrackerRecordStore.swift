@@ -1,25 +1,53 @@
 import CoreData
 
-final class TrackerRecordStore {
+protocol TrackerRecordStoreDelegate: AnyObject {
+    func didUpdateRecords()
+}
+
+final class TrackerRecordStore: NSObject {
     private let context: NSManagedObjectContext
+    private let fetchedResultsController: NSFetchedResultsController<TrackerRecordCoreData>
+    weak var delegate: TrackerRecordStoreDelegate?
 
     init(context: NSManagedObjectContext) {
         self.context = context
-    }
 
-    var completedTrackers: [TrackerRecord] {
+        // Запрос
         let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
+        request.sortDescriptors = [
+            NSSortDescriptor(keyPath: \TrackerRecordCoreData.date, ascending: true)
+        ]
+
+        
+        self.fetchedResultsController = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: context,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+
+        super.init()
+
+        fetchedResultsController.delegate = self
+
         do {
-            let records = try context.fetch(request)
-            return records.compactMap { rec in
-                guard let id = rec.trackerId, let date = rec.date else { return nil }
-                return TrackerRecord(trackerId: id, date: date)
-            }
+            try fetchedResultsController.performFetch()
         } catch {
-            print("❌ Ошибка fetch completedTrackers: \(error)")
-            return []
+            print("❌ Ошибка performFetch: \(error)")
         }
     }
+
+    // MARK: - Access
+
+    var completedTrackers: [TrackerRecord] {
+        guard let objects = fetchedResultsController.fetchedObjects else { return [] }
+        return objects.compactMap { rec in
+            guard let id = rec.trackerId, let date = rec.date else { return nil }
+            return TrackerRecord(trackerId: id, date: date)
+        }
+    }
+
+    // MARK: - CRUD
 
     func addRecord(for trackerId: UUID, date: Date) {
         let record = TrackerRecordCoreData(context: context)
@@ -53,11 +81,21 @@ final class TrackerRecordStore {
         }
     }
 
+    // MARK: - Save
+
     private func saveContext() {
         do {
             if context.hasChanges { try context.save() }
         } catch {
             print("❌ Ошибка сохранения контекста: \(error)")
         }
+    }
+}
+
+// MARK: - NSFetchedResultsControllerDelegate
+
+extension TrackerRecordStore: NSFetchedResultsControllerDelegate {
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        delegate?.didUpdateRecords()
     }
 }

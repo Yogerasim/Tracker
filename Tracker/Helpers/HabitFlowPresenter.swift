@@ -21,7 +21,7 @@ final class HabitFlowPresenter {
 
     private func ensureDefaultCategory() {
         
-        if !categoryStore.fetchAll().contains(where: { $0.title == defaultCategoryTitle }) {
+        if !categoryStore.categories.contains(where: { $0.title == defaultCategoryTitle }) {
             
             let newCategory = TrackerCategory(
                 id: UUID(),
