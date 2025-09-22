@@ -36,13 +36,23 @@ final class TrackerCategoryStore: NSObject {
     // MARK: - Access
     var categories: [TrackerCategory] {
         guard let objects = fetchedResultsController.fetchedObjects else { return [] }
-        return objects.map { cdCategory in
-            TrackerCategory(
-                id: cdCategory.id!,
-                title: cdCategory.title!,
-                trackers: [] // трекеры можно подгружать отдельно
-            )
+        return objects.compactMap { toCategory(from: $0) }
+    }
+
+    private func toCategory(from cdCategory: TrackerCategoryCoreData) -> TrackerCategory? {
+        guard let id = cdCategory.id,
+              let title = cdCategory.title else {
+            print("⚠️ Ошибка маппинга TrackerCategoryCoreData: отсутствует id или title")
+            return nil
         }
+
+        let trackers: [Tracker] = []
+        
+        return TrackerCategory(
+            id: id,
+            title: title,
+            trackers: trackers
+        )
     }
 
     // MARK: - Create / Delete
