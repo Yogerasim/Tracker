@@ -101,9 +101,9 @@
 		A712CE9B2E4A66F10050C5DC = {
 			isa = PBXGroup;
 			children = (
+				A712CEA62E4A66F10050C5DC /* Tracker */,
 				A7B7BD212E79205C000579FD /* CoreDataStack */,
 				A76B44382E744A7300E6F830 /* Tracker.xcdatamodeld */,
-				A712CEA62E4A66F10050C5DC /* Tracker */,
 				A712CEBD2E4A66F20050C5DC /* TrackerTests */,
 				A712CEC72E4A66F20050C5DC /* TrackerUITests */,
 				A712CEA52E4A66F10050C5DC /* Products */,
