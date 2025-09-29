@@ -1,27 +1,55 @@
 import Foundation
 
 final class CategoryViewModel {
-    var titleText: String { "Категория" }
-    var placeholderText: String { "Привычки и события можно\nобъединить по смыслу" }
-    var buttonTitle: String { "Добавить категорию" }
 
-    private(set) var categories: [String] = [] {
+    private let categoryStore: TrackerCategoryStore
+
+    // MARK: - Bindings
+    var onCategoriesChanged: (([TrackerCategory]) -> Void)?
+    var onCategorySelected: ((TrackerCategory) -> Void)?
+    var onShowNewCategory: (() -> Void)?
+
+    // MARK: - Data
+    private(set) var categories: [TrackerCategory] = [] {
         didSet { onCategoriesChanged?(categories) }
     }
 
-    var onCategoriesChanged: (([String]) -> Void)?
-    var onCategorySelected: ((String) -> Void)?
-    var onShowNewCategory: (() -> Void)?
+    init(store: TrackerCategoryStore) {
+        self.categoryStore = store
+        self.categoryStore.delegate = self
+        loadCategories()
+    }
 
+    // MARK: - Methods
     func loadCategories() {
-        categories = []
+        categories = categoryStore.categories
     }
 
     func addCategoryTapped() {
         onShowNewCategory?()
     }
 
-    func selectCategory(_ category: String) {
-        onCategorySelected?(category)
+    func selectCategory(at index: Int) {
+        guard index < categories.count else { return }
+        onCategorySelected?(categories[index])
+    }
+
+    func add(_ category: TrackerCategory) {
+        categoryStore.add(category)
+    }
+
+    // UITableView helpers
+    var numberOfRows: Int { categories.count }
+
+    func categoryName(at index: Int) -> String {
+        guard index < categories.count else { return "" }
+        return categories[index].title
+    }
+}
+
+// MARK: - TrackerCategoryStoreDelegate
+extension CategoryViewModel: TrackerCategoryStoreDelegate {
+    func didUpdateCategories() {
+        loadCategories() 
     }
 }

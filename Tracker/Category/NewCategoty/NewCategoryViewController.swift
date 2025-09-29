@@ -23,11 +23,13 @@ final class NewCategoryViewController: UIViewController {
     }
 
     private func setupBindings() {
+        // включение/отключение кнопки
         viewModel.isButtonEnabled = { [weak self] enabled in
             self?.customView.doneButton.isEnabled = enabled
             self?.customView.doneButton.backgroundColor = enabled ? AppColors.backgroundBlackButton : AppColors.gray
         }
 
+        // после создания категории
         viewModel.onCategoryCreated = { [weak self] category in
             self?.dismiss(animated: true)
         }

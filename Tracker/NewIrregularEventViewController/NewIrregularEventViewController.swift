@@ -5,6 +5,7 @@ final class NewIrregularEventViewController: UIViewController, UITextFieldDelega
     // MARK: - UI
     private let scrollView = UIScrollView()
     private let contentStack = UIStackView()
+    private var selectedCategory: TrackerCategoryCoreData?
     
     private let modalHeader = ModalHeaderView(title: "Новое нерегулярное событие")
     private let nameTextField = AppTextField(placeholder: "Введите название трекера")
@@ -146,8 +147,10 @@ final class NewIrregularEventViewController: UIViewController, UITextFieldDelega
             name: title,
             color: color.toHexString(),
             emoji: emoji,
-            schedule: [] // для нерегулярного события всегда пусто
-        )
+            schedule: [],
+            trackerCategory: selectedCategory
+            )
+
         
         onEventCreated?(tracker)
         dismiss(animated: true)

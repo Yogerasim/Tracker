@@ -1,24 +1,26 @@
-import UIKit
-
+import Foundation
 final class NewCategoryViewModel {
 
-    // Входящие данные
+    private let store: TrackerCategoryStore
     var categoryName: String = "" {
-        didSet { validateCategoryName() }
+        didSet { isButtonEnabled?( !categoryName.trimmingCharacters(in: .whitespaces).isEmpty ) }
     }
 
-    // Выходящие события
+    // MARK: - Bindings
     var isButtonEnabled: ((Bool) -> Void)?
-    var onCategoryCreated: ((String) -> Void)?
-
-    private func validateCategoryName() {
-        let hasText = !categoryName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        isButtonEnabled?(hasText)
+    var onCategoryCreated: ((TrackerCategory) -> Void)?
+    
+    init(store: TrackerCategoryStore) {
+        self.store = store
     }
 
+    // MARK: - Save
     func saveCategory() {
-        let trimmedName = categoryName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedName = categoryName.trimmingCharacters(in: .whitespaces)
         guard !trimmedName.isEmpty else { return }
-        onCategoryCreated?(trimmedName)
+        
+        let category = TrackerCategory(id: UUID(), title: trimmedName, trackers: [])
+        store.add(category)            // сохраняем в Core Data
+        onCategoryCreated?(category)   // уведомляем контроллер
     }
 }

@@ -51,7 +51,8 @@ final class TrackerStore: NSObject {
         cdTracker.color = tracker.color
         cdTracker.emoji = tracker.emoji
         cdTracker.schedule = tracker.schedule as NSObject
-        
+        cdTracker.trackerCategory = tracker.trackerCategory // <- напрямую
+
         saveContext()
     }
     
@@ -79,6 +80,7 @@ final class TrackerStore: NSObject {
                 cdTracker.color = tracker.color
                 cdTracker.emoji = tracker.emoji
                 cdTracker.schedule = tracker.schedule as NSObject
+                cdTracker.trackerCategory = tracker.trackerCategory
                 saveContext()
             }
         } catch {
@@ -115,7 +117,14 @@ private extension TrackerCoreData {
               let color = color,
               let emoji = emoji,
               let schedule = schedule as? [WeekDay] else { return nil }
-        
-        return Tracker(id: id, name: name, color: color, emoji: emoji, schedule: schedule)
+
+        return Tracker(
+            id: id,
+            name: name,
+            color: color,
+            emoji: emoji,
+            schedule: schedule,
+            trackerCategory: trackerCategory as? TrackerCategoryCoreData
+        )
     }
 }

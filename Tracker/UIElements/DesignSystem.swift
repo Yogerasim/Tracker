@@ -18,6 +18,7 @@ enum AppFonts {
     static let bigTitle2 = AppFonts.bold(32)
     static let body = AppFonts.medium(16)
     static let caption = AppFonts.regular(14)
+    static let caption2 = AppFonts.regular(17)
     static let headline = AppFonts.semibold(17)
     static let subheadline = AppFonts.medium(15)
     static let plug = AppFonts.medium(12)

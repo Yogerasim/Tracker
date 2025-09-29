@@ -38,13 +38,20 @@ final class ContainerTableView: UIView {
 
     
     func updateHeight(forRows count: Int) {
-        let newHeight = CGFloat(count) * tableView.rowHeight
+        let newHeight: CGFloat
+        if count == 0 {
+            newHeight = 200 
+        } else {
+            newHeight = CGFloat(count) * tableView.rowHeight
+        }
+
         if let heightConstraint = heightConstraint {
             heightConstraint.constant = newHeight
         } else {
             heightConstraint = heightAnchor.constraint(equalToConstant: newHeight)
             heightConstraint?.isActive = true
         }
+
         layoutIfNeeded()
     }
 }
