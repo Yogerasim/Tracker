@@ -185,13 +185,17 @@ extension NewHabitViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        if indexPath.row == 1 {
-            let scheduleVC = ScheduleViewController()
-            scheduleVC.selectedDays = selectedDays
-            scheduleVC.onDone = { [weak self] days in
-                self?.selectedDays = days
+        if indexPath.row == 0 {
+            let categoryVM = CategoryViewModel()
+            let categoryVC = CategoryViewController(viewModel: categoryVM)
+
+            categoryVM.onCategorySelected = { [weak self] category in
+                // сохраняем выбранную категорию в NewHabitViewController
+                print("✅ выбрана категория: \(category)")
+                // здесь можно обновить UI (например, показать выбранное название в ячейке)
             }
-            present(scheduleVC, animated: true)
+
+            present(categoryVC, animated: true)
         }
     }
 }

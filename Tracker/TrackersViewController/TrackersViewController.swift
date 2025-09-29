@@ -134,6 +134,7 @@ final class TrackersViewController: UIViewController {
     }()
     
     // MARK: - UI
+    
     let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Трекеры"
