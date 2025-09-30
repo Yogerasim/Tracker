@@ -14,6 +14,7 @@ final class CategoryViewController: UIViewController {
 
     // MARK: - State
     private var selectedCategoryIndex: Int?
+    var onCategorySelected: ((TrackerCategoryCoreData) -> Void)?
 
     // MARK: - Constants
     private enum Constants {
@@ -36,10 +37,11 @@ final class CategoryViewController: UIViewController {
         view.backgroundColor = AppColors.background
         setupLayout()
         setupTableView()
+        setupActions()
         updateUI()
     }
 
-    // MARK: - Private UI Setup
+    // MARK: - UI Setup
     private func setupLayout() {
         [header, tableContainer, placeholderView, addButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
@@ -79,19 +81,25 @@ final class CategoryViewController: UIViewController {
         tableView.rowHeight = Constants.rowHeight
     }
 
+    private func setupActions() {
+        addButton.addTarget(self, action: #selector(addCategoryTapped), for: .touchUpInside)
+    }
+
     private func updateUI() {
-        let hasCategories = !categoryStore.fetchCategories().isEmpty
+        let categories = categoryStore.fetchCategories()
+        let hasCategories = !categories.isEmpty
         placeholderView.configure(text: "Привычки и события можно\nобъединить по смыслу")
         placeholderView.isHidden = hasCategories
         tableContainer.isHidden = !hasCategories
-        tableContainer.updateHeight(forRows: categoryStore.fetchCategories().count)
+        tableContainer.updateHeight(forRows: categories.count)
         tableContainer.tableView.reloadData()
     }
 
     @objc private func addCategoryTapped() {
         let newCategoryVM = NewCategoryViewModel(store: categoryStore)
         newCategoryVM.onCategoryCreated = { [weak self] category in
-            self?.categoryStore.add(category) // TrackerCategoryCoreData
+            // Добавляем в CoreData
+            self?.categoryStore.add(category)
             self?.updateUI()
         }
 
@@ -148,8 +156,9 @@ extension CategoryViewController: UITableViewDataSource, UITableViewDelegate {
         tableView.reloadRows(at: indexPathsToReload, with: .none)
 
         let selectedCategory = categoryStore.fetchCategories()[indexPath.row]
-        // Здесь можно вызвать делегат или замыкание для передачи выбранной категории
         print("Выбрана категория: \(selectedCategory.title ?? "")")
+        // Можно добавить замыкание для передачи выбранной категории наружу
+        onCategorySelected?(selectedCategory)
     }
 }
 
@@ -159,3 +168,5 @@ extension CategoryViewController: TrackerCategoryStoreDelegate {
         updateUI()
     }
 }
+
+
