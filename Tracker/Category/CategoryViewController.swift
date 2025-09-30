@@ -2,16 +2,24 @@ import UIKit
 
 final class CategoryViewController: UIViewController {
 
+    // MARK: - UI
     private let header = ModalHeaderView(title: "Категория")
     private let placeholderView = PlaceholderView()
     private let addButton = BlackButton(title: "Добавьте категорию")
     private let tableContainer = ContainerTableView()
 
+    // MARK: - Dependencies
     private let viewModel: CategoryViewModel
     private let categoryStore: TrackerCategoryStore
 
-    // Отслеживаем выбранную категорию
+    // MARK: - State
     private var selectedCategoryIndex: Int?
+
+    // MARK: - Constants
+    private enum Constants {
+        static let checkmarkImageName = "ic 24x24"
+        static let rowHeight: CGFloat = 75
+    }
 
     // MARK: - Init
     init(viewModel: CategoryViewModel, store: TrackerCategoryStore) {
@@ -22,6 +30,7 @@ final class CategoryViewController: UIViewController {
 
     required init?(coder: NSCoder) { fatalError() }
 
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = AppColors.background
@@ -30,7 +39,7 @@ final class CategoryViewController: UIViewController {
         bindViewModel()
     }
 
-    // MARK: - Layout
+    // MARK: - Private UI Setup
     private func setupLayout() {
         [header, tableContainer, placeholderView, addButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
@@ -67,7 +76,7 @@ final class CategoryViewController: UIViewController {
         tableView.register(ContainerTableViewCell.self, forCellReuseIdentifier: "cell")
         tableView.separatorStyle = .none
         tableView.isScrollEnabled = false
-        tableView.rowHeight = 75
+        tableView.rowHeight = Constants.rowHeight
     }
 
     private func bindViewModel() {
@@ -96,6 +105,24 @@ final class CategoryViewController: UIViewController {
         let newCategoryVC = NewCategoryViewController(viewModel: newCategoryVM)
         present(newCategoryVC, animated: true)
     }
+
+    // MARK: - Helpers
+    private func configureCheckmark(for cell: UITableViewCell, at indexPath: IndexPath) {
+        if indexPath.row == selectedCategoryIndex {
+            let checkmark = UIImageView(image: UIImage(named: Constants.checkmarkImageName))
+            checkmark.contentMode = .scaleAspectFit
+
+            let container = UIView(
+                frame: CGRect(x: 0, y: 0, width: 24, height: Int(Constants.rowHeight) - 1)
+            )
+            checkmark.frame = container.bounds
+            container.addSubview(checkmark)
+
+            cell.accessoryView = container
+        } else {
+            cell.accessoryView = nil
+        }
+    }
 }
 
 // MARK: - UITableViewDataSource & Delegate
@@ -110,29 +137,14 @@ extension CategoryViewController: UITableViewDataSource, UITableViewDelegate {
         cell.textLabel?.text = viewModel.categoryName(at: indexPath.row)
         cell.isLastCell = indexPath.row == viewModel.numberOfRows - 1
 
-        // Показываем галочку только для выбранной категории
-        if indexPath.row == selectedCategoryIndex {
-            let checkmark = UIImageView(image: UIImage(named: "ic 24x24"))
-            checkmark.contentMode = .scaleAspectFit
-            // контейнер чуть выше separator
-            let container = UIView(frame: CGRect(x: 0, y: 0, width: 24, height: tableView.rowHeight - 1))
-            checkmark.frame = CGRect(x: 0, y: 0, width: 24, height: tableView.rowHeight - 1)
-            container.addSubview(checkmark)
-            cell.accessoryView = container
-        } else {
-            cell.accessoryView = nil
-        }
-
+        configureCheckmark(for: cell, at: indexPath)
         return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-
-        // Сохраняем выбранный индекс и перезагружаем таблицу
         selectedCategoryIndex = indexPath.row
         tableView.reloadData()
-
         viewModel.selectCategory(at: indexPath.row)
     }
 }

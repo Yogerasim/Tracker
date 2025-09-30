@@ -19,7 +19,7 @@ final class TrackerRecordStore: NSObject {
 
         self.fetchedResultsController = NSFetchedResultsController(
             fetchRequest: request,
-            managedObjectContext: viewContext, // UI всегда слушает главный поток
+            managedObjectContext: viewContext,
             sectionNameKeyPath: nil,
             cacheName: nil
         )
@@ -27,7 +27,6 @@ final class TrackerRecordStore: NSObject {
         super.init()
         fetchedResultsController.delegate = self
 
-        // Автомердж изменений из фонового контекста в главный
         viewContext.automaticallyMergesChangesFromParent = true
 
         do {
@@ -82,7 +81,7 @@ final class TrackerRecordStore: NSObject {
         request.predicate = NSPredicate(format: "tracker == %@ AND date == %@", tracker, date as CVarArg)
 
         do {
-            let count = try viewContext.count(for: request) // проверка всегда через UI-контекст
+            let count = try viewContext.count(for: request)
             return count > 0
         } catch {
             print("❌ Ошибка isCompleted: \(error)")
