@@ -10,10 +10,6 @@ extension TrackersViewController {
         dateTextField.resignFirstResponder()
     }
 
-    @objc func dateChanged(_ sender: UIDatePicker) {
-        currentDate = sender.date
-    }
-
     func updateDateText() {
         let df = DateFormatter()
         df.locale = Locale(identifier: "ru_RU")

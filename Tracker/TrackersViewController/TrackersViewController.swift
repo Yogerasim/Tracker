@@ -10,6 +10,7 @@ final class TrackersViewController: UIViewController {
     // MARK: - State
     private let defaultCategoryTitle = "Мои трекеры"
     private(set) var trackers: [Tracker] = []
+    private var isDatePickerVisible = false
     
     var currentDate: Date = Date() {
         didSet {
@@ -90,15 +91,30 @@ final class TrackersViewController: UIViewController {
         setupLayout()
         setupPlaceholder()
         
-        datePicker.date = currentDate
-        updateDateText()
-        
         ensureDefaultCategory()
         updatePlaceholder()
         
         categoryStore.delegate = self
         
         collectionView.reloadData()
+        
+        datePicker.date = currentDate
+        updateDateText()
+        
+        view.addSubview(datePickerContainer)
+        datePickerContainer.addSubview(datePicker)
+        
+        NSLayoutConstraint.activate([
+            datePickerContainer.topAnchor.constraint(equalTo: titleStack.bottomAnchor, constant: 8),
+            datePickerContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            datePickerContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+
+            // сам datePicker внутри контейнера
+            datePicker.topAnchor.constraint(equalTo: datePickerContainer.topAnchor, constant: 8),
+            datePicker.leadingAnchor.constraint(equalTo: datePickerContainer.leadingAnchor, constant: 8),
+            datePicker.trailingAnchor.constraint(equalTo: datePickerContainer.trailingAnchor, constant: -8),
+            datePicker.bottomAnchor.constraint(equalTo: datePickerContainer.bottomAnchor, constant: -8)
+        ])
         
         print("✅ TrackersViewController загружен")
     }
@@ -110,8 +126,12 @@ final class TrackersViewController: UIViewController {
         tf.font = AppFonts.caption
         tf.textAlignment = .center
         tf.translatesAutoresizingMaskIntoConstraints = false
-        tf.inputView = datePicker
         tf.tintColor = .clear
+
+        // Тап по полю — показывает/скрывает datePicker
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(toggleDatePicker))
+        tf.addGestureRecognizer(tapGesture)
+
         return tf
     }()
     
@@ -145,14 +165,16 @@ final class TrackersViewController: UIViewController {
     }()
     
     lazy var datePicker: UIDatePicker = {
-        let dp = UIDatePicker()
-        dp.datePickerMode = .date
-        dp.preferredDatePickerStyle = .compact
-        dp.locale = Locale(identifier: "ru_RU")
-        dp.calendar = Calendar(identifier: .gregorian)
-        dp.addTarget(self, action: #selector(dateChanged(_:)), for: .valueChanged)
-        return dp
-    }()
+            let dp = UIDatePicker()
+            dp.datePickerMode = .date
+            dp.preferredDatePickerStyle = .inline
+            dp.locale = Locale(identifier: "ru_RU")
+            dp.calendar = Calendar(identifier: .gregorian)
+            dp.translatesAutoresizingMaskIntoConstraints = false
+            dp.addTarget(self, action: #selector(dateChanged(_:)), for: .valueChanged)
+            
+            return dp
+        }()
     
     lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -214,15 +236,39 @@ final class TrackersViewController: UIViewController {
         return UIBarButtonItem(customView: button)
     }()
     
+    private lazy var datePickerContainer: UIView = {
+        let container = UIView()
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.backgroundColor = .systemBackground // системный белый фон
+        container.layer.cornerRadius = 12
+        container.layer.shadowColor = UIColor.black.cgColor
+        container.layer.shadowOpacity = 0.1
+        container.layer.shadowOffset = CGSize(width: 0, height: 2)
+        container.layer.shadowRadius = 4
+        container.isHidden = true
+        return container
+    }()
+    
     // MARK: - Actions
     @objc func addButtonTapped() {
         let createTrackerVC = CreateTrackerViewController()
-        
+
         createTrackerVC.onTrackerCreated = { [weak self] tracker in
             self?.addTrackerToDefaultCategory(tracker)
         }
-        
+
         present(createTrackerVC, animated: true)
+    }
+
+    @objc func toggleDatePicker() {
+        isDatePickerVisible.toggle()
+        UIView.animate(withDuration: 0.25) {
+            self.datePickerContainer.isHidden = !self.isDatePickerVisible
+        }
+    }
+
+    @objc private func dateChanged(_ sender: UIDatePicker) {
+        currentDate = sender.date
     }
     
     func ensureDefaultCategory() {
