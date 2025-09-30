@@ -1,16 +1,18 @@
 import UIKit
 
 extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDelegate {
+    
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return viewModel.categories.isEmpty ? 1 : viewModel.categories.count
+    }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         updatePlaceholder()
-        print("🟢 collectionView numberOfItemsInSection: \(trackers.count)")
-        return trackers.count
+        if viewModel.categories.isEmpty { return 0 }
+        return viewModel.categories[section].trackers.count
     }
 
-    func collectionView(_ collectionView: UICollectionView,
-                        cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: TrackerCell.reuseIdentifier,
             for: indexPath
@@ -18,42 +20,32 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
             return UICollectionViewCell()
         }
 
-        let tracker = trackers[indexPath.item]
-        let isCompleted = isTrackerCompleted(tracker, on: currentDate)
-        let count = completedTrackers.filter { $0.trackerId == tracker.id }.count
-
-        print("🟡 Настраиваем ячейку для трекера '\(tracker.name)' | isCompleted: \(isCompleted) | count: \(count)")
+        let tracker = viewModel.categories[indexPath.section].trackers[indexPath.item]
+        let isCompleted = viewModel.isTrackerCompleted(tracker, on: viewModel.currentDate)
+        let count = viewModel.completedTrackers.filter { $0.trackerId == tracker.id }.count
 
         cell.configure(with: tracker, isCompleted: isCompleted, count: count)
 
-        // Проверка: будущая дата?
-        let isFuture = Calendar.current.startOfDay(for: currentDate) > Calendar.current.startOfDay(for: Date())
+        let isFuture = Calendar.current.startOfDay(for: viewModel.currentDate) > Calendar.current.startOfDay(for: Date())
         cell.setCompletionEnabled(!isFuture)
 
         cell.onToggleCompletion = { [weak self, weak collectionView] in
             guard let self = self, let collectionView = collectionView else { return }
+            if isFuture { return }
 
-            if isFuture {
-                print("⚠️ Невозможно изменить трекер на будущую дату")
-                return
-            }
-
-            if self.isTrackerCompleted(tracker, on: self.currentDate) {
-                print("❌ Снимаем выполнение трекера '\(tracker.name)' на дату \(self.currentDate)")
-                self.unmarkTrackerAsCompleted(tracker, on: self.currentDate)
+            if self.viewModel.isTrackerCompleted(tracker, on: self.viewModel.currentDate) {
+                self.viewModel.unmarkTrackerAsCompleted(tracker, on: self.viewModel.currentDate)
             } else {
-                print("✅ Отмечаем трекер '\(tracker.name)' выполненным на дату \(self.currentDate)")
-                self.markTrackerAsCompleted(tracker, on: self.currentDate)
+                self.viewModel.markTrackerAsCompleted(tracker, on: self.viewModel.currentDate)
             }
 
             collectionView.reloadItems(at: [indexPath])
         }
+
         return cell
     }
-
-    // MARK: - Добавление нового трекера через расширение
+    
     func addNewTracker(_ tracker: Tracker) {
-        // вызываем метод из класса
-        addTrackerToDefaultCategory(tracker)
+        viewModel.addTrackerToDefaultCategory(tracker)
     }
 }
