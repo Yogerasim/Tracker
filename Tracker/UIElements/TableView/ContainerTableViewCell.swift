@@ -2,22 +2,20 @@ import UIKit
 
 final class ContainerTableViewCell: UITableViewCell {
 
-    // MARK: - Отступ слева
     private let leftPadding: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
 
-    // MARK: - Разделитель между ячейками
     private let separatorLine: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = UIColor.systemGray4
+        view.layer.zPosition = 1 // separator всегда выше контента галочки
         return view
     }()
 
-    // MARK: - Флаг последней ячейки
     var isLastCell: Bool = false {
         didSet {
             separatorLine.isHidden = isLastCell
@@ -34,14 +32,12 @@ final class ContainerTableViewCell: UITableViewCell {
     }
 
     private func setupStyle() {
-        // Общий стиль ячейки
         backgroundColor = .systemGray6
         contentView.backgroundColor = .systemGray6
         selectionStyle = .none
         layoutMargins = .zero
         separatorInset = .zero
 
-        // Отступ слева
         contentView.addSubview(leftPadding)
         NSLayoutConstraint.activate([
             leftPadding.widthAnchor.constraint(equalToConstant: 20),
@@ -50,7 +46,6 @@ final class ContainerTableViewCell: UITableViewCell {
             leftPadding.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
         ])
 
-        // Текст
         if let label = textLabel {
             label.translatesAutoresizingMaskIntoConstraints = false
             NSLayoutConstraint.activate([
@@ -61,12 +56,11 @@ final class ContainerTableViewCell: UITableViewCell {
             ])
         }
 
-        // Разделитель
         contentView.addSubview(separatorLine)
         NSLayoutConstraint.activate([
             separatorLine.heightAnchor.constraint(equalToConstant: 1),
             separatorLine.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            separatorLine.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            separatorLine.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             separatorLine.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
         ])
     }

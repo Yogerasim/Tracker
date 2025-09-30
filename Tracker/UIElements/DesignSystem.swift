@@ -15,11 +15,14 @@ enum AppFonts {
     // MARK: - Presets
     static let title = AppFonts.bold(20)
     static let bigTitle = AppFonts.bold(34)
+    static let bigTitle2 = AppFonts.bold(32)
     static let body = AppFonts.medium(16)
     static let caption = AppFonts.regular(14)
+    static let caption2 = AppFonts.regular(17)
     static let headline = AppFonts.semibold(17)
     static let subheadline = AppFonts.medium(15)
     static let plug = AppFonts.medium(12)
+    static let bold = AppFonts.bold(19)
     
     // MARK: - System SF Pro
     static func regular(_ size: CGFloat) -> UIFont {

@@ -20,10 +20,15 @@ final class HabitFlowPresenter {
     }
 
     private func ensureDefaultCategory() {
+        
         if !categoryStore.categories.contains(where: { $0.title == defaultCategoryTitle }) {
-            categoryStore.addCategory(
-                TrackerCategory(title: defaultCategoryTitle, trackers: [])
+            
+            let newCategory = TrackerCategory(
+                id: UUID(),
+                title: defaultCategoryTitle,
+                trackers: []
             )
+            categoryStore.add(newCategory)
             print("📂 Создана категория по умолчанию '\(defaultCategoryTitle)'")
         }
     }
