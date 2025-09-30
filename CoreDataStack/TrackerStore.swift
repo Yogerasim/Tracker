@@ -98,7 +98,9 @@ final class TrackerStore: NSObject {
     }
     
     private func notifyDelegate() {
-        delegate?.didUpdateTrackers(getTrackers())
+        let trackersList = getTrackers()
+        print("🟢 Notifying delegate, trackers: \(trackersList.map { $0.name })")
+        delegate?.didUpdateTrackers(trackersList)
     }
 }
 
@@ -109,6 +111,7 @@ extension TrackerStore: NSFetchedResultsControllerDelegate {
     }
 }
 
+
 // MARK: - Mapper
 private extension TrackerCoreData {
     func toTracker() -> Tracker? {
@@ -116,15 +119,28 @@ private extension TrackerCoreData {
               let name = name,
               let color = color,
               let emoji = emoji,
-              let schedule = schedule as? [WeekDay] else { return nil }
+              let schedule = schedule else {
+            print("❌ toTracker guard failed for id: \(id?.uuidString ?? "nil")")
+            return nil
+        }
 
-        return Tracker(
+        print("DEBUG: raw trackerCategory property type: \(type(of: self.trackerCategory as Any))")
+        print("DEBUG: raw schedule property type: \(type(of: schedule))")
+
+        // try cast schedule to expected type
+        let scheduleArray = schedule as? [WeekDay] ?? []
+        let category = trackerCategory as? TrackerCategoryCoreData
+
+        let tracker = Tracker(
             id: id,
             name: name,
             color: color,
             emoji: emoji,
-            schedule: schedule,
-            trackerCategory: trackerCategory as? TrackerCategoryCoreData
+            schedule: scheduleArray,
+            trackerCategory: category
         )
+
+        print("🟢 Mapped TrackerCoreData -> Tracker: \(tracker.name), category: \(category?.title ?? "nil")")
+        return tracker
     }
 }

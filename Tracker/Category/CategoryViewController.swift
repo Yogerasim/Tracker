@@ -7,6 +7,7 @@ final class CategoryViewController: UIViewController {
     private let placeholderView = PlaceholderView()
     private let addButton = BlackButton(title: "Добавьте категорию")
     private let tableContainer = ContainerTableView()
+    
 
     // MARK: - Dependencies
     private let viewModel: CategoryViewModel

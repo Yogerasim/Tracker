@@ -20,7 +20,7 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
     private var selectedDays: [WeekDay] = []
     private var selectedEmoji: String?
     private var selectedColor: UIColor?
-    private var selectedCategory: TrackerCategory?
+    private var selectedCategory: TrackerCategoryCoreData?
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -152,8 +152,8 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
             name: title,
             color: color.toHexString(),
             emoji: emoji,
-            schedule: selectedDays,
-            trackerCategory: selectedCategory as? TrackerCategoryCoreData
+            schedule: [],
+            trackerCategory: selectedCategory
         )
         
         onHabitCreated?(tracker)
@@ -195,13 +195,14 @@ extension NewHabitViewController: UITableViewDataSource, UITableViewDelegate {
             let categoryVC = CategoryViewController(viewModel: categoryVM, store: categoryStore)
             
             categoryVM.onCategorySelected = { [weak self] category in
+                // Теперь используем Core Data модель
                 self?.selectedCategory = category
                 tableView.reloadRows(at: [indexPath], with: .automatic)
             }
             
             present(categoryVC, animated: true)
         }
-        
+
         if indexPath.row == 1 {
             let scheduleVC = ScheduleViewController()
             scheduleVC.selectedDays = selectedDays

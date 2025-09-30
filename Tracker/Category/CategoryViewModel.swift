@@ -6,7 +6,7 @@ final class CategoryViewModel {
 
     // MARK: - Bindings
     var onCategoriesChanged: (([TrackerCategory]) -> Void)?
-    var onCategorySelected: ((TrackerCategory) -> Void)?
+    var onCategorySelected: ((TrackerCategoryCoreData) -> Void)?
     var onShowNewCategory: (() -> Void)?
 
     // MARK: - Data
@@ -31,7 +31,14 @@ final class CategoryViewModel {
 
     func selectCategory(at index: Int) {
         guard index < categories.count else { return }
-        onCategorySelected?(categories[index])
+        let category = categories[index]
+        
+        // Преобразуем в CoreData
+        let coreDataCategory = TrackerCategoryCoreData(context: CoreDataStack.shared.context)
+        coreDataCategory.id = category.id
+        coreDataCategory.title = category.title
+        
+        onCategorySelected?(coreDataCategory)
     }
 
     func add(_ category: TrackerCategory) {

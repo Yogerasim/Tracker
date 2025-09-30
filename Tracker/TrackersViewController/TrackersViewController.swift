@@ -162,6 +162,11 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Layout
     func setupLayout() {
+        // Константы для отступов
+        let spacingButtonToTitle: CGFloat = 2
+        let spacingTitleToSearch: CGFloat = 2
+        let spacingSearchToCollection: CGFloat = 8
+        
         view.addSubview(addButton)
         view.addSubview(titleLabel)
         view.addSubview(dateButton)
@@ -176,8 +181,8 @@ final class TrackersViewController: UIViewController {
             addButton.heightAnchor.constraint(equalToConstant: 42),
             
             // Заголовок под кнопкой плюс
-            titleLabel.topAnchor.constraint(equalTo: addButton.bottomAnchor, constant: 8),
-            titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            titleLabel.topAnchor.constraint(equalTo: addButton.bottomAnchor, constant: spacingButtonToTitle),
+            titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 25),
             
             // Дата справа на уровне кнопки плюс
             dateButton.centerYAnchor.constraint(equalTo: addButton.centerYAnchor),
@@ -186,12 +191,12 @@ final class TrackersViewController: UIViewController {
             dateButton.heightAnchor.constraint(equalToConstant: 34),
             
             // Поиск под заголовком
-            searchBar.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
+            searchBar.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: spacingTitleToSearch),
             searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             
-            // CollectionView
-            collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 16),
+            // CollectionView под поиском
+            collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: spacingSearchToCollection),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)

@@ -170,7 +170,7 @@ extension NewIrregularEventViewController: UITableViewDataSource, UITableViewDel
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell
-        cell.textLabel?.text = "Категория"
+        cell.textLabel?.text = selectedCategory?.title ?? "Категория"
         cell.accessoryType = .disclosureIndicator
         cell.isLastCell = true
         return cell
@@ -178,6 +178,18 @@ extension NewIrregularEventViewController: UITableViewDataSource, UITableViewDel
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        print("Категория выбрана")
+        
+        // Переход к CategoryViewController
+        let coreDataStack = CoreDataStack.shared
+        let categoryStore = TrackerCategoryStore(context: coreDataStack.context)
+        let categoryVM = CategoryViewModel(store: categoryStore)
+        let categoryVC = CategoryViewController(viewModel: categoryVM, store: categoryStore)
+        
+        categoryVM.onCategorySelected = { [weak self] category in
+            self?.selectedCategory = category
+            tableView.reloadRows(at: [indexPath], with: .automatic)
+        }
+        
+        present(categoryVC, animated: true)
     }
 }
