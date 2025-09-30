@@ -11,7 +11,7 @@ final class CategorySelector {
         let coreDataStack = CoreDataStack.shared
         let categoryStore = TrackerCategoryStore(context: coreDataStack.context)
         let categoryVM = CategoryViewModel(store: categoryStore)
-        let categoryVC = CategoryViewController(viewModel: categoryVM, store: categoryStore)
+        let categoryVC = CategoryViewController(store: categoryStore)
 
         categoryVM.onCategorySelected = { category in
             // category уже должен быть TrackerCategoryCoreData

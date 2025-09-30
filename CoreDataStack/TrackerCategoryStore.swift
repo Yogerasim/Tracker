@@ -92,6 +92,21 @@ final class TrackerCategoryStore: NSObject {
             print("❌ Ошибка добавления трекера в категорию: \(error)")
         }
     }
+    func fetchCategories() -> [TrackerCategoryCoreData] {
+            return fetchedResultsController.fetchedObjects ?? []
+        }
+
+        func add(_ category: TrackerCategoryCoreData) {
+            // Проверяем, что объект с таким UUID ещё не существует
+            let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
+            request.predicate = NSPredicate(format: "id == %@", category.id! as CVarArg)
+            if let results = try? context.fetch(request), results.isEmpty {
+                let newCategory = TrackerCategoryCoreData(context: context)
+                newCategory.id = category.id
+                newCategory.title = category.title
+                saveContext()
+            }
+        }
 
     // MARK: - Private
     private static func makeFetchRequest() -> NSFetchRequest<TrackerCategoryCoreData> {

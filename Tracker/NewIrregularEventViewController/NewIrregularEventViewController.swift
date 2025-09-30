@@ -183,7 +183,7 @@ extension NewIrregularEventViewController: UITableViewDataSource, UITableViewDel
         let coreDataStack = CoreDataStack.shared
         let categoryStore = TrackerCategoryStore(context: coreDataStack.context)
         let categoryVM = CategoryViewModel(store: categoryStore)
-        let categoryVC = CategoryViewController(viewModel: categoryVM, store: categoryStore)
+        let categoryVC = CategoryViewController(store: categoryStore)
         
         categoryVM.onCategorySelected = { [weak self] category in
             self?.selectedCategory = category

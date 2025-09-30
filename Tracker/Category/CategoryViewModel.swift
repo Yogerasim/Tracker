@@ -1,16 +1,13 @@
-import Foundation
-
 final class CategoryViewModel {
 
     private let categoryStore: TrackerCategoryStore
 
     // MARK: - Bindings
-    var onCategoriesChanged: (([TrackerCategory]) -> Void)?
+    var onCategoriesChanged: (([TrackerCategoryCoreData]) -> Void)?
     var onCategorySelected: ((TrackerCategoryCoreData) -> Void)?
-    var onShowNewCategory: (() -> Void)?
 
     // MARK: - Data
-    private(set) var categories: [TrackerCategory] = [] {
+    private(set) var categories: [TrackerCategoryCoreData] = [] {
         didSet { onCategoriesChanged?(categories) }
     }
 
@@ -20,43 +17,30 @@ final class CategoryViewModel {
         loadCategories()
     }
 
-    // MARK: - Methods
     func loadCategories() {
-        categories = categoryStore.categories
-    }
-
-    func addCategoryTapped() {
-        onShowNewCategory?()
+        categories = categoryStore.fetchCategories() // возвращает [TrackerCategoryCoreData]
     }
 
     func selectCategory(at index: Int) {
         guard index < categories.count else { return }
-        let category = categories[index]
-        
-        // Преобразуем в CoreData
-        let coreDataCategory = TrackerCategoryCoreData(context: CoreDataStack.shared.context)
-        coreDataCategory.id = category.id
-        coreDataCategory.title = category.title
-        
-        onCategorySelected?(coreDataCategory)
+        let selectedCategory = categories[index]
+        onCategorySelected?(selectedCategory)
     }
 
-    func add(_ category: TrackerCategory) {
+    func add(_ category: TrackerCategoryCoreData) {
         categoryStore.add(category)
     }
 
-    // UITableView helpers
     var numberOfRows: Int { categories.count }
 
     func categoryName(at index: Int) -> String {
         guard index < categories.count else { return "" }
-        return categories[index].title
+        return categories[index].title ?? ""
     }
 }
 
-// MARK: - TrackerCategoryStoreDelegate
 extension CategoryViewModel: TrackerCategoryStoreDelegate {
     func didUpdateCategories() {
-        loadCategories() 
+        loadCategories()
     }
 }

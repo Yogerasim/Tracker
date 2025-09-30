@@ -192,10 +192,9 @@ extension NewHabitViewController: UITableViewDataSource, UITableViewDelegate {
             let coreDataStack = CoreDataStack.shared
             let categoryStore = TrackerCategoryStore(context: coreDataStack.context)
             let categoryVM = CategoryViewModel(store: categoryStore)
-            let categoryVC = CategoryViewController(viewModel: categoryVM, store: categoryStore)
+            let categoryVC = CategoryViewController(store: categoryStore)
             
             categoryVM.onCategorySelected = { [weak self] category in
-                // Теперь используем Core Data модель
                 self?.selectedCategory = category
                 tableView.reloadRows(at: [indexPath], with: .automatic)
             }
