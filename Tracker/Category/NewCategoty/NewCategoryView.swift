@@ -3,9 +3,15 @@ import UIKit
 final class NewCategoryView: UIView {
 
     // MARK: - UI
-    let header = ModalHeaderView(title: "Новая категория")
-    let nameTextField = AppTextField(placeholder: "Введите название категории")
-    let doneButton = BlackButton(title: "Готово")
+        let header = ModalHeaderView(
+            title: NSLocalizedString("new_category_title", comment: "Заголовок экрана создания новой категории")
+        )
+        let nameTextField = AppTextField(
+            placeholder: NSLocalizedString("new_category_placeholder", comment: "Плейсхолдер для поля ввода категории")
+        )
+        let doneButton = BlackButton(
+            title: NSLocalizedString("done_button", comment: "Кнопка подтверждения")
+        )
 
     // MARK: - Init
     override init(frame: CGRect) {

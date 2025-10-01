@@ -15,14 +15,14 @@ final class TrackersViewController: UIViewController {
         let image = UIImage(named: "plus")?.withRenderingMode(.alwaysOriginal)
         button.setImage(image, for: .normal)
         button.imageView?.contentMode = .scaleAspectFit
-        button.imageEdgeInsets = UIEdgeInsets(top: 12, left: 11.5, bottom: 12, right: 11.5) // картинка 19x18
+        button.imageEdgeInsets = UIEdgeInsets(top: 12, left: 11.5, bottom: 12, right: 11.5)
         button.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
         return button
     }()
     
     let titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "Трекеры"
+        label.text = NSLocalizedString("trackers.title", comment: "Заголовок главного экрана трекеров")
         label.font = AppFonts.bigTitle
         label.textColor = AppColors.backgroundBlackButton
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -44,7 +44,7 @@ final class TrackersViewController: UIViewController {
     
     let searchBar: UISearchBar = {
         let sb = UISearchBar()
-        sb.placeholder = "Поиск"
+        sb.placeholder = NSLocalizedString("trackers.search_placeholder", comment: "Placeholder для поиска трекеров")
         sb.searchBarStyle = .minimal
         sb.backgroundImage = UIImage()
         sb.translatesAutoresizingMaskIntoConstraints = false
@@ -75,7 +75,7 @@ final class TrackersViewController: UIViewController {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         
         let label = UILabel()
-        label.text = "Что будем отслеживать?"
+        label.text = NSLocalizedString("trackers.placeholder_text", comment: "Текст при отсутствии трекеров")
         label.textColor = AppColors.backgroundBlackButton
         label.font = AppFonts.plug
         label.textAlignment = .center
@@ -102,11 +102,10 @@ final class TrackersViewController: UIViewController {
     lazy var calendarContainer: UIView = {
         let container = UIView()
         container.translatesAutoresizingMaskIntoConstraints = false
-        container.backgroundColor = AppColors.background // полностью непрозрачный
+        container.backgroundColor = AppColors.background
         container.layer.cornerRadius = AppLayout.cornerRadius
         container.isHidden = true
         
-        // Тень
         container.layer.shadowColor = UIColor.black.cgColor
         container.layer.shadowOpacity = 0.1
         container.layer.shadowOffset = CGSize(width: 0, height: 4)
@@ -162,7 +161,6 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Layout
     func setupLayout() {
-        // Константы для отступов
         let spacingButtonToTitle: CGFloat = 2
         let spacingTitleToSearch: CGFloat = 2
         let spacingSearchToCollection: CGFloat = 8
@@ -174,28 +172,23 @@ final class TrackersViewController: UIViewController {
         view.addSubview(collectionView)
         
         NSLayoutConstraint.activate([
-            // Кнопка плюс сверху слева
             addButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0),
             addButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             addButton.widthAnchor.constraint(equalToConstant: 42),
             addButton.heightAnchor.constraint(equalToConstant: 42),
             
-            // Заголовок под кнопкой плюс
             titleLabel.topAnchor.constraint(equalTo: addButton.bottomAnchor, constant: spacingButtonToTitle),
             titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 25),
             
-            // Дата справа на уровне кнопки плюс
             dateButton.centerYAnchor.constraint(equalTo: addButton.centerYAnchor),
             dateButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             dateButton.widthAnchor.constraint(equalToConstant: 77),
             dateButton.heightAnchor.constraint(equalToConstant: 34),
             
-            // Поиск под заголовком
             searchBar.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: spacingTitleToSearch),
             searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             
-            // CollectionView под поиском
             collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: spacingSearchToCollection),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
@@ -255,6 +248,7 @@ final class TrackersViewController: UIViewController {
         }
         present(createTrackerVC, animated: true)
     }
+    
     @objc func toggleCalendar() {
         calendarContainer.isHidden.toggle()
     }
@@ -264,5 +258,4 @@ final class TrackersViewController: UIViewController {
         updateDateText()
         collectionView.reloadData()
     }
-    
 }

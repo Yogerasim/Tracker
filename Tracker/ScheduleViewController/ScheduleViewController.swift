@@ -6,18 +6,18 @@ final class ScheduleViewController: UIViewController {
     var selectedDays: [WeekDay] = []
     var onDone: (([WeekDay]) -> Void)?
 
-    private let daysOfWeek: [(title: String, day: WeekDay)] = [
-        ("Понедельник", .monday),
-        ("Вторник", .tuesday),
-        ("Среда", .wednesday),
-        ("Четверг", .thursday),
-        ("Пятница", .friday),
-        ("Суббота", .saturday),
-        ("Воскресенье", .sunday)
+    private let daysOfWeek: [(titleKey: String, day: WeekDay)] = [
+        ("schedule.monday", .monday),
+        ("schedule.tuesday", .tuesday),
+        ("schedule.wednesday", .wednesday),
+        ("schedule.thursday", .thursday),
+        ("schedule.friday", .friday),
+        ("schedule.saturday", .saturday),
+        ("schedule.sunday", .sunday)
     ]
 
     // MARK: - UI
-    private let modalHeader = ModalHeaderView(title: "Расписание")
+    private let modalHeader = ModalHeaderView(title: NSLocalizedString("schedule.title", comment: "Заголовок расписания"))
     private let tableContainer = ContainerTableView()
     private let doneButton = DoneButton()
 
@@ -70,8 +70,6 @@ final class ScheduleViewController: UIViewController {
     }
 
     @objc private func doneTapped() {
-        print("🔹 onDone selectedDays перед dismiss: \(selectedDays)") 
-
         onDone?(selectedDays)
         dismiss(animated: true)
     }
@@ -81,6 +79,7 @@ final class ScheduleViewController: UIViewController {
         doneButton.isEnabled = enabled
         doneButton.backgroundColor = enabled ? AppColors.backgroundBlackButton : .systemGray3
         doneButton.setTitleColor(AppColors.textPrimary, for: .normal)
+        doneButton.setTitle(NSLocalizedString("schedule.done_button", comment: "Кнопка завершения выбора дней"), for: .normal)
     }
 }
 
@@ -92,7 +91,7 @@ extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell
         let item = daysOfWeek[indexPath.row]
-        cell.textLabel?.text = item.title
+        cell.textLabel?.text = NSLocalizedString(item.titleKey, comment: "")
         cell.isLastCell = indexPath.row == daysOfWeek.count - 1
 
         let toggle = UISwitch()
@@ -115,9 +114,6 @@ extension ScheduleViewController {
         } else {
             selectedDays.removeAll { $0 == day }
         }
-
-        print("🔹 Toggle: \(day) isOn: \(sender.isOn)")
-        print("🔹 selectedDays сейчас: \(selectedDays)")      //сразу после обновления массива
 
         updateDoneButtonState()
     }

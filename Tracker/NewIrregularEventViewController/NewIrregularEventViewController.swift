@@ -7,11 +7,21 @@ final class NewIrregularEventViewController: UIViewController, UITextFieldDelega
     private let contentStack = UIStackView()
     private var selectedCategory: TrackerCategoryCoreData?
     
-    private let modalHeader = ModalHeaderView(title: "Новое нерегулярное событие")
-    private let nameTextField = AppTextField(placeholder: "Введите название трекера")
+    private let modalHeader = ModalHeaderView(
+        title: NSLocalizedString("new_irregular_event.title", comment: "")
+    )
+    private let nameTextField = AppTextField(
+        placeholder: NSLocalizedString("new_irregular_event.enter_name", comment: "")
+    )
     private let tableContainer = ContainerTableView()
-    private let emojiCollectionVC = SelectableCollectionViewController(items: CollectionData.emojis, headerTitle: "Emoji")
-    private let colorCollectionVC = SelectableCollectionViewController(items: CollectionData.colors, headerTitle: "Цвет")
+    private let emojiCollectionVC = SelectableCollectionViewController(
+        items: CollectionData.emojis,
+        headerTitle: NSLocalizedString("new_irregular_event.emoji", comment: "")
+    )
+    private let colorCollectionVC = SelectableCollectionViewController(
+        items: CollectionData.colors,
+        headerTitle: NSLocalizedString("new_irregular_event.color", comment: "")
+    )
     private let bottomButtons = ButonsPanelView()
     
     // MARK: - Callback
@@ -134,11 +144,11 @@ final class NewIrregularEventViewController: UIViewController, UITextFieldDelega
     @objc private func createTapped() {
         guard let title = nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty else { return }
         guard let emoji = selectedEmoji else {
-            print("⚠️ Выберите эмодзи")
+            print(NSLocalizedString("new_irregular_event.warning_choose_emoji", comment: ""))
             return
         }
         guard let color = selectedColor else {
-            print("⚠️ Выберите цвет")
+            print(NSLocalizedString("new_irregular_event.warning_choose_color", comment: ""))
             return
         }
         
@@ -149,8 +159,7 @@ final class NewIrregularEventViewController: UIViewController, UITextFieldDelega
             emoji: emoji,
             schedule: [],
             trackerCategory: selectedCategory
-            )
-
+        )
         
         onEventCreated?(tracker)
         dismiss(animated: true)
@@ -170,7 +179,7 @@ extension NewIrregularEventViewController: UITableViewDataSource, UITableViewDel
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell
-        cell.textLabel?.text = selectedCategory?.title ?? "Категория"
+        cell.textLabel?.text = selectedCategory?.title ?? NSLocalizedString("new_irregular_event.category", comment: "")
         cell.accessoryType = .disclosureIndicator
         cell.isLastCell = true
         return cell

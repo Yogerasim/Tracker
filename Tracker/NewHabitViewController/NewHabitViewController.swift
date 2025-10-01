@@ -6,11 +6,17 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
     private let scrollView = UIScrollView()
     private let contentStack = UIStackView()
     
-    private let modalHeader = ModalHeaderView(title: "Новая привычка")
-    private let nameTextField = AppTextField(placeholder: "Введите название трекера")
+    private let modalHeader = ModalHeaderView(title: NSLocalizedString("new_habit.title", comment: "Новая привычка"))
+    private let nameTextField = AppTextField(placeholder: NSLocalizedString("new_habit.enter_name", comment: "Введите название трекера"))
     private let tableContainer = ContainerTableView()
-    private let emojiCollectionVC = SelectableCollectionViewController(items: CollectionData.emojis, headerTitle: "Emoji")
-    private let colorCollectionVC = SelectableCollectionViewController(items: CollectionData.colors, headerTitle: "Цвет")
+    private let emojiCollectionVC = SelectableCollectionViewController(
+        items: CollectionData.emojis,
+        headerTitle: NSLocalizedString("new_habit.emoji", comment: "Emoji")
+    )
+    private let colorCollectionVC = SelectableCollectionViewController(
+        items: CollectionData.colors,
+        headerTitle: NSLocalizedString("new_habit.color", comment: "Цвет")
+    )
     private let bottomButtons = ButonsPanelView()
     
     // MARK: - Callback
@@ -34,14 +40,12 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
         nameTextField.delegate = self
         print("➕ NewHabitViewController загружен")
         
-        // Обработка выбора эмоджи
         emojiCollectionVC.onItemSelected = { [weak self] item in
             if case .emoji(let emoji) = item {
                 self?.selectedEmoji = emoji
             }
         }
         
-        // Обработка выбора цвета
         colorCollectionVC.onItemSelected = { [weak self] item in
             if case .color(let color) = item {
                 self?.selectedColor = color
@@ -68,7 +72,6 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
         contentStack.axis = .vertical
         contentStack.spacing = AppLayout.padding
         
-        // Header и кнопки вне scrollView
         modalHeader.translatesAutoresizingMaskIntoConstraints = false
         bottomButtons.translatesAutoresizingMaskIntoConstraints = false
         modalHeader.backgroundColor = AppColors.background
@@ -78,23 +81,19 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
         view.addSubview(scrollView)
         view.addSubview(bottomButtons)
         
-        // ScrollView содержит stackView
         scrollView.addSubview(contentStack)
         
-        // Добавляем сабвьюхи
         [nameTextField, tableContainer, emojiCollectionVC.view, colorCollectionVC.view].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             contentStack.addArrangedSubview($0)
         }
         
-        // Child VC
         addChild(emojiCollectionVC)
         emojiCollectionVC.didMove(toParent: self)
         
         addChild(colorCollectionVC)
         colorCollectionVC.didMove(toParent: self)
         
-        // Кастомный spacing между коллекциями
         contentStack.setCustomSpacing(0, after: emojiCollectionVC.view)
         
         NSLayoutConstraint.activate([
@@ -132,18 +131,18 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
     }
     
     @objc private func cancelTapped() {
-        print("✖️ NewHabitViewController: отмена")
+        print("✖️ \(NSLocalizedString("new_habit.cancel_log", comment: "NewHabitViewController: отмена"))")
         dismiss(animated: true)
     }
     
     @objc private func createTapped() {
         guard let title = nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty else { return }
         guard let emoji = selectedEmoji else {
-            print("⚠️ Выберите эмодзи")
+            print("⚠️ \(NSLocalizedString("new_habit.choose_emoji", comment: "Выберите эмодзи"))")
             return
         }
         guard let color = selectedColor else {
-            print("⚠️ Выберите цвет")
+            print("⚠️ \(NSLocalizedString("new_habit.choose_color", comment: "Выберите цвет"))")
             return
         }
         
@@ -175,9 +174,9 @@ extension NewHabitViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell
         if indexPath.row == 0 {
-            cell.textLabel?.text = selectedCategory?.title ?? "Категория"
+            cell.textLabel?.text = selectedCategory?.title ?? NSLocalizedString("new_habit.category", comment: "Категория")
         } else {
-            cell.textLabel?.text = "Расписание"
+            cell.textLabel?.text = NSLocalizedString("new_habit.schedule", comment: "Расписание")
         }
         cell.accessoryType = .disclosureIndicator
         cell.isLastCell = indexPath.row == tableView.numberOfRows(inSection: indexPath.section) - 1
@@ -188,7 +187,6 @@ extension NewHabitViewController: UITableViewDataSource, UITableViewDelegate {
         tableView.deselectRow(at: indexPath, animated: true)
         
         if indexPath.row == 0 {
-            // Переход к CategoryViewController
             let coreDataStack = CoreDataStack.shared
             let categoryStore = TrackerCategoryStore(context: coreDataStack.context)
             let categoryVM = CategoryViewModel(store: categoryStore)

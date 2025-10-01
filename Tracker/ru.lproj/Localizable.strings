@@ -1,0 +1,80 @@
+/* 
+  Localizable.strings
+  Tracker
+
+  Created by Филипп Герасимов on 01/10/25.
+  
+*/
+
+//NewCategoryView
+"new_category_title" = "Новая категория";
+"new_category_placeholder" = "Введите название категории";
+"done_button" = "Готово";
+
+//CategoryViewController
+"category_title" = "Категория";
+"add_category_button" = "Добавьте категорию";
+"category_placeholder" = "Привычки и события можно\nобъединить по смыслу";
+
+//CreateTrackerViewController
+"create_tracker_title" = "Создание трекера";
+"habit_button_title" = "Привычка";
+"irregular_button_title" = "Нерегулярное событие";
+
+//HabitFlowPresenter
+"default_category_title" = "Мои трекеры";
+
+//MainTabBarController
+"tab_trackers" = "Трекеры";
+"tab_statistics" = "Статистика";
+
+//NewHabitViewController
+"new_habit.title" = "Новая привычка";
+"new_habit.enter_name" = "Введите название трекера";
+"new_habit.emoji" = "Emoji";
+"new_habit.color" = "Цвет";
+"new_habit.category" = "Категория";
+"new_habit.schedule" = "Расписание";
+"new_habit.cancel_log" = "NewHabitViewController: отмена";
+"new_habit.choose_emoji" = "Выберите эмодзи";
+"new_habit.choose_color" = "Выберите цвет";
+
+//NewIrregularEventViewController
+"new_irregular_event.title" = "Новое нерегулярное событие";
+"new_irregular_event.enter_name" = "Введите название трекера";
+"new_irregular_event.emoji" = "Emoji";
+"new_irregular_event.color" = "Цвет";
+"new_irregular_event.category" = "Категория";
+"new_irregular_event.warning_choose_emoji" = "⚠️ Выберите эмодзи";
+"new_irregular_event.warning_choose_color" = "⚠️ Выберите цвет";
+
+//OnboardingViewController
+"onboarding.page1.text" = "Отслеживайте только то, что хотите";
+"onboarding.page2.text" = "Даже если это\nне литры воды и йога";
+"onboarding.button" = "Вот это технологии!";
+
+//ScheduleViewController
+"schedule.title" = "Расписание";
+"schedule.done_button" = "Готово";
+"schedule.monday" = "Понедельник";
+"schedule.tuesday" = "Вторник";
+"schedule.wednesday" = "Среда";
+"schedule.thursday" = "Четверг";
+"schedule.friday" = "Пятница";
+"schedule.saturday" = "Суббота";
+"schedule.sunday" = "Воскресенье";
+
+//StatisticsViewController
+"statistics.title" = "Статистика";
+
+//TrackersViewController
+"trackers.title" = "Трекеры";
+"trackers.search_placeholder" = "Поиск";
+"trackers.placeholder_text" = "Что будем отслеживать?";
+
+//ButonsPanelView
+"cancel_button" = "Отменить";
+"create_button" = "Создать";
+
+//DoneButton
+"done_button" = "Готово";

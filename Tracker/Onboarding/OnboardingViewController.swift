@@ -5,10 +5,14 @@ final class OnboardingViewController: UIPageViewController, UIPageViewController
     // MARK: - Pages
     private lazy var pages: [UIViewController] = {
         return [
-            OnboardingPageViewController(imageName: "1",
-                                         text: "Отслеживайте только то, что хотите"),
-            OnboardingPageViewController(imageName: "2",
-                                         text: "Даже если это\nне литры воды и йога")
+            OnboardingPageViewController(
+                imageName: "1",
+                text: NSLocalizedString("onboarding.page1.text", comment: "Текст первой страницы онбординга")
+            ),
+            OnboardingPageViewController(
+                imageName: "2",
+                text: NSLocalizedString("onboarding.page2.text", comment: "Текст второй страницы онбординга")
+            )
         ]
     }()
     
@@ -25,7 +29,7 @@ final class OnboardingViewController: UIPageViewController, UIPageViewController
     
     // MARK: - Button
     private lazy var actionButton: BlackButton = {
-        let button = BlackButton(title: "Вот это технологии!")
+        let button = BlackButton(title: NSLocalizedString("onboarding.button", comment: "Кнопка завершения онбординга"))
         button.addTarget(self, action: #selector(finishOnboarding), for: .touchUpInside)
         return button
     }()

@@ -101,13 +101,11 @@ final class TrackerCell: UICollectionViewCell {
     }
 
     private func updateDayLabel() {
-        let dayWord: String
-        switch daysCount {
-        case 1: dayWord = "день"
-        case 2...4: dayWord = "дня"
-        default: dayWord = "дней"
-        }
-        dayLabel.text = "\(daysCount) \(dayWord)"
+        let formatted = String.localizedStringWithFormat(
+            NSLocalizedString("days_count", comment: "Number of days tracker completed"),
+            daysCount
+        )
+        dayLabel.text = formatted
     }
 
     private func updateButton() {

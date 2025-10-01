@@ -1,7 +1,6 @@
 import UIKit
 
 // MARK: - MainTabBarController
-
 final class MainTabBarController: UITabBarController {
     
     override func viewDidLoad() {
@@ -13,14 +12,14 @@ final class MainTabBarController: UITabBarController {
     private func configureViewControllers() {
         let trackersVC = UINavigationController(rootViewController: TrackersViewController())
         trackersVC.tabBarItem = UITabBarItem(
-            title: "Трекеры",
+            title: NSLocalizedString("tab_trackers", comment: "Название вкладки для списка трекеров"),
             image: UIImage(named: "Tracker"),
             selectedImage: UIImage(named: "Tracker")
         )
         
         let statisticsVC = UINavigationController(rootViewController: StatisticsViewController())
         statisticsVC.tabBarItem = UITabBarItem(
-            title: "Статистика",
+            title: NSLocalizedString("tab_statistics", comment: "Название вкладки для статистики"),
             image: UIImage(named: "Statistic"),
             selectedImage: UIImage(named: "Statistic")
         )

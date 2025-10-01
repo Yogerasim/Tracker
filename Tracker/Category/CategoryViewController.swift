@@ -4,9 +4,13 @@ import CoreData
 final class CategoryViewController: UIViewController {
 
     // MARK: - UI
-    private let header = ModalHeaderView(title: "Категория")
+    private let header = ModalHeaderView(
+        title: NSLocalizedString("category_title", comment: "Заголовок экрана выбора категории")
+    )
     private let placeholderView = PlaceholderView()
-    private let addButton = BlackButton(title: "Добавьте категорию")
+    private let addButton = BlackButton(
+        title: NSLocalizedString("add_category_button", comment: "Кнопка добавления новой категории")
+    )
     private let tableContainer = ContainerTableView()
     
     // MARK: - Dependencies
@@ -18,7 +22,7 @@ final class CategoryViewController: UIViewController {
 
     // MARK: - Constants
     private enum Constants {
-        static let checkmarkImageName = "ic 24x24"
+        static let checkmarkImageName = "ic 24x24" // имя картинки — не локализуем
         static let rowHeight: CGFloat = 75
     }
 
@@ -88,7 +92,9 @@ final class CategoryViewController: UIViewController {
     private func updateUI() {
         let categories = categoryStore.fetchCategories()
         let hasCategories = !categories.isEmpty
-        placeholderView.configure(text: "Привычки и события можно\nобъединить по смыслу")
+        placeholderView.configure(
+            text: NSLocalizedString("category_placeholder", comment: "Текст плейсхолдера для пустого списка категорий")
+        )
         placeholderView.isHidden = hasCategories
         tableContainer.isHidden = !hasCategories
         tableContainer.updateHeight(forRows: categories.count)
@@ -98,7 +104,6 @@ final class CategoryViewController: UIViewController {
     @objc private func addCategoryTapped() {
         let newCategoryVM = NewCategoryViewModel(store: categoryStore)
         newCategoryVM.onCategoryCreated = { [weak self] category in
-            // Добавляем в CoreData
             self?.categoryStore.add(category)
             self?.updateUI()
         }
@@ -156,8 +161,7 @@ extension CategoryViewController: UITableViewDataSource, UITableViewDelegate {
         tableView.reloadRows(at: indexPathsToReload, with: .none)
 
         let selectedCategory = categoryStore.fetchCategories()[indexPath.row]
-        print("Выбрана категория: \(selectedCategory.title ?? "")")
-        // Можно добавить замыкание для передачи выбранной категории наружу
+        print("Выбрана категория: \(selectedCategory.title ?? "")") // можно оставить как debug
         onCategorySelected?(selectedCategory)
     }
 }
@@ -168,5 +172,3 @@ extension CategoryViewController: TrackerCategoryStoreDelegate {
         updateUI()
     }
 }
-
-
