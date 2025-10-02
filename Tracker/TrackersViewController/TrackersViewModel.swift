@@ -14,6 +14,12 @@ final class TrackersViewModel {
     @Published var currentDate: Date = Date()
     @Published var categories: [TrackerCategory] = []
     @Published var completedTrackers: [TrackerRecord] = []
+    @Published private(set) var filteredTrackers: [Tracker] = []
+    @Published var searchText: String = "" {
+        didSet {
+            filterTrackers()
+        }
+    }
 
     // MARK: - Callbacks
     var onTrackersUpdated: (() -> Void)?
@@ -36,6 +42,7 @@ final class TrackersViewModel {
         self.trackers = trackerStore.getTrackers()
         self.categories = categoryStore.categories
         self.completedTrackers = recordStore.completedTrackers
+        self.filteredTrackers = self.trackers
 
         print("🟢 ViewModel init:")
         print("Categories: \(categories.map { $0.title })")
@@ -58,10 +65,11 @@ final class TrackersViewModel {
         categoryStore.addTracker(tracker, to: defaultCategoryTitle)
         trackerStore.add(tracker)
 
-        // обновляем локальные массивы
+        
         let updatedTrackers = trackerStore.getTrackers()
         self.trackers = updatedTrackers
         self.completedTrackers = recordStore.completedTrackers
+        self.filterTrackers()
 
         print("🟡 After add, trackers: \(trackers.map { $0.name })")
         print("Completed trackers count: \(completedTrackers.count)")
@@ -115,12 +123,27 @@ final class TrackersViewModel {
         guard let trackerCoreData = recordStore.fetchTracker(by: tracker.id) else { return false }
         return recordStore.isCompleted(for: trackerCoreData, date: date)
     }
+    
+    private func filterTrackers() {
+        let text = searchText.lowercased()
+        
+        if text.isEmpty {
+            filteredTrackers = trackers
+        } else {
+            filteredTrackers = trackers.filter { tracker in
+                tracker.name.lowercased().contains(text)
+            }
+        }
+        
+        onTrackersUpdated?()
+    }
 }
 
 // MARK: - Delegates
 extension TrackersViewModel: TrackerStoreDelegate {
     func didUpdateTrackers(_ trackers: [Tracker]) {
         self.trackers = trackers
+        self.filterTrackers()
         print("🔵 didUpdateTrackers called, trackers: \(trackers.map { $0.name })")
         onTrackersUpdated?()
     }

@@ -157,6 +157,8 @@ final class TrackersViewController: UIViewController {
         viewModel.ensureDefaultCategory()
         updatePlaceholder()
         updateDateText()
+        
+        searchBar.delegate = self
     }
     
     // MARK: - Layout
@@ -215,7 +217,7 @@ final class TrackersViewController: UIViewController {
     }
     
     func updatePlaceholder() {
-        placeholderView.isHidden = !viewModel.trackers.isEmpty
+        placeholderView.isHidden = !viewModel.filteredTrackers.isEmpty
     }
     
     func updateDateText() {
@@ -257,5 +259,11 @@ final class TrackersViewController: UIViewController {
         viewModel.currentDate = sender.date
         updateDateText()
         collectionView.reloadData()
+    }
+}
+
+extension TrackersViewController: UISearchBarDelegate {
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        viewModel.searchText = searchText
     }
 }

@@ -4,13 +4,11 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     
     // MARK: - Layout constants
     private enum Layout {
-        static let itemWidth: CGFloat = 160              // ширина ячейки
-        static let itemHeight: CGFloat = 140             // высота ячейки
-        static let lineSpacing: CGFloat = 16             // расстояние между рядами (вертикальное)
-        static let interitemSpacing: CGFloat = 25         // расстояние между ячейками в ряду (горизонтальное)
-        static let sectionInsets = UIEdgeInsets(
-            top: 0, left: 10, bottom: 0, right: 10       // отступы от краёв коллекции
-        )
+        static let itemWidth: CGFloat = 160
+        static let itemHeight: CGFloat = 140
+        static let lineSpacing: CGFloat = 16
+        static let interitemSpacing: CGFloat = 25
+        static let sectionInsets = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
     }
     
     // MARK: - DataSource
@@ -30,7 +28,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
 
         let category = viewModel.categories[section]
 
-        let trackersInCategory = viewModel.trackers.filter { tracker in
+        let trackersInCategory = viewModel.filteredTrackers.filter { tracker in
             if let catTitle = tracker.trackerCategory?.title {
                 return catTitle == category.title
             }
@@ -51,7 +49,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         }
 
         let category = viewModel.categories[indexPath.section]
-        let trackersInCategory = viewModel.trackers.filter { tracker in
+        let trackersInCategory = viewModel.filteredTrackers.filter { tracker in
             if let catTitle = tracker.trackerCategory?.title {
                 return catTitle == category.title
             }
