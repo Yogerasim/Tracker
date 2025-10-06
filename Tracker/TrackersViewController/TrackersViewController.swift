@@ -20,15 +20,6 @@ final class TrackersViewController: UIViewController {
         return button
     }()
     
-    let titleLabel: UILabel = {
-        let label = UILabel()
-        label.text = NSLocalizedString("trackers.title", comment: "Заголовок главного экрана трекеров")
-        label.font = AppFonts.bigTitle
-        label.textColor = AppColors.backgroundBlackButton
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
     lazy var dateButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -65,38 +56,10 @@ final class TrackersViewController: UIViewController {
         return cv
     }()
     
-    let placeholderView: UIView = {
-        let container = UIView()
-        container.translatesAutoresizingMaskIntoConstraints = false
-        
-        let imageView = UIImageView(image: UIImage(named: "Star"))
-        imageView.tintColor = AppColors.textSecondary
-        imageView.contentMode = .scaleAspectFit
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        
-        let label = UILabel()
-        label.text = NSLocalizedString("trackers.placeholder_text", comment: "Текст при отсутствии трекеров")
-        label.textColor = AppColors.backgroundBlackButton
-        label.font = AppFonts.plug
-        label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        
-        container.addSubview(imageView)
-        container.addSubview(label)
-        
-        NSLayoutConstraint.activate([
-            imageView.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            imageView.topAnchor.constraint(equalTo: container.topAnchor),
-            imageView.widthAnchor.constraint(equalToConstant: 80),
-            imageView.heightAnchor.constraint(equalToConstant: 80),
-            
-            label.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            label.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 8),
-            label.bottomAnchor.constraint(equalTo: container.bottomAnchor)
-        ])
-        
-        return container
-    }()
+    private let titleView = MainTitleLabelView(title: NSLocalizedString("trackers.title", comment: "Заголовок главного экрана трекеров"))
+    private let placeholderView = PlaceholderView()
+    
+    
     
     // MARK: - Calendar Container
     lazy var calendarContainer: UIView = {
@@ -151,6 +114,11 @@ final class TrackersViewController: UIViewController {
         
         setupLayout()
         setupPlaceholder()
+        placeholderView.configure(
+            imageName: "Star",
+            text: NSLocalizedString("trackers.placeholder_text", comment: "Текст при отсутствии трекеров")
+        )
+        
         setupCalendarContainer()
         bindViewModel()
         
@@ -162,35 +130,32 @@ final class TrackersViewController: UIViewController {
     }
     
     // MARK: - Layout
-    func setupLayout() {
-        let spacingButtonToTitle: CGFloat = 2
-        let spacingTitleToSearch: CGFloat = 2
-        let spacingSearchToCollection: CGFloat = 8
+    private func setupLayout() {
+        MainHeaderLayoutHelper.setupTrackerLayout(
+            in: view,
+            titleView: titleView,
+            addButton: addButton,
+            dateButton: dateButton,
+            searchBar: searchBar,
+            collectionView: collectionView
+        )
         
-        view.addSubview(addButton)
-        view.addSubview(titleLabel)
-        view.addSubview(dateButton)
+        // Добавляем остальные элементы
         view.addSubview(searchBar)
         view.addSubview(collectionView)
         
+        // Отступы
+        let spacingTitleToSearch: CGFloat = 2
+        let spacingSearchToCollection: CGFloat = 8
+        
+        // Активируем констрейнты
         NSLayoutConstraint.activate([
-            addButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0),
-            addButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            addButton.widthAnchor.constraint(equalToConstant: 42),
-            addButton.heightAnchor.constraint(equalToConstant: 42),
-            
-            titleLabel.topAnchor.constraint(equalTo: addButton.bottomAnchor, constant: spacingButtonToTitle),
-            titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 25),
-            
-            dateButton.centerYAnchor.constraint(equalTo: addButton.centerYAnchor),
-            dateButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            dateButton.widthAnchor.constraint(equalToConstant: 77),
-            dateButton.heightAnchor.constraint(equalToConstant: 34),
-            
-            searchBar.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: spacingTitleToSearch),
+            // Поиск под заголовком
+            searchBar.topAnchor.constraint(equalTo: titleView.bottomAnchor, constant: spacingTitleToSearch),
             searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             
+            // Коллекция под поиском
             collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: spacingSearchToCollection),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
@@ -217,7 +182,24 @@ final class TrackersViewController: UIViewController {
     }
     
     func updatePlaceholder() {
-        placeholderView.isHidden = !viewModel.filteredTrackers.isEmpty
+        if viewModel.filteredTrackers.isEmpty {
+            placeholderView.isHidden = false
+            
+            if let searchText = searchBar.text, !searchText.isEmpty {
+                placeholderView.configure(
+                    imageName: "NoSerach",
+                    text: NSLocalizedString("trackers.placeholder_no_results", comment: "Текст при отсутствии результатов поиска")
+                )
+            } else {
+                // Нет вообще трекеров
+                placeholderView.configure(
+                    imageName: "Star",
+                    text: NSLocalizedString("trackers.placeholder_text", comment: "Текст при отсутствии трекеров")
+                )
+            }
+        } else {
+            placeholderView.isHidden = true
+        }
     }
     
     func updateDateText() {
@@ -265,5 +247,6 @@ final class TrackersViewController: UIViewController {
 extension TrackersViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         viewModel.searchText = searchText
+        updatePlaceholder()
     }
 }

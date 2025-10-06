@@ -118,3 +118,30 @@ extension ScheduleViewController {
         updateDoneButtonState()
     }
 }
+
+extension WeekDay {
+    var shortName: String {
+        switch self {
+        case .monday: return "Пн"
+        case .tuesday: return "Вт"
+        case .wednesday: return "Ср"
+        case .thursday: return "Чт"
+        case .friday: return "Пт"
+        case .saturday: return "Сб"
+        case .sunday: return "Вс"
+        }
+    }
+    
+}
+
+extension Array where Element == WeekDay {
+    var descriptionText: String {
+        if self.count == WeekDay.allCases.count {
+            return "Каждый день"
+        } else if self.isEmpty {
+            return NSLocalizedString("new_habit.schedule_not_selected", comment: "Не выбрано")
+        } else {
+            return self.map { $0.shortName }.joined(separator: ", ")
+        }
+    }
+}

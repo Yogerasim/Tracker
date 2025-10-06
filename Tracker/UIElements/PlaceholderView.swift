@@ -1,8 +1,8 @@
 import UIKit
 
-// MARK: - PlaceholderView
 final class PlaceholderView: UIView {
 
+    // MARK: - UI
     private let imageView: UIImageView = {
         let iv = UIImageView()
         iv.tintColor = AppColors.textSecondary
@@ -16,11 +16,12 @@ final class PlaceholderView: UIView {
         lbl.textColor = AppColors.backgroundBlackButton
         lbl.font = AppFonts.plug
         lbl.textAlignment = .center
-        lbl.numberOfLines = 0 // разрешаем перенос текста
+        lbl.numberOfLines = 0
         lbl.translatesAutoresizingMaskIntoConstraints = false
         return lbl
     }()
 
+    // MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
         translatesAutoresizingMaskIntoConstraints = false
@@ -28,14 +29,21 @@ final class PlaceholderView: UIView {
     }
 
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        super.init(coder: coder)
+        setupLayout()
     }
 
-    func configure(image: UIImage? = UIImage(named: "Star"), text: String) {
-        imageView.image = image
+    // MARK: - Public configuration
+    func configure(imageName: String?, text: String) {
+        if let imageName = imageName {
+            imageView.image = UIImage(named: imageName)
+        } else {
+            imageView.image = nil
+        }
         label.text = text
     }
 
+    // MARK: - Layout
     private func setupLayout() {
         addSubview(imageView)
         addSubview(label)

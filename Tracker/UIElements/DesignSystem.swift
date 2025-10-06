@@ -8,6 +8,10 @@ enum AppColors {
     static let textSecondary = UIColor(hex: "#8E8E93")
     static let errorRed = UIColor(hex: "#F56B6C")
     static let gray = UIColor(hex: "#AEAFB4")
+    
+    static let gradientStart = UIColor(hex: "#FD4C49")
+    static let gradientMiddle = UIColor(hex: "#46E69D")
+    static let gradientEnd = UIColor(hex: "#007BFA")
 }
 
 enum AppFonts {
@@ -17,6 +21,7 @@ enum AppFonts {
     static let bigTitle = AppFonts.bold(34)
     static let bigTitle2 = AppFonts.bold(32)
     static let body = AppFonts.medium(16)
+    static let body2 = AppFonts.medium(12)
     static let caption = AppFonts.regular(14)
     static let caption2 = AppFonts.regular(17)
     static let headline = AppFonts.semibold(17)

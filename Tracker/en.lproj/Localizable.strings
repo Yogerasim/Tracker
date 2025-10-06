@@ -66,11 +66,19 @@
 
 //StatisticsViewController
 "statistics.title" = "Statistics";
+"statistics.placeholder_text" = "There is nothing to analyze yet";
+
+
+"statistics.best_period_label" = "Best period";
+"statistics.ideal_days_label" = "Ideal days";
+"statistics.completed_trackers_label" = "Trackers completed";
+"statistics.average_label" = "Average value";
 
 //TrackersViewController
 "trackers.title" = "Trackers";
 "trackers.search_placeholder" = "Search";
 "trackers.placeholder_text" = "What shall we track?";
+"trackers.placeholder_no_results" = "No results found";
 
 //ButonsPanelView
 "cancel_button" = "Cancel";

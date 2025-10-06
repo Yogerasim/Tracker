@@ -5,7 +5,7 @@ protocol TrackerRecordStoreDelegate: AnyObject {
 }
 
 final class TrackerRecordStore: NSObject {
-    private let viewContext: NSManagedObjectContext
+    let viewContext: NSManagedObjectContext
     private let backgroundContext: NSManagedObjectContext
     private let fetchedResultsController: NSFetchedResultsController<TrackerRecordCoreData>
     weak var delegate: TrackerRecordStoreDelegate?

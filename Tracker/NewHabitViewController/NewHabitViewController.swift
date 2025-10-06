@@ -1,23 +1,34 @@
 import UIKit
+import CoreData
 
-final class NewHabitViewController: UIViewController, UITextFieldDelegate {
+final class NewHabitViewController: UIViewController {
     
     // MARK: - UI
     private let scrollView = UIScrollView()
     private let contentStack = UIStackView()
     
     private let modalHeader = ModalHeaderView(title: NSLocalizedString("new_habit.title", comment: "Новая привычка"))
-    private let nameTextField = AppTextField(placeholder: NSLocalizedString("new_habit.enter_name", comment: "Введите название трекера"))
+    
+    // Текстовое поле с ограничением символов
+    private let nameTextField = AppTextField(
+        placeholder: NSLocalizedString("new_habit.enter_name", comment: "Введите название трекера"),
+        maxCharacters: 38
+    )
+    
     private let tableContainer = ContainerTableView()
+    
     private let emojiCollectionVC = SelectableCollectionViewController(
         items: CollectionData.emojis,
         headerTitle: NSLocalizedString("new_habit.emoji", comment: "Emoji")
     )
+    
     private let colorCollectionVC = SelectableCollectionViewController(
         items: CollectionData.colors,
         headerTitle: NSLocalizedString("new_habit.color", comment: "Цвет")
     )
+    
     private let bottomButtons = ButonsPanelView()
+    private let context = CoreDataStack.shared.context
     
     // MARK: - Callback
     var onHabitCreated: ((Tracker) -> Void)?
@@ -37,7 +48,12 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
         setupLayout()
         setupActions()
         
-        nameTextField.delegate = self
+        // Обновление кнопки "Создать" при изменении текста
+        nameTextField.onTextChanged = { [weak self] text in
+            let hasText = !text.trimmingCharacters(in: .whitespaces).isEmpty
+            self?.bottomButtons.setCreateButton(enabled: hasText)
+        }
+        
         print("➕ NewHabitViewController загружен")
         
         emojiCollectionVC.onItemSelected = { [weak self] item in
@@ -80,9 +96,9 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
         view.addSubview(modalHeader)
         view.addSubview(scrollView)
         view.addSubview(bottomButtons)
-        
         scrollView.addSubview(contentStack)
         
+        // Добавляем элементы в stack
         [nameTextField, tableContainer, emojiCollectionVC.view, colorCollectionVC.view].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             contentStack.addArrangedSubview($0)
@@ -136,33 +152,29 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
     }
     
     @objc private func createTapped() {
-        guard let title = nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty else { return }
-        guard let emoji = selectedEmoji else {
-            print("⚠️ \(NSLocalizedString("new_habit.choose_emoji", comment: "Выберите эмодзи"))")
-            return
+        let title = nameTextField.textValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty else { return }
+        guard let emoji = selectedEmoji else { return }
+        guard let color = selectedColor else { return }
+        guard let category = selectedCategory else { return }
+
+        let tracker = TrackerCoreData(context: context)
+        tracker.id = UUID()
+        tracker.name = title
+        tracker.emoji = emoji
+        tracker.color = color.toHexString()
+        if let data = try? JSONEncoder().encode(selectedDays) {
+            tracker.schedule = data as NSObject
         }
-        guard let color = selectedColor else {
-            print("⚠️ \(NSLocalizedString("new_habit.choose_color", comment: "Выберите цвет"))")
-            return
+        tracker.category = category
+
+        do {
+            try context.save()
+            print("✅ Трекер успешно сохранён в Core Data")
+            dismiss(animated: true)
+        } catch {
+            print("❌ Ошибка сохранения трекера: \(error.localizedDescription)")
         }
-        
-        let tracker = Tracker(
-            id: UUID(),
-            name: title,
-            color: color.toHexString(),
-            emoji: emoji,
-            schedule: [],
-            trackerCategory: selectedCategory
-        )
-        
-        onHabitCreated?(tracker)
-        dismiss(animated: true)
-    }
-    
-    // MARK: - UITextField
-    func textFieldDidChangeSelection(_ textField: UITextField) {
-        let hasText = !(textField.text?.trimmingCharacters(in: .whitespaces).isEmpty ?? true)
-        bottomButtons.setCreateButton(enabled: hasText)
     }
 }
 
@@ -173,12 +185,19 @@ extension NewHabitViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell
+        
         if indexPath.row == 0 {
-            cell.textLabel?.text = selectedCategory?.title ?? NSLocalizedString("new_habit.category", comment: "Категория")
+            cell.configure(
+                title: NSLocalizedString("new_habit.category", comment: "Категория"),
+                detail: selectedCategory?.title
+            )
         } else {
-            cell.textLabel?.text = NSLocalizedString("new_habit.schedule", comment: "Расписание")
+            let detailText = selectedDays.isEmpty ? nil : selectedDays.descriptionText
+            cell.configure(
+                title: NSLocalizedString("new_habit.schedule", comment: "Расписание"),
+                detail: detailText
+            )
         }
-        cell.accessoryType = .disclosureIndicator
         cell.isLastCell = indexPath.row == tableView.numberOfRows(inSection: indexPath.section) - 1
         return cell
     }
@@ -187,24 +206,31 @@ extension NewHabitViewController: UITableViewDataSource, UITableViewDelegate {
         tableView.deselectRow(at: indexPath, animated: true)
         
         if indexPath.row == 0 {
-            let coreDataStack = CoreDataStack.shared
-            let categoryStore = TrackerCategoryStore(context: coreDataStack.context)
-            let categoryVM = CategoryViewModel(store: categoryStore)
-            let categoryVC = CategoryViewController(store: categoryStore)
-            
-            categoryVM.onCategorySelected = { [weak self] category in
+            let categoryVC = CategoryViewController(store: TrackerCategoryStore(context: context))
+            categoryVC.onCategorySelected = { [weak self] category in
                 self?.selectedCategory = category
                 tableView.reloadRows(at: [indexPath], with: .automatic)
+                self?.dismiss(animated: true)
             }
-            
+            if let sheet = categoryVC.sheetPresentationController {
+                sheet.detents = [.large()]
+                sheet.prefersGrabberVisible = true
+                sheet.preferredCornerRadius = 16
+            }
             present(categoryVC, animated: true)
         }
-
+        
         if indexPath.row == 1 {
             let scheduleVC = ScheduleViewController()
             scheduleVC.selectedDays = selectedDays
             scheduleVC.onDone = { [weak self] days in
                 self?.selectedDays = days
+                tableView.reloadRows(at: [indexPath], with: .automatic)
+            }
+            if let sheet = scheduleVC.sheetPresentationController {
+                sheet.detents = [.large()]
+                sheet.prefersGrabberVisible = true
+                sheet.preferredCornerRadius = 16
             }
             present(scheduleVC, animated: true)
         }
@@ -214,9 +240,7 @@ extension NewHabitViewController: UITableViewDataSource, UITableViewDelegate {
 // MARK: - UIColor extension
 extension UIColor {
     func toHexString() -> String {
-        guard let components = cgColor.components, components.count >= 3 else {
-            return "#000000"
-        }
+        guard let components = cgColor.components, components.count >= 3 else { return "#000000" }
         let r = Float(components[0])
         let g = Float(components[1])
         let b = Float(components[2])
@@ -224,5 +248,13 @@ extension UIColor {
                       lroundf(r * 255),
                       lroundf(g * 255),
                       lroundf(b * 255))
+    }
+}
+
+// MARK: - TrackerCoreData extension
+extension TrackerCoreData {
+    var decodedSchedule: [WeekDay] {
+        guard let data = schedule as? Data else { return [] }
+        return (try? JSONDecoder().decode([WeekDay].self, from: data)) ?? []
     }
 }

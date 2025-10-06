@@ -39,7 +39,10 @@ final class NewIrregularEventViewController: UIViewController, UITextFieldDelega
         setupTable()
         setupLayout()
         setupActions()
-        nameTextField.delegate = self
+        nameTextField.onTextChanged = { [weak self] text in
+            let hasText = !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            self?.bottomButtons.setCreateButton(enabled: hasText)
+        }
         
         print("➕ NewIrregularEventViewController загружен")
         
@@ -142,7 +145,8 @@ final class NewIrregularEventViewController: UIViewController, UITextFieldDelega
     }
     
     @objc private func createTapped() {
-        guard let title = nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty else { return }
+        let title = nameTextField.textValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty else { return }
         guard let emoji = selectedEmoji else {
             print(NSLocalizedString("new_irregular_event.warning_choose_emoji", comment: ""))
             return
@@ -176,11 +180,14 @@ final class NewIrregularEventViewController: UIViewController, UITextFieldDelega
 extension NewIrregularEventViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 1 }
-    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell
-        cell.textLabel?.text = selectedCategory?.title ?? NSLocalizedString("new_irregular_event.category", comment: "")
-        cell.accessoryType = .disclosureIndicator
+        
+        cell.configure(
+            title: NSLocalizedString("new_irregular_event.category", comment: "Категория"),
+            detail: selectedCategory?.title
+        )
+        
         cell.isLastCell = true
         return cell
     }
@@ -188,15 +195,21 @@ extension NewIrregularEventViewController: UITableViewDataSource, UITableViewDel
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
-        // Переход к CategoryViewController
         let coreDataStack = CoreDataStack.shared
         let categoryStore = TrackerCategoryStore(context: coreDataStack.context)
-        let categoryVM = CategoryViewModel(store: categoryStore)
         let categoryVC = CategoryViewController(store: categoryStore)
-        
-        categoryVM.onCategorySelected = { [weak self] category in
+
+        categoryVC.onCategorySelected = { [weak self] category in
             self?.selectedCategory = category
             tableView.reloadRows(at: [indexPath], with: .automatic)
+            self?.dismiss(animated: true)
+        }
+        
+        // Лист как у NewHabitViewController
+        if let sheet = categoryVC.sheetPresentationController {
+            sheet.detents = [.large()]
+            sheet.prefersGrabberVisible = true
+            sheet.preferredCornerRadius = 16
         }
         
         present(categoryVC, animated: true)

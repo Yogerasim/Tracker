@@ -53,26 +53,33 @@ final class CategoryViewController: UIViewController {
         }
 
         NSLayoutConstraint.activate([
+            // Header
             header.topAnchor.constraint(equalTo: view.topAnchor),
             header.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             header.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             header.heightAnchor.constraint(equalToConstant: 90),
-
+            
+            // Add Button
             addButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             addButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             addButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             addButton.heightAnchor.constraint(equalToConstant: 60),
-
+            
+            // Table Container (без bottomAnchor!)
             tableContainer.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 16),
             tableContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            tableContainer.bottomAnchor.constraint(equalTo: addButton.topAnchor, constant: -16),
-
+            
+            // Placeholder View
             placeholderView.topAnchor.constraint(equalTo: tableContainer.topAnchor),
             placeholderView.leadingAnchor.constraint(equalTo: tableContainer.leadingAnchor),
             placeholderView.trailingAnchor.constraint(equalTo: tableContainer.trailingAnchor),
             placeholderView.heightAnchor.constraint(equalToConstant: 200)
         ])
+        
+        // Динамическая высота таблицы в зависимости от количества категорий
+        let categories = categoryStore.fetchCategories()
+        tableContainer.updateHeight(forRows: categories.count)
     }
 
     private func setupTableView() {
@@ -93,13 +100,19 @@ final class CategoryViewController: UIViewController {
         let categories = categoryStore.fetchCategories()
         let hasCategories = !categories.isEmpty
         placeholderView.configure(
-            text: NSLocalizedString("category_placeholder", comment: "Текст плейсхолдера для пустого списка категорий")
+            imageName: "Star",
+            text: NSLocalizedString(
+                "category_placeholder",
+                comment: "Текст плейсхолдера для пустого списка категорий"
+            )
         )
         placeholderView.isHidden = hasCategories
         tableContainer.isHidden = !hasCategories
         tableContainer.updateHeight(forRows: categories.count)
         tableContainer.tableView.reloadData()
     }
+    
+    
 
     @objc private func addCategoryTapped() {
         let newCategoryVM = NewCategoryViewModel(store: categoryStore)
@@ -172,3 +185,4 @@ extension CategoryViewController: TrackerCategoryStoreDelegate {
         updateUI()
     }
 }
+

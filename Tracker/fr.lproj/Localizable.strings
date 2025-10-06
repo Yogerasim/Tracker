@@ -66,11 +66,18 @@
 
 //StatisticsViewController
 "statistics.title" = "Statistiques";
+"statistics.placeholder_text" = "Il n'y a rien à analyser pour l'instant";
+
+"statistics.best_period_label" = "Meilleure période";
+"statistics.ideal_days_label" = "Jours idéaux";
+"statistics.completed_trackers_label" = "Trackers complétés";
+"statistics.average_label" = "Valeur moyenne";
 
 //TrackersViewController
 "trackers.title" = "Suivi";
 "trackers.search_placeholder" = "Recherche";
 "trackers.placeholder_text" = "Que voulons-nous suivre ?";
+"trackers.placeholder_no_results" = "Aucun résultat trouvé";
 
 //ButonsPanelView
 "cancel_button" = "Annuler";

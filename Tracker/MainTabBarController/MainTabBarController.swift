@@ -17,7 +17,8 @@ final class MainTabBarController: UITabBarController {
             selectedImage: UIImage(named: "Tracker")
         )
         
-        let statisticsVC = UINavigationController(rootViewController: StatisticsViewController())
+        let trackerRecordStore = TrackerRecordStore(persistentContainer: CoreDataStack.shared.persistentContainer)
+        let statisticsVC = UINavigationController(rootViewController: StatisticsViewController(trackerRecordStore: trackerRecordStore))
         statisticsVC.tabBarItem = UITabBarItem(
             title: NSLocalizedString("tab_statistics", comment: "Название вкладки для статистики"),
             image: UIImage(named: "Statistic"),

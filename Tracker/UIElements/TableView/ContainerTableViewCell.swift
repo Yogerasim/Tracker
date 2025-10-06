@@ -65,3 +65,46 @@ final class ContainerTableViewCell: UITableViewCell {
         ])
     }
 }
+
+extension ContainerTableViewCell {
+    
+    /// Настраивает ячейку с заголовком и опциональной деталью
+    func configure(title: String, detail: String?) {
+        // Удаляем предыдущий стек, если есть
+        contentView.viewWithTag(101)?.removeFromSuperview()
+        
+        // Основной заголовок
+        let titleLabel = UILabel()
+        titleLabel.text = title
+        titleLabel.font = AppFonts.body
+        titleLabel.textColor = AppColors.backgroundBlackButton
+        
+        let stack: UIStackView
+        if let detail = detail, !detail.isEmpty {
+            let detailLabel = UILabel()
+            detailLabel.text = detail
+            detailLabel.font = AppFonts.caption2
+            detailLabel.textColor = AppColors.gray
+            
+            stack = UIStackView(arrangedSubviews: [titleLabel, detailLabel])
+            stack.axis = .vertical
+            stack.spacing = 4
+        } else {
+            stack = UIStackView(arrangedSubviews: [titleLabel])
+            stack.axis = .vertical
+            stack.spacing = 0
+        }
+        
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.tag = 101
+        contentView.addSubview(stack)
+        
+        NSLayoutConstraint.activate([
+            stack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            stack.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
+        ])
+        
+        accessoryType = .disclosureIndicator
+        selectionStyle = .none
+    }
+}

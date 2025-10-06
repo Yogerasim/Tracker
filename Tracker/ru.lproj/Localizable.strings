@@ -66,11 +66,18 @@
 
 //StatisticsViewController
 "statistics.title" = "Статистика";
+"statistics.placeholder_text" = "Пока нет данных для анализа";
+
+"statistics.best_period_label" = "Лучший период";
+"statistics.ideal_days_label" = "Идеальные дни";
+"statistics.completed_trackers_label" = "Трекеров завершено";
+"statistics.average_label" = "Среднее значение";
 
 //TrackersViewController
 "trackers.title" = "Трекеры";
 "trackers.search_placeholder" = "Поиск";
 "trackers.placeholder_text" = "Что будем отслеживать?";
+"trackers.placeholder_no_results" = "Ничего не найдено";
 
 //ButonsPanelView
 "cancel_button" = "Отменить";
