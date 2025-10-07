@@ -85,3 +85,6 @@
 
 //DoneButton
 "done_button" = "Готово";
+
+//EditCategoryView
+"edit_category_title" = "Редактирование категории";

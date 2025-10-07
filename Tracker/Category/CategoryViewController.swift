@@ -149,8 +149,15 @@ final class CategoryViewController: UIViewController {
     
     // MARK: - Category Editing & Deletion
     private func editCategory(_ category: TrackerCategoryCoreData) {
-        // 🔹 Заглушка для редактирования
-        print("✏️ Нажата кнопка 'Редактировать' для категории: \(category.title ?? "Без названия") — функция пока не реализована")
+        // Проверяем, что есть context
+        guard let context = category.managedObjectContext else { return }
+
+        // Создаём ViewModel для редактирования
+        let editVM = EditCategoryViewModel(category: category, context: context)
+        
+        // Создаём экран редактирования и показываем его
+        let editVC = EditCategoryViewController(viewModel: editVM)
+        present(editVC, animated: true)
     }
 
     private func deleteCategory(_ category: TrackerCategoryCoreData) {
