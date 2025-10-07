@@ -305,8 +305,12 @@ final class TrackersViewController: UIViewController {
     @objc func calendarDateChanged(_ sender: UIDatePicker) {
         viewModel.currentDate = sender.date
         updateDateText()
+        viewModel.filterByDate()
         collectionView.reloadData()
     }
+    
+
+    
     @objc private func filtersTapped() {
         let filtersVC = FiltersViewController()
         filtersVC.onFilterSelected = { [weak self] index in

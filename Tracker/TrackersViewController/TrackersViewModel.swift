@@ -92,9 +92,28 @@ final class TrackersViewModel {
         return recordStore.isCompleted(for: trackerCoreData, date: date)
     }
     
+    func filterByDate() {
+        filterTrackers()
+        onDateChanged?(currentDate)
+    }
+    
     private func filterTrackers() {
         let text = searchText.lowercased()
-        filteredTrackers = text.isEmpty ? trackers : trackers.filter { $0.name.lowercased().contains(text) }
+        
+        // Получаем день недели из текущей даты
+        let weekdayInt = Calendar.current.component(.weekday, from: currentDate)
+        let selectedDay = WeekDay(rawValue: weekdayInt)
+        
+        filteredTrackers = trackers.filter { tracker in
+            // Проверяем: подходит ли трекер по дню недели
+            let matchesSchedule = selectedDay.map { tracker.schedule.contains($0) } ?? true
+            
+            // Проверяем: подходит ли по поиску
+            let matchesSearch = text.isEmpty || tracker.name.lowercased().contains(text)
+            
+            return matchesSchedule && matchesSearch
+        }
+        
         onTrackersUpdated?()
     }
     
