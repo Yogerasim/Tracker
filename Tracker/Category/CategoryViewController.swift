@@ -154,8 +154,33 @@ final class CategoryViewController: UIViewController {
     }
 
     private func deleteCategory(_ category: TrackerCategoryCoreData) {
-        // 🔹 Заглушка для удаления
-        print("🗑️ Нажата кнопка 'Удалить' для категории: \(category.title ?? "Без названия") — функция пока не реализована")
+        guard let title = category.title else { return }
+
+        let alert = UIAlertController(
+            title: "Удалить категорию?",
+            message: "Вы точно хотите удалить категорию \"\(title)\"? Это действие нельзя отменить.",
+            preferredStyle: .alert
+        )
+
+        alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+            guard let self = self else { return }
+
+            // Получаем context из Core Data
+            if let context = category.managedObjectContext {
+                context.delete(category)
+                do {
+                    try context.save()
+                    print("🗑️ Категория \"\(title)\" удалена из Core Data")
+                    self.updateUI()
+                } catch {
+                    print("❌ Ошибка при удалении категории: \(error)")
+                }
+            }
+        })
+
+        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+
+        present(alert, animated: true)
     }
     
 
