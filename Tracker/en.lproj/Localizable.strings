@@ -79,6 +79,8 @@
 "trackers.search_placeholder" = "Search";
 "trackers.placeholder_text" = "What shall we track?";
 "trackers.placeholder_no_results" = "No results found";
+"trackers.pinned_category" = "Pinned";
+"trackers.default_category" = "My Trackers";
 
 //ButonsPanelView
 "cancel_button" = "Cancel";
@@ -86,3 +88,5 @@
 
 //DoneButton
 "done_button" = "Done";
+//FiltersButton
+"filters.button_title" = "Filters";

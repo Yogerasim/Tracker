@@ -28,8 +28,11 @@ final class FiltersButton: UIButton {
         ])
         
         // Текст
-        setTitle("Фильтры", for: .normal)
+        setTitle(
+            NSLocalizedString("filters.button_title", comment: "Фильтры"),
+            for: .normal
+        )
         setTitleColor(.white, for: .normal)
-        titleLabel?.font = AppFonts.regular(17) // caption2
+        titleLabel?.font = AppFonts.regular(17)
     }
 }

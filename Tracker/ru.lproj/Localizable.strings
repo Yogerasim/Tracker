@@ -78,6 +78,8 @@
 "trackers.search_placeholder" = "Поиск";
 "trackers.placeholder_text" = "Что будем отслеживать?";
 "trackers.placeholder_no_results" = "Ничего не найдено";
+"trackers.pinned_category" = "Закрепленные";
+"trackers.default_category" = "Мои трекеры";
 
 //ButonsPanelView
 "cancel_button" = "Отменить";
@@ -93,5 +95,7 @@
 
 "edit_habit.save" = "Сохранить";
 "edit_habit.title" = "Редактировать привычку";
+//FiltersButton
+"filters.button_title" = "Фильтры";
 
 

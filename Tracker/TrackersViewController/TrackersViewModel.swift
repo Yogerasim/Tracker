@@ -8,9 +8,10 @@ final class TrackersViewModel {
     private let recordStore: TrackerRecordStore
     let trackerStore: TrackerStore
     
+    
     // MARK: - Constants
-    let pinnedCategoryTitle = "Закрепленные"
-    private let defaultCategoryTitle = "Мои трекеры"
+    let pinnedCategoryTitle = NSLocalizedString("trackers.pinned_category", comment: "Закрепленные")
+    private let defaultCategoryTitle = NSLocalizedString("trackers.default_category", comment: "Мои трекеры")
     
     // MARK: - State
     @Published private(set) var trackers: [Tracker] = []

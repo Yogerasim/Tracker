@@ -78,6 +78,8 @@
 "trackers.search_placeholder" = "Recherche";
 "trackers.placeholder_text" = "Que voulons-nous suivre ?";
 "trackers.placeholder_no_results" = "Aucun résultat trouvé";
+"trackers.pinned_category" = "Épinglés";
+"trackers.default_category" = "Mes suivis";
 
 //ButonsPanelView
 "cancel_button" = "Annuler";
@@ -85,3 +87,5 @@
 
 //DoneButton
 "done_button" = "Terminé";
+//FiltersButton
+"filters.button_title" = "Filtres";
