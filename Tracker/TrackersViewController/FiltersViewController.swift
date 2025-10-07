@@ -5,7 +5,10 @@ final class FiltersViewController: UIViewController {
     // MARK: - UI
     private let header = ModalHeaderView(title: "Фильтры")
     private let tableContainer = ContainerTableView()
-    
+
+    // MARK: - Constraints
+    private var tableHeightConstraint: NSLayoutConstraint?
+
     // MARK: - State
     private let filters = [
         "Все трекеры",
@@ -14,7 +17,7 @@ final class FiltersViewController: UIViewController {
         "Не завершенные"
     ]
     private var selectedFilterIndex: Int?
-    
+
     var onFilterSelected: ((Int) -> Void)?
 
     // MARK: - Constants
@@ -22,38 +25,40 @@ final class FiltersViewController: UIViewController {
         static let checkmarkImageName = "ic 24x24"
         static let rowHeight: CGFloat = 75
     }
-    
+
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = AppColors.background
-        
+
         setupLayout()
         setupTableView()
     }
-    
+
     // MARK: - Layout
     private func setupLayout() {
         [header, tableContainer].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
-        
+
+        tableHeightConstraint = tableContainer.heightAnchor.constraint(equalToConstant: CGFloat(filters.count) * Constants.rowHeight)
+        tableHeightConstraint?.isActive = true
+
         NSLayoutConstraint.activate([
             header.topAnchor.constraint(equalTo: view.topAnchor),
             header.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             header.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             header.heightAnchor.constraint(equalToConstant: 90),
-            
+
             tableContainer.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 16),
             tableContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            tableContainer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+            tableContainer.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
-        
-        tableContainer.updateHeight(forRows: filters.count)
     }
-    
+
+    // MARK: - Setup
     private func setupTableView() {
         let tableView = tableContainer.tableView
         tableView.dataSource = self
@@ -63,8 +68,13 @@ final class FiltersViewController: UIViewController {
         tableView.isScrollEnabled = false
         tableView.rowHeight = Constants.rowHeight
     }
-    
+
     // MARK: - Helpers
+    private func updateHeight(forRows count: Int) {
+        tableHeightConstraint?.constant = CGFloat(count) * Constants.rowHeight
+        view.layoutIfNeeded()
+    }
+
     private func configureCheckmark(for cell: UITableViewCell, at indexPath: IndexPath) {
         if indexPath.row == selectedFilterIndex {
             let checkmark = UIImageView(image: UIImage(named: Constants.checkmarkImageName))
@@ -79,14 +89,14 @@ final class FiltersViewController: UIViewController {
     }
 }
 
-// MARK: - UITableViewDataSource & Delegate
+// MARK: - UITableViewDataSource & UITableViewDelegate
 extension FiltersViewController: UITableViewDataSource, UITableViewDelegate {
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return filters.count
     }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell
         cell.textLabel?.text = filters[indexPath.row]
         cell.isLastCell = indexPath.row == filters.count - 1
@@ -96,17 +106,15 @@ extension FiltersViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        
         let previousIndex = selectedFilterIndex
         selectedFilterIndex = indexPath.row
-        
+
         var indexPathsToReload: [IndexPath] = [indexPath]
         if let previous = previousIndex, previous != indexPath.row {
             indexPathsToReload.append(IndexPath(row: previous, section: 0))
         }
-        
+
         tableView.reloadRows(at: indexPathsToReload, with: .none)
-        
         onFilterSelected?(indexPath.row)
         dismiss(animated: true)
     }
