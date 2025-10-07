@@ -4,6 +4,7 @@ final class TrackerActionMenu: UIView {
 
     // MARK: - Callbacks
     var onPin: (() -> Void)?
+    var onUnpin: (() -> Void)?
     var onEdit: (() -> Void)?
     var onDelete: (() -> Void)?
 
@@ -23,6 +24,13 @@ final class TrackerActionMenu: UIView {
     private lazy var pinButton: UIButton = makeButton(title: "Закрепить", color: .systemBlue, action: #selector(pinTapped))
     private lazy var editButton: UIButton = makeButton(title: "Редактировать", color: .systemBlue, action: #selector(editTapped))
     private lazy var deleteButton: UIButton = makeButton(title: "Удалить", color: .systemRed, action: #selector(deleteTapped))
+
+    // MARK: - State
+    private var isPinned: Bool = false {
+        didSet {
+            updatePinButtonTitle()
+        }
+    }
 
     // MARK: - Init
     override init(frame: CGRect) {
@@ -56,12 +64,11 @@ final class TrackerActionMenu: UIView {
         let button = UIButton(type: .system)
         button.setTitle(title, for: .normal)
         button.setTitleColor(color, for: .normal)
-        button.contentHorizontalAlignment = .left  // текст слева
+        button.contentHorizontalAlignment = .left
         button.titleLabel?.font = UIFont.systemFont(ofSize: 17)
-        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16) // отступ слева и справа
+        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         button.addTarget(self, action: action, for: .touchUpInside)
 
-        // Стандартная разделительная линия
         let separator = UIView()
         separator.backgroundColor = UIColor.separator
         separator.translatesAutoresizingMaskIntoConstraints = false
@@ -75,10 +82,27 @@ final class TrackerActionMenu: UIView {
         return button
     }
 
+    // MARK: - Public
+    func configure(isPinned: Bool) {
+        self.isPinned = isPinned
+    }
+
     // MARK: - Actions
-    @objc private func pinTapped() { onPin?() }
+    @objc private func pinTapped() {
+        if isPinned {
+            onUnpin?()
+        } else {
+            onPin?()
+        }
+    }
     @objc private func editTapped() { onEdit?() }
     @objc private func deleteTapped() { onDelete?() }
+
+    // MARK: - Helpers
+    private func updatePinButtonTitle() {
+        let title = isPinned ? "Открепить" : "Закрепить"
+        pinButton.setTitle(title, for: .normal)
+    }
 
     // MARK: - Tap outside to dismiss
     private func addTapOutsideRecognizer() {
