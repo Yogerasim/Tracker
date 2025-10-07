@@ -279,6 +279,41 @@ final class TrackersViewController: UIViewController {
         updateDateText()
         collectionView.reloadData()
     }
+    
+    // MARK: - Long Press
+
+    @objc func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+        guard gesture.state == .began,
+              let cell = gesture.view as? TrackerCell,
+              let indexPath = collectionView.indexPath(for: cell) else { return }
+
+        let category = nonEmptyCategories[indexPath.section]
+        let trackersInCategory = viewModel.filteredTrackers.filter { tracker in
+            tracker.trackerCategory?.title == category.title ||
+            (tracker.trackerCategory == nil && category.title == "Мои трекеры")
+        }
+
+        guard indexPath.item < trackersInCategory.count else { return }
+        let tracker = trackersInCategory[indexPath.item]
+
+        let menu = TrackerActionMenu()
+        menu.onPin = { [weak self] in self?.viewModel.pinTracker(tracker) }
+        menu.onEdit = { [weak self] in self?.viewModel.editTracker(tracker) }
+        menu.onDelete = { [weak self] in self?.viewModel.deleteTracker(tracker) }
+
+        view.addSubview(menu)
+        let cellFrame = cell.convert(cell.bounds, to: view)
+        menu.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            menu.topAnchor.constraint(equalTo: view.topAnchor, constant: cellFrame.maxY + 5),
+            menu.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: cellFrame.minX),
+            menu.widthAnchor.constraint(equalToConstant: 250),
+            menu.heightAnchor.constraint(equalToConstant: 145)
+        ])
+
+        menu.alpha = 0
+        UIView.animate(withDuration: 0.25) { menu.alpha = 1 }
+    }
 }
 
 extension TrackersViewController: UISearchBarDelegate {

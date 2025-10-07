@@ -169,3 +169,30 @@ extension TrackersViewModel: TrackerCategoryStoreDelegate {
         onCategoriesUpdated?()
     }
 }
+extension TrackersViewModel {
+    func pinTracker(_ tracker: Tracker) {
+        // Логика закрепления трекера
+        print("Pinned tracker: \(tracker.name)")
+    }
+
+    func editTracker(_ tracker: Tracker) {
+        // Логика редактирования трекера
+        print("Edit tracker: \(tracker.name)")
+    }
+
+    func deleteTracker(_ tracker: Tracker) {
+        // Удаляем из Core Data
+        trackerStore.delete(tracker)  // предполагается, что trackerStore умеет удалять объект
+
+        // Удаляем из локальных массивов
+        if let index = trackers.firstIndex(where: { $0.id == tracker.id }) {
+            trackers.remove(at: index)
+        }
+        filteredTrackers.removeAll { $0.id == tracker.id }
+        completedTrackers.removeAll { $0.trackerId == tracker.id }
+
+        // Обновляем UI
+        onTrackersUpdated?()
+        print("Deleted tracker: \(tracker.name)")
+    }
+}

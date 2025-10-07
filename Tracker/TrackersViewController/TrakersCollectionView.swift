@@ -13,11 +13,13 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     }
     
     // MARK: - Helper
-    private var nonEmptyCategories: [TrackerCategory] {
+    var nonEmptyCategories: [TrackerCategory] {
         viewModel.categories.filter { category in
             !viewModel.filteredTrackers.filter { $0.trackerCategory?.title == category.title || ($0.trackerCategory == nil && category.title == "Мои трекеры") }.isEmpty
         }
     }
+    
+    
     
     // MARK: - DataSource
     
@@ -56,7 +58,8 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
 
         let category = nonEmptyCategories[indexPath.section]
         let trackersInCategory = viewModel.filteredTrackers.filter { tracker in
-            tracker.trackerCategory?.title == category.title || (tracker.trackerCategory == nil && category.title == "Мои трекеры")
+            tracker.trackerCategory?.title == category.title ||
+            (tracker.trackerCategory == nil && category.title == "Мои трекеры")
         }
 
         guard indexPath.item < trackersInCategory.count else {
@@ -78,6 +81,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         cell.setCompletionEnabled(!isFuture)
         print("🔵 isFuture: \(isFuture), completion enabled: \(!isFuture)")
 
+        // MARK: — Toggle completion
         cell.onToggleCompletion = { [weak self, weak collectionView] in
             guard let self = self, let collectionView = collectionView else { return }
             if isFuture { return }
@@ -92,6 +96,11 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
 
             collectionView.reloadItems(at: [indexPath])
         }
+
+        // MARK: — Long press gesture
+        let longPressGesture = UILongPressGestureRecognizer(target: self,
+                                                            action: #selector(handleLongPress(_:)))
+        cell.addGestureRecognizer(longPressGesture)
 
         return cell
     }
