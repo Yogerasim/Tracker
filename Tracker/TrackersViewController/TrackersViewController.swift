@@ -49,16 +49,16 @@ final class TrackersViewController: UIViewController {
                                                   heightDimension: .absolute(140))
             let item = NSCollectionLayoutItem(layoutSize: itemSize)
             item.contentInsets = NSDirectionalEdgeInsets(top: 4, leading: 4, bottom: 4, trailing: 4)
-
+            
             // Group
             let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
                                                    heightDimension: .estimated(150))
             let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-
+            
             // Section
             let section = NSCollectionLayoutSection(group: group)
             section.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 0, bottom: 16, trailing: 0)
-
+            
             // Header
             let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
                                                     heightDimension: .estimated(40))
@@ -67,10 +67,10 @@ final class TrackersViewController: UIViewController {
                 elementKind: UICollectionView.elementKindSectionHeader,
                 alignment: .top)
             section.boundarySupplementaryItems = [sectionHeader]
-
+            
             return section
         }
-
+        
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
         cv.translatesAutoresizingMaskIntoConstraints = false
         cv.backgroundColor = .clear
@@ -148,6 +148,8 @@ final class TrackersViewController: UIViewController {
         print("🟢 Header registered for kind:", UICollectionView.elementKindSectionHeader)
         
         setupLayout()
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+        collectionView.addGestureRecognizer(longPress)
         setupPlaceholder()
         placeholderView.configure(
             imageName: "Star",
@@ -273,63 +275,295 @@ final class TrackersViewController: UIViewController {
     @objc func toggleCalendar() {
         calendarContainer.isHidden.toggle()
     }
-
+    
     @objc func calendarDateChanged(_ sender: UIDatePicker) {
         viewModel.currentDate = sender.date
         updateDateText()
         collectionView.reloadData()
     }
+}
+
+// MARK: - Tracker Actions
+private extension TrackersViewController {
     
-    // MARK: - Long Press
-
     @objc func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
-        guard gesture.state == .began,
-              let cell = gesture.view as? TrackerCell,
-              let indexPath = collectionView.indexPath(for: cell) else { return }
+        guard gesture.state == .began else { return }
 
+        let location = gesture.location(in: collectionView)
+        guard let indexPath = collectionView.indexPathForItem(at: location),
+              let cell = collectionView.cellForItem(at: indexPath) else { return }
+        
+        guard nonEmptyCategories.indices.contains(indexPath.section) else { return }
         let category = nonEmptyCategories[indexPath.section]
+
         let trackersInCategory = viewModel.filteredTrackers.filter { tracker in
             tracker.trackerCategory?.title == category.title ||
             (tracker.trackerCategory == nil && category.title == "Мои трекеры")
         }
-        guard indexPath.item < trackersInCategory.count else { return }
+
+        guard trackersInCategory.indices.contains(indexPath.item) else { return }
         let tracker = trackersInCategory[indexPath.item]
 
-        let menu = TrackerActionMenu()
-        
-        let isPinned = tracker.trackerCategory?.title == viewModel.pinnedCategoryTitle
-        menu.configure(isPinned: isPinned)
-
-        menu.onPin = { [weak self] in
-            self?.viewModel.pinTracker(tracker)
-        }
-        menu.onUnpin = { [weak self] in
-            self?.viewModel.unpinTracker(tracker)
-        }
-        menu.onEdit = { print("Редактировать \(tracker.name)") }
-        menu.onDelete = { [weak self] in
-            self?.viewModel.deleteTracker(tracker)
-        }
-
-        view.addSubview(menu)
-        let cellFrame = cell.convert(cell.bounds, to: view)
-        menu.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            menu.topAnchor.constraint(equalTo: view.topAnchor, constant: cellFrame.maxY + 5),
-            menu.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: cellFrame.minX),
-            menu.widthAnchor.constraint(equalToConstant: 250),
-            menu.heightAnchor.constraint(equalToConstant: 145)
+        ActionMenuPresenter.show(for: cell, in: self, actions: [
+            .init(title: (tracker.trackerCategory?.title == viewModel.pinnedCategoryTitle) ? "Открепить" : "Закрепить",
+                  style: .default) { [weak self] in
+                guard let self = self else { return }
+                if tracker.trackerCategory?.title == self.viewModel.pinnedCategoryTitle {
+                    self.viewModel.unpinTracker(tracker)
+                } else {
+                    self.viewModel.pinTracker(tracker)
+                }
+            },
+            .init(title: "Редактировать", style: .default) { [weak self] in
+                self?.viewModel.editTracker(tracker)
+            },
+            .init(title: "Удалить", style: .destructive) { [weak self] in
+                guard let self = self else { return }
+                let alert = UIAlertController(title: "Удалить трекер?", message: "Это действие нельзя отменить.", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { _ in
+                    self.viewModel.deleteTracker(tracker)
+                })
+                alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+                self.present(alert, animated: true)
+            }
         ])
-
-        menu.alpha = 0
-        UIView.animate(withDuration: 0.25) { menu.alpha = 1 }
+    }
+    
+    func togglePin(for tracker: Tracker) {
+        if tracker.trackerCategory?.title == viewModel.pinnedCategoryTitle {
+            viewModel.unpinTracker(tracker)
+        } else {
+            viewModel.pinTracker(tracker)
+        }
+    }
+    
+    func editTracker(_ tracker: Tracker) {
+        // Если у тебя есть экран редактирования — здесь вызывай его. Пока просто прокидываем в viewModel.
+        viewModel.editTracker(tracker)
+    }
+    
+    func deleteTracker(_ tracker: Tracker) {
+        let alert = UIAlertController(title: "Удалить трекер?", message: "Это действие нельзя отменить.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+            self?.viewModel.deleteTracker(tracker)
+        })
+        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        present(alert, animated: true)
     }
 }
+
+
 
 extension TrackersViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         viewModel.searchText = searchText
         updatePlaceholder()
+    }
+}
+
+
+extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    
+    // MARK: - Layout constants
+    private enum Layout {
+        static let itemWidth: CGFloat = 160
+        static let itemHeight: CGFloat = 140
+        static let lineSpacing: CGFloat = 16
+        static let interitemSpacing: CGFloat = 25
+        static let sectionInsets = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
+        static let headerHeight: CGFloat = 30
+    }
+    
+    // MARK: - Helper
+    var nonEmptyCategories: [TrackerCategory] {
+        viewModel.categories.filter { category in
+            !viewModel.filteredTrackers.filter { $0.trackerCategory?.title == category.title || ($0.trackerCategory == nil && category.title == "Мои трекеры") }.isEmpty
+        }
+    }
+    
+    
+    
+    // MARK: - DataSource
+    
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        let sections = nonEmptyCategories.isEmpty ? 1 : nonEmptyCategories.count
+        print("🟢 numberOfSections: \(sections)")
+        return sections
+    }
+
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        updatePlaceholder()
+        
+        guard !nonEmptyCategories.isEmpty else {
+            print("⚠️ No categories found, returning 0 items")
+            return 0
+        }
+
+        let category = nonEmptyCategories[section]
+        let trackersInCategory = viewModel.filteredTrackers.filter { tracker in
+            tracker.trackerCategory?.title == category.title || (tracker.trackerCategory == nil && category.title == "Мои трекеры")
+        }
+
+        print("🟢 Section \(section) ('\(category.title)') has \(trackersInCategory.count) trackers")
+        return trackersInCategory.count
+    }
+
+    func collectionView(_ collectionView: UICollectionView,
+                        cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        
+        guard let cell = collectionView.dequeueReusableCell(
+            withReuseIdentifier: TrackerCell.reuseIdentifier,
+            for: indexPath
+        ) as? TrackerCell else {
+            print("❌ Failed to dequeue TrackerCell")
+            return UICollectionViewCell()
+        }
+
+        guard nonEmptyCategories.indices.contains(indexPath.section) else {
+            print("❌ section index out of range: \(indexPath.section)")
+            return cell
+        }
+        
+        let category = nonEmptyCategories[indexPath.section]
+        
+        let trackersInCategory = viewModel.filteredTrackers.filter { tracker in
+            tracker.trackerCategory?.title == category.title ||
+            (tracker.trackerCategory == nil && category.title == "Мои трекеры")
+        }
+        
+        guard trackersInCategory.indices.contains(indexPath.item) else {
+            print("❌ item index out of range: \(indexPath.item) / \(trackersInCategory.count)")
+            return cell
+        }
+
+        let tracker = trackersInCategory[indexPath.item]
+
+        let isCompleted = viewModel.isTrackerCompleted(tracker, on: viewModel.currentDate)
+        let completedCount = viewModel.completedTrackers.filter { $0.trackerId == tracker.id }.count
+
+        cell.configure(with: tracker, isCompleted: isCompleted, count: completedCount)
+
+        let isFuture = Calendar.current.startOfDay(for: viewModel.currentDate) > Calendar.current.startOfDay(for: Date())
+        cell.setCompletionEnabled(!isFuture)
+
+        cell.onToggleCompletion = { [weak self, weak collectionView] in
+            guard let self = self, let collectionView = collectionView else { return }
+            if isFuture { return }
+
+            if self.viewModel.isTrackerCompleted(tracker, on: self.viewModel.currentDate) {
+                self.viewModel.unmarkTrackerAsCompleted(tracker, on: self.viewModel.currentDate)
+            } else {
+                self.viewModel.markTrackerAsCompleted(tracker, on: self.viewModel.currentDate)
+            }
+
+            collectionView.reloadItems(at: [indexPath])
+        }
+
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+        cell.addGestureRecognizer(longPressGesture)
+
+        return cell
+    }
+    
+    func addNewTracker(_ tracker: Tracker) {
+        print("🟢 Adding new tracker: \(tracker.name)")
+        viewModel.addTrackerToDefaultCategory(tracker)
+    }
+    
+    func debugPrintTrackersSchedule() {
+        print("🔍 Проверка расписания всех трекеров:")
+        
+        for tracker in viewModel.filteredTrackers {
+            if !tracker.schedule.isEmpty {
+                let days = tracker.schedule.map { $0.shortName }.joined(separator: ", ")
+                print("🟢 \(tracker.name): \(days)")
+            } else {
+                print("⚠️ \(tracker.name): нет присвоенных дней недели")
+            }
+        }
+    }
+    
+    // MARK: - Headers
+    
+    func collectionView(_ collectionView: UICollectionView,
+                        viewForSupplementaryElementOfKind kind: String,
+                        at indexPath: IndexPath) -> UICollectionReusableView {
+        
+        guard kind == UICollectionView.elementKindSectionHeader else {
+            print("⚪️ Unknown supplementary element kind: \(kind)")
+            return UICollectionReusableView()
+        }
+
+        guard nonEmptyCategories.indices.contains(indexPath.section) else {
+            print("⚠️ No category at section \(indexPath.section), returning empty header")
+            let emptyHeader = collectionView.dequeueReusableSupplementaryView(
+                ofKind: kind,
+                withReuseIdentifier: TrackerSectionHeaderView.reuseIdentifier,
+                for: indexPath
+            ) as? TrackerSectionHeaderView
+            emptyHeader?.configure(with: "")
+            return emptyHeader ?? UICollectionReusableView()
+        }
+
+        let category = nonEmptyCategories[indexPath.section]
+        let header = collectionView.dequeueReusableSupplementaryView(
+            ofKind: kind,
+            withReuseIdentifier: TrackerSectionHeaderView.reuseIdentifier,
+            for: indexPath
+        ) as! TrackerSectionHeaderView
+        header.configure(with: category.title)
+        return header
+    }
+
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        referenceSizeForHeaderInSection section: Int) -> CGSize {
+        guard nonEmptyCategories.indices.contains(section) else {
+            print("⚠️ No category at section \(section), header size = .zero")
+            return .zero
+        }
+
+        let category = nonEmptyCategories[section]
+        let trackersInCategory = viewModel.filteredTrackers.filter {
+            $0.trackerCategory?.title == category.title || ($0.trackerCategory == nil && category.title == "Мои трекеры")
+        }
+
+        if trackersInCategory.isEmpty {
+            print("⚠️ No trackers in category '\(category.title)', header size = .zero")
+            return .zero
+        }
+
+        let size = CGSize(width: collectionView.bounds.width, height: Layout.headerHeight)
+        print("🔵 Header size for section \(section): \(size)")
+        return size
+    }
+    
+    // MARK: - DelegateFlowLayout
+    
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let size = CGSize(width: Layout.itemWidth, height: Layout.itemHeight)
+        print("📐 Cell size for \(indexPath): \(size)")
+        return size
+    }
+    
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return Layout.lineSpacing
+    }
+    
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return Layout.interitemSpacing
+    }
+    
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        insetForSectionAt section: Int) -> UIEdgeInsets {
+        return Layout.sectionInsets
     }
 }
 

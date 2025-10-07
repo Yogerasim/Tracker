@@ -90,6 +90,9 @@ final class CategoryViewController: UIViewController {
         tableView.separatorStyle = .none
         tableView.isScrollEnabled = false
         tableView.rowHeight = Constants.rowHeight
+        
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+            tableView.addGestureRecognizer(longPress)
     }
 
     private func setupActions() {
@@ -124,6 +127,37 @@ final class CategoryViewController: UIViewController {
         let newCategoryVC = NewCategoryViewController(viewModel: newCategoryVM)
         present(newCategoryVC, animated: true)
     }
+    
+    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+        guard gesture.state == .began else { return }
+
+        let location = gesture.location(in: tableContainer.tableView)
+        guard let indexPath = tableContainer.tableView.indexPathForRow(at: location),
+              let cell = tableContainer.tableView.cellForRow(at: indexPath) else { return }
+
+        let category = categoryStore.fetchCategories()[indexPath.row]
+
+        ActionMenuPresenter.show(for: cell, in: self, actions: [
+            .init(title: "Редактировать", style: .default) { [weak self] in
+                self?.editCategory(category)
+            },
+            .init(title: "Удалить", style: .destructive) { [weak self] in
+                self?.deleteCategory(category)
+            }
+        ])
+    }
+    
+    // MARK: - Category Editing & Deletion
+    private func editCategory(_ category: TrackerCategoryCoreData) {
+        // 🔹 Заглушка для редактирования
+        print("✏️ Нажата кнопка 'Редактировать' для категории: \(category.title ?? "Без названия") — функция пока не реализована")
+    }
+
+    private func deleteCategory(_ category: TrackerCategoryCoreData) {
+        // 🔹 Заглушка для удаления
+        print("🗑️ Нажата кнопка 'Удалить' для категории: \(category.title ?? "Без названия") — функция пока не реализована")
+    }
+    
 
     // MARK: - Helpers
     private func configureCheckmark(for cell: UITableViewCell, at indexPath: IndexPath) {

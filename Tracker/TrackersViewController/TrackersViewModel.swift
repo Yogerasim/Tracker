@@ -29,6 +29,9 @@ final class TrackersViewModel {
     var onTrackersUpdated: (() -> Void)?
     var onCategoriesUpdated: (() -> Void)?
     var onDateChanged: ((Date) -> Void)?
+    var nonEmptyCategories: [TrackerCategory] {
+        return categories.filter { !$0.trackers.isEmpty }
+    }
     
     // MARK: - Init
     init(container: NSPersistentContainer = CoreDataStack.shared.persistentContainer) {
@@ -93,6 +96,9 @@ final class TrackersViewModel {
         self.completedTrackers = recordStore.completedTrackers
         filterTrackers()
     }
+    
+    
+    
 }
 
 // MARK: - Pin / Unpin
