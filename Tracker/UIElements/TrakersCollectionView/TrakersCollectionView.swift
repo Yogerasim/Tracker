@@ -15,14 +15,14 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     // MARK: - Helper
     private var nonEmptyCategories: [TrackerCategory] {
         viewModel.categories.filter { category in
-            !viewModel.filteredTrackers.filter { $0.trackerCategory?.title == category.title }.isEmpty
+            !viewModel.filteredTrackers.filter { $0.trackerCategory?.title == category.title || ($0.trackerCategory == nil && category.title == "Мои трекеры") }.isEmpty
         }
     }
     
     // MARK: - DataSource
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        let sections = viewModel.categories.isEmpty ? 1 : viewModel.categories.count
+        let sections = nonEmptyCategories.isEmpty ? 1 : nonEmptyCategories.count
         print("🟢 numberOfSections: \(sections)")
         return sections
     }
@@ -30,12 +30,12 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         updatePlaceholder()
         
-        guard !viewModel.categories.isEmpty else {
+        guard !nonEmptyCategories.isEmpty else {
             print("⚠️ No categories found, returning 0 items")
             return 0
         }
 
-        let category = viewModel.categories[section]
+        let category = nonEmptyCategories[section]
         let trackersInCategory = viewModel.filteredTrackers.filter { tracker in
             tracker.trackerCategory?.title == category.title || (tracker.trackerCategory == nil && category.title == "Мои трекеры")
         }
@@ -54,7 +54,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
             return UICollectionViewCell()
         }
 
-        let category = viewModel.categories[indexPath.section]
+        let category = nonEmptyCategories[indexPath.section]
         let trackersInCategory = viewModel.filteredTrackers.filter { tracker in
             tracker.trackerCategory?.title == category.title || (tracker.trackerCategory == nil && category.title == "Мои трекеры")
         }
@@ -68,7 +68,6 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
 
         print("🟢 Configuring cell for tracker: \(tracker.name) (category: \(tracker.trackerCategory?.title ?? "nil"))")
 
-        // Теперь schedule точно [WeekDay]
         let isCompleted = viewModel.isTrackerCompleted(tracker, on: viewModel.currentDate)
         let completedCount = viewModel.completedTrackers.filter { $0.trackerId == tracker.id }.count
         print("🟡 isCompleted: \(isCompleted), completed count: \(completedCount)")
@@ -127,23 +126,24 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
 
         print("🟣 Request header for section:", indexPath.section)
 
-        guard let header = collectionView.dequeueReusableSupplementaryView(
+        guard !nonEmptyCategories.isEmpty else {
+            print("⚠️ No categories, setting empty header title")
+            let emptyHeader = collectionView.dequeueReusableSupplementaryView(
+                ofKind: kind,
+                withReuseIdentifier: TrackerSectionHeaderView.reuseIdentifier,
+                for: indexPath
+            ) as? TrackerSectionHeaderView
+            emptyHeader?.configure(with: "")
+            return emptyHeader ?? UICollectionReusableView()
+        }
+
+        let category = nonEmptyCategories[indexPath.section]
+        print("🧩 Header configured for section \(indexPath.section) with title: \(category.title)")
+        let header = collectionView.dequeueReusableSupplementaryView(
             ofKind: kind,
             withReuseIdentifier: TrackerSectionHeaderView.reuseIdentifier,
             for: indexPath
-        ) as? TrackerSectionHeaderView else {
-            print("❌ Failed to dequeue TrackerSectionHeaderView")
-            return UICollectionReusableView()
-        }
-
-        guard !viewModel.categories.isEmpty else {
-            print("⚠️ No categories, setting empty header title")
-            header.configure(with: "")
-            return header
-        }
-
-        let category = viewModel.categories[indexPath.section]
-        print("🧩 Header configured for section \(indexPath.section) with title: \(category.title)")
+        ) as! TrackerSectionHeaderView
         header.configure(with: category.title)
         return header
     }
@@ -151,12 +151,12 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         referenceSizeForHeaderInSection section: Int) -> CGSize {
-        guard viewModel.categories.indices.contains(section) else {
+        guard nonEmptyCategories.indices.contains(section) else {
             print("⚠️ No category at section \(section), header size = .zero")
             return .zero
         }
 
-        let category = viewModel.categories[section]
+        let category = nonEmptyCategories[section]
         let trackersInCategory = viewModel.filteredTrackers.filter {
             $0.trackerCategory?.title == category.title || ($0.trackerCategory == nil && category.title == "Мои трекеры")
         }

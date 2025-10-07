@@ -21,6 +21,15 @@ final class TrackersViewModel {
             filterTrackers()
         }
     }
+    
+    // MARK: - Computed Properties
+    var nonEmptyCategories: [TrackerCategory] {
+        categories.filter { category in
+            !category.trackers.filter { tracker in
+                filteredTrackers.contains { $0.id == tracker.id }
+            }.isEmpty
+        }
+    }
 
     // MARK: - Callbacks
     var onTrackersUpdated: (() -> Void)?
