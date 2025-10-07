@@ -163,10 +163,15 @@ final class NewHabitViewController: UIViewController {
         tracker.name = title
         tracker.emoji = emoji
         tracker.color = color.toHexString()
-        if let data = try? JSONEncoder().encode(selectedDays) {
-            tracker.schedule = data as NSObject
-        }
         tracker.category = category
+
+        // ✅ Сохраняем расписание (selectedDays) в Data через JSONEncoder
+        if let data = try? JSONEncoder().encode(selectedDays) {
+            tracker.schedule = data as NSData
+            print("💾 Saved schedule to Core Data: \(selectedDays.map { $0.shortName })")
+        } else {
+            print("⚠️ Не удалось закодировать расписание для сохранения")
+        }
 
         do {
             try context.save()
@@ -223,10 +228,14 @@ extension NewHabitViewController: UITableViewDataSource, UITableViewDelegate {
         if indexPath.row == 1 {
             let scheduleVC = ScheduleViewController()
             scheduleVC.selectedDays = selectedDays
+            print("📤 Open ScheduleVC, current selectedDays: \(selectedDays.map { $0.shortName })")
+            
             scheduleVC.onDone = { [weak self] days in
+                print("📥 Received selectedDays from ScheduleVC: \(days.map { $0.shortName })")
                 self?.selectedDays = days
                 tableView.reloadRows(at: [indexPath], with: .automatic)
             }
+            
             if let sheet = scheduleVC.sheetPresentationController {
                 sheet.detents = [.large()]
                 sheet.prefersGrabberVisible = true
@@ -254,7 +263,15 @@ extension UIColor {
 // MARK: - TrackerCoreData extension
 extension TrackerCoreData {
     var decodedSchedule: [WeekDay] {
-        guard let data = schedule as? Data else { return [] }
-        return (try? JSONDecoder().decode([WeekDay].self, from: data)) ?? []
+        get {
+            guard let data = schedule as? Data,
+                  let decoded = try? JSONDecoder().decode([WeekDay].self, from: data) else {
+                return []
+            }
+            return decoded
+        }
+        set {
+            schedule = try? JSONEncoder().encode(newValue) as NSData
+        }
     }
 }

@@ -70,6 +70,7 @@ final class ScheduleViewController: UIViewController {
     }
 
     @objc private func doneTapped() {
+        print("✅ Done tapped, sending back selectedDays: \(selectedDays.map { $0.shortName })")
         onDone?(selectedDays)
         dismiss(animated: true)
     }
@@ -110,9 +111,13 @@ extension ScheduleViewController {
     @objc private func toggleChanged(_ sender: UISwitch) {
         let day = daysOfWeek[sender.tag].day
         if sender.isOn {
-            if !selectedDays.contains(day) { selectedDays.append(day) }
+            if !selectedDays.contains(day) {
+                selectedDays.append(day)
+                print("🔵 Added day: \(day.shortName), current selectedDays: \(selectedDays.map { $0.shortName })")
+            }
         } else {
             selectedDays.removeAll { $0 == day }
+            print("🔴 Removed day: \(day.shortName), current selectedDays: \(selectedDays.map { $0.shortName })")
         }
 
         updateDoneButtonState()

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		A76B443A2E744A7300E6F830 /* Tracker.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = A76B44382E744A7300E6F830 /* Tracker.xcdatamodeld */; };
+		A78A24512E9431C9006F379A /* WeekDayArrayTransformer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A78A24502E9431C8006F379A /* WeekDayArrayTransformer.swift */; };
 		A7B7BD202E7869CF000579FD /* CoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7B7BD1F2E7869CE000579FD /* CoreDataStack.swift */; };
 		A7B7BD252E7920BB000579FD /* TrackerCategoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7B7BD242E7920B1000579FD /* TrackerCategoryStore.swift */; };
 		A7B7BD272E7920EE000579FD /* TrackerStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7B7BD262E7920EB000579FD /* TrackerStore.swift */; };
@@ -37,6 +38,7 @@
 		A712CEBA2E4A66F20050C5DC /* TrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A712CEC42E4A66F20050C5DC /* TrackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TrackerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A76B44392E744A7300E6F830 /* Tracker.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Tracker.xcdatamodel; sourceTree = "<group>"; };
+		A78A24502E9431C8006F379A /* WeekDayArrayTransformer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeekDayArrayTransformer.swift; sourceTree = "<group>"; };
 		A7B7BD1F2E7869CE000579FD /* CoreDataStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataStack.swift; sourceTree = "<group>"; };
 		A7B7BD242E7920B1000579FD /* TrackerCategoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerCategoryStore.swift; sourceTree = "<group>"; };
 		A7B7BD262E7920EB000579FD /* TrackerStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerStore.swift; sourceTree = "<group>"; };
@@ -128,6 +130,7 @@
 		A7B7BD212E79205C000579FD /* CoreDataStack */ = {
 			isa = PBXGroup;
 			children = (
+				A78A24502E9431C8006F379A /* WeekDayArrayTransformer.swift */,
 				A7B7BD282E792105000579FD /* TrackerRecordStore.swift */,
 				A7B7BD262E7920EB000579FD /* TrackerStore.swift */,
 				A7B7BD242E7920B1000579FD /* TrackerCategoryStore.swift */,
@@ -288,6 +291,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A78A24512E9431C9006F379A /* WeekDayArrayTransformer.swift in Sources */,
 				A76B443A2E744A7300E6F830 /* Tracker.xcdatamodeld in Sources */,
 				A7B7BD292E792108000579FD /* TrackerRecordStore.swift in Sources */,
 				A7B7BD202E7869CF000579FD /* CoreDataStack.swift in Sources */,

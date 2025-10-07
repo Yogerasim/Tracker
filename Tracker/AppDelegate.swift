@@ -6,13 +6,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
     
-    // ✅ доступ к стеку (одиночка)
+    
+    
+    
     let coreDataStack = CoreDataStack.shared
     
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
     ) -> Bool {
+        
+        ValueTransformer.setValueTransformer(
+            WeekDayArrayTransformer(),
+            forName: NSValueTransformerName("WeekDayArrayTransformer")
+        )
         
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = MainTabBarController()

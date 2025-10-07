@@ -5,8 +5,8 @@ final class TrackerSectionHeaderView: UICollectionReusableView {
 
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.font = AppFonts.title3
-        label.textColor = AppColors.textPrimary
+        label.font = AppFonts.bold
+        label.textColor = AppColors.backgroundBlackButton
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -28,5 +28,6 @@ final class TrackerSectionHeaderView: UICollectionReusableView {
 
     func configure(with title: String) {
         titleLabel.text = title
+        print("🧩 Header view configured with title:", title)
     }
 }

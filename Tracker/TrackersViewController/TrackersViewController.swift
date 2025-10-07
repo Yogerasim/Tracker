@@ -43,16 +43,43 @@ final class TrackersViewController: UIViewController {
     }()
     
     lazy var collectionView: UICollectionView = {
-        let layout = UICollectionViewFlowLayout()
-        layout.itemSize = CGSize(width: 160, height: 140)
-        layout.minimumLineSpacing = AppLayout.padding
-        layout.minimumInteritemSpacing = 8
+        let layout = UICollectionViewCompositionalLayout { sectionIndex, _ in
+            // Item
+            let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.5),
+                                                  heightDimension: .absolute(140))
+            let item = NSCollectionLayoutItem(layoutSize: itemSize)
+            item.contentInsets = NSDirectionalEdgeInsets(top: 4, leading: 4, bottom: 4, trailing: 4)
+
+            // Group
+            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
+                                                   heightDimension: .estimated(150))
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+
+            // Section
+            let section = NSCollectionLayoutSection(group: group)
+            section.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 0, bottom: 16, trailing: 0)
+
+            // Header
+            let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
+                                                    heightDimension: .estimated(40))
+            let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(
+                layoutSize: headerSize,
+                elementKind: UICollectionView.elementKindSectionHeader,
+                alignment: .top)
+            section.boundarySupplementaryItems = [sectionHeader]
+
+            return section
+        }
+
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
         cv.translatesAutoresizingMaskIntoConstraints = false
         cv.backgroundColor = .clear
         cv.delegate = self
         cv.dataSource = self
         cv.register(TrackerCell.self, forCellWithReuseIdentifier: TrackerCell.reuseIdentifier)
+        cv.register(TrackerSectionHeaderView.self,
+                    forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+                    withReuseIdentifier: TrackerSectionHeaderView.reuseIdentifier)
         return cv
     }()
     
@@ -112,6 +139,14 @@ final class TrackersViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = AppColors.background
         
+        // MARK: Register header
+        collectionView.register(
+            TrackerSectionHeaderView.self,
+            forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+            withReuseIdentifier: TrackerSectionHeaderView.reuseIdentifier
+        )
+        print("🟢 Header registered for kind:", UICollectionView.elementKindSectionHeader)
+        
         setupLayout()
         setupPlaceholder()
         placeholderView.configure(
@@ -127,6 +162,8 @@ final class TrackersViewController: UIViewController {
         updateDateText()
         
         searchBar.delegate = self
+        
+        viewModel.trackerStore.debugPrintSchedules()
     }
     
     // MARK: - Layout
@@ -250,3 +287,5 @@ extension TrackersViewController: UISearchBarDelegate {
         updatePlaceholder()
     }
 }
+
+

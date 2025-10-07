@@ -6,7 +6,8 @@ final class TrackersViewModel {
     // MARK: - Stores
     private let categoryStore: TrackerCategoryStore
     private let recordStore: TrackerRecordStore
-    private let trackerStore: TrackerStore
+
+    let trackerStore: TrackerStore
 
     // MARK: - State
     private let defaultCategoryTitle = "Мои трекеры"
@@ -62,9 +63,12 @@ final class TrackersViewModel {
 
     func addTrackerToDefaultCategory(_ tracker: Tracker) {
         print("🟢 Adding tracker: \(tracker.name)")
+        
+        // ← Принт для проверки schedule
+        print("📌 Tracker schedule before saving: \(tracker.schedule.map { $0.rawValue })")
+        
         categoryStore.addTracker(tracker, to: defaultCategoryTitle)
         trackerStore.add(tracker)
-
         
         let updatedTrackers = trackerStore.getTrackers()
         self.trackers = updatedTrackers
