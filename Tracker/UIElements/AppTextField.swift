@@ -82,6 +82,12 @@ final class AppTextField: UIView, UITextFieldDelegate {
 
     // Удобный геттер для текста
     var textValue: String {
-        return textField.text ?? ""
+        get { textField.text ?? "" }
+        set { textField.text = newValue }
     }
+    
+    func setText(_ text: String) {
+           textField.text = text
+           textChanged() // обновляем лимит символов и вызываем callback
+       }
 }

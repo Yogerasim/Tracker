@@ -107,6 +107,18 @@ final class TrackerStore: NSObject {
             print("❌ Ошибка delete Tracker: \(error)")
         }
     }
+    
+    func fetchTracker(by id: UUID) -> TrackerCoreData? {
+            let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
+            request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+            request.fetchLimit = 1
+            do {
+                return try context.fetch(request).first
+            } catch {
+                print("❌ Ошибка fetchTracker: \(error)")
+                return nil
+            }
+        }
 
     // MARK: - Private
     private func saveContext() {

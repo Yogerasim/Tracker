@@ -261,6 +261,17 @@ final class TrackersViewController: UIViewController {
             self?.updateDateText()
             self?.collectionView.reloadData()
         }
+        
+        // Подписка на редактирование
+        viewModel.onEditTracker = { [weak self] tracker in
+            guard let self = self else { return }
+            // Находим CoreData объект по id
+            guard let trackerCoreData = self.viewModel.trackerStore.fetchTracker(by: tracker.id) else {
+                print("❌ Не удалось найти TrackerCoreData для \(tracker.name)")
+                return
+            }
+            self.editTracker(trackerCoreData)
+        }
     }
     
     // MARK: - Actions
@@ -292,7 +303,7 @@ private extension TrackersViewController {
         let location = gesture.location(in: collectionView)
         guard let indexPath = collectionView.indexPathForItem(at: location),
               let cell = collectionView.cellForItem(at: indexPath) else { return }
-        
+
         guard nonEmptyCategories.indices.contains(indexPath.section) else { return }
         let category = nonEmptyCategories[indexPath.section]
 
@@ -337,9 +348,28 @@ private extension TrackersViewController {
         }
     }
     
-    func editTracker(_ tracker: Tracker) {
-        // Если у тебя есть экран редактирования — здесь вызывай его. Пока просто прокидываем в viewModel.
-        viewModel.editTracker(tracker)
+    func editTracker(_ tracker: TrackerCoreData) {
+        guard let context = tracker.managedObjectContext else {
+            print("❌ Ошибка: у трекера нет context")
+            return
+        }
+        
+        guard let editVM = EditHabitViewModel(tracker: tracker, context: context) else {
+            print("❌ Ошибка: не удалось создать EditHabitViewModel")
+            print("Текущие данные трекера:")
+            print("name: \(tracker.name ?? "nil")")
+            print("emoji: \(tracker.emoji ?? "nil")")
+            print("color: \(tracker.color ?? "nil")")
+            print("category: \(tracker.category?.title ?? "nil")")
+            return
+        }
+        
+        print("✅ EditHabitViewModel создан успешно для трекера: \(tracker.name ?? "nil")")
+        
+        let editVC = EditHabitViewController(viewModel: editVM)
+        present(editVC, animated: true) {
+            print("✅ EditHabitViewController представлен")
+        }
     }
     
     func deleteTracker(_ tracker: Tracker) {

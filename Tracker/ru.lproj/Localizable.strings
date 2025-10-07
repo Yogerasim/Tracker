@@ -88,3 +88,10 @@
 
 //EditCategoryView
 "edit_category_title" = "Редактирование категории";
+
+//EditHabitViewController
+
+"edit_habit.save" = "Сохранить";
+"edit_habit.title" = "Редактировать привычку";
+
+

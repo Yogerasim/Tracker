@@ -32,6 +32,7 @@ final class TrackersViewModel {
     var nonEmptyCategories: [TrackerCategory] {
         return categories.filter { !$0.trackers.isEmpty }
     }
+    var onEditTracker: ((Tracker) -> Void)?
     
     // MARK: - Init
     init(container: NSPersistentContainer = CoreDataStack.shared.persistentContainer) {
@@ -148,13 +149,15 @@ extension TrackersViewModel {
 
 // MARK: - Edit / Delete
 extension TrackersViewModel {
+    
+
     func editTracker(_ tracker: Tracker) {
-        print("Edit tracker: \(tracker.name)")
+        print("🟢 Edit tracker tapped: \(tracker.name)")
+        onEditTracker?(tracker)
     }
     
     func deleteTracker(_ tracker: Tracker) {
         trackerStore.delete(tracker)
-        
         
         trackers.removeAll { $0.id == tracker.id }
         filteredTrackers.removeAll { $0.id == tracker.id }
