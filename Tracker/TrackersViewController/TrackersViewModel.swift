@@ -22,6 +22,7 @@ final class TrackersViewModel {
         didSet { filterTrackers() }
     }
     
+    
     // Словарь для запоминания исходной категории трекера
     private var originalCategoryMap: [UUID: String] = [:]
     
@@ -33,6 +34,11 @@ final class TrackersViewModel {
         return categories.filter { !$0.trackers.isEmpty }
     }
     var onEditTracker: ((Tracker) -> Void)?
+    var selectedFilterIndex: Int = 0 {
+        didSet {
+            applyFilter()
+        }
+    }
     
     // MARK: - Init
     init(container: NSPersistentContainer = CoreDataStack.shared.persistentContainer) {
@@ -96,6 +102,30 @@ final class TrackersViewModel {
         self.trackers = trackerStore.getTrackers()
         self.completedTrackers = recordStore.completedTrackers
         filterTrackers()
+    }
+    
+    private func applyFilter() {
+        switch selectedFilterIndex {
+        case 0:
+            filteredTrackers = trackers // Все трекеры
+        case 1:
+            // Трекеры на сегодня
+            let weekdayInt = Calendar.current.component(.weekday, from: currentDate)
+            if let today = WeekDay(rawValue: weekdayInt) {
+                filteredTrackers = trackers.filter { $0.schedule.contains(today) }
+            } else {
+                filteredTrackers = []
+            }
+        case 2:
+            // Завершенные
+            filteredTrackers = trackers.filter { isTrackerCompleted($0, on: currentDate) }
+        case 3:
+            // Не завершенные
+            filteredTrackers = trackers.filter { !isTrackerCompleted($0, on: currentDate) }
+        default:
+            filteredTrackers = trackers
+        }
+        onTrackersUpdated?()
     }
     
     

@@ -8,10 +8,13 @@ enum AppColors {
     static let textSecondary = UIColor(hex: "#8E8E93")
     static let errorRed = UIColor(hex: "#F56B6C")
     static let gray = UIColor(hex: "#AEAFB4")
+    static let darkBlue = UIColor(hex: "#3772E7")
     
     static let gradientStart = UIColor(hex: "#FD4C49")
     static let gradientMiddle = UIColor(hex: "#46E69D")
     static let gradientEnd = UIColor(hex: "#007BFA")
+    
+    
 }
 
 enum AppFonts {
