@@ -5,13 +5,22 @@ final class EditHabitViewController: UIViewController {
 
     // MARK: - Dependencies
     private let viewModel: EditHabitViewModel
-    
 
     // MARK: - UI
     private let scrollView = UIScrollView()
     private let contentStack = UIStackView()
 
     private let modalHeader = ModalHeaderView(title: NSLocalizedString("edit_habit.title", comment: "Редактировать привычку"))
+    
+    // 🔹 Новый элемент — количество дней
+    private let daysCountLabel: UILabel = {
+        let label = UILabel()
+        label.font = AppFonts.bold(32)
+        label.textColor = AppColors.backgroundBlackButton
+        label.textAlignment = .center
+        return label
+    }()
+    
     private let nameTextField = AppTextField(
         placeholder: NSLocalizedString("new_habit.enter_name", comment: "Введите название трекера"),
         maxCharacters: 38
@@ -64,28 +73,17 @@ final class EditHabitViewController: UIViewController {
 
     // MARK: - Setup initial UI values
     private func setupInitialValues() {
-        // Устанавливаем текст трекера, разворачивая опционал
         nameTextField.setText(viewModel.tracker.name ?? "")
         
         bottomButtons.createButton.setTitle(
             NSLocalizedString("edit_habit.save", comment: "Сохранить"),
             for: .normal
         )
-
-        // Обработка выбора эмодзи
-        emojiCollectionVC.onItemSelected = { [weak self] item in
-            if let emojiItem = item as? CollectionItem, case .emoji(let emoji) = emojiItem {
-                self?.selectedEmoji = emoji
-            }
-        }
-
-        // Обработка выбора цвета
-        colorCollectionVC.onItemSelected = { [weak self] item in
-            if let colorItem = item as? CollectionItem, case .color(let color) = colorItem {
-                self?.selectedColor = color
-            }
-        }
-
+        
+        // 🔹 Устанавливаем количество дней
+        let daysCount = viewModel.tracker.decodedSchedule.count
+                daysCountLabel.text = "\(daysCount) \(russianDayForm(daysCount))"
+        
         // Обработка выбора эмодзи
         emojiCollectionVC.onItemSelected = { [weak self] item in
             if let emojiItem = item as? CollectionItem, case .emoji(let emoji) = emojiItem {
@@ -105,6 +103,27 @@ final class EditHabitViewController: UIViewController {
             let hasText = !text.trimmingCharacters(in: .whitespaces).isEmpty
             self?.bottomButtons.setCreateButton(enabled: hasText)
         }
+    }
+    
+    private func russianDayForm(_ n: Int) -> String {
+        let nAbs = abs(n) % 100
+        let n1 = nAbs % 10
+        if nAbs > 10 && nAbs < 20 {
+            return "дней"
+        }
+        if n1 == 1 {
+            return "день"
+        }
+        if n1 >= 2 && n1 <= 4 {
+            return "дня"
+        }
+        return "дней"
+    }
+
+    // MARK: - Helpers
+    private func localizedDays(for count: Int) -> String {
+        let formatString = NSLocalizedString("edit_habit.days_count", comment: "Количество дней")
+        return String.localizedStringWithFormat(formatString, count)
     }
 
     // MARK: - Table setup
@@ -136,7 +155,8 @@ final class EditHabitViewController: UIViewController {
         view.addSubview(bottomButtons)
         scrollView.addSubview(contentStack)
 
-        [nameTextField, tableContainer, emojiCollectionVC.view, colorCollectionVC.view].forEach {
+        // 🔹 Добавляем лейбл количества дней между заголовком и полем ввода
+        [daysCountLabel, nameTextField, tableContainer, emojiCollectionVC.view, colorCollectionVC.view].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             contentStack.addArrangedSubview($0)
         }
@@ -168,6 +188,7 @@ final class EditHabitViewController: UIViewController {
             contentStack.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -AppLayout.padding),
             contentStack.widthAnchor.constraint(equalTo: scrollView.widthAnchor, constant: -2*UIConstants.horizontalPadding),
 
+            daysCountLabel.heightAnchor.constraint(equalToConstant: 40),
             nameTextField.heightAnchor.constraint(equalToConstant: 75),
             tableContainer.heightAnchor.constraint(equalToConstant: 150),
             emojiCollectionVC.view.heightAnchor.constraint(equalToConstant: 300),
