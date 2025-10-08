@@ -75,7 +75,7 @@ final class StatisticsViewController: UIViewController {
                       stats.averageTrackersPerDay == 0
 
         placeholderView.isHidden = !allZero
-        tableView.isHidden = allZero
+        tableView.isHidden = allZero // скрываем только если нет данных
 
         if allZero {
             placeholderView.configure(
@@ -95,7 +95,7 @@ final class StatisticsViewController: UIViewController {
             tableView.topAnchor.constraint(equalTo: titleView.bottomAnchor, constant: 20),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            tableView.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20), // не lessThanOrEqualTo
 
             placeholderView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             placeholderView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
