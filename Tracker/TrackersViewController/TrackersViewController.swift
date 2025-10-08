@@ -240,7 +240,7 @@ final class TrackersViewController: UIViewController {
             
             uiUpdateWorkItem = workItem
             // Выполняем с небольшим дебаунсом, чтобы сгладить множественные обновления
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.9, execute: workItem)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: workItem)
         }
         
         // Единый обработчик всех обновлений
