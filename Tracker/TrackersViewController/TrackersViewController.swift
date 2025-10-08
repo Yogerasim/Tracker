@@ -24,59 +24,67 @@ final class TrackersViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Цвет фона
+        // MARK: Базовая настройка фона
         view.backgroundColor = AppColors.background
         
-        // Регистрация header для коллекции
+        // MARK: Регистрация header и ячеек
         ui.collectionView.register(
             TrackerSectionHeaderView.self,
             forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
             withReuseIdentifier: TrackerSectionHeaderView.reuseIdentifier
         )
+        ui.collectionView.register(
+            TrackerCell.self,
+            forCellWithReuseIdentifier: TrackerCell.reuseIdentifier
+        )
         
-        // Настройка layout через ui
+        // MARK: Настройка layout через ui
         setupLayout()
         
-        // Добавляем распознавание долгого нажатия на ячейки
+        // MARK: Привязка DataSource / Delegate
+        ui.collectionView.dataSource = self
+        ui.collectionView.delegate = self
+        
+        // MARK: Добавляем long press на ячейки
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
         ui.collectionView.addGestureRecognizer(longPress)
         
-        // Настройка placeholder
+        // MARK: Настройка placeholder
         ui.placeholderView.configure(
             imageName: "Star",
             text: NSLocalizedString("trackers.placeholder_text", comment: "Текст при отсутствии трекеров")
         )
         
-        // Настройка календаря
+        // MARK: Настройка календаря
         setupCalendarContainer()
         
-        // Привязка ViewModel
+        // MARK: Привязка ViewModel
         bindViewModel()
-        
-        // Убедимся, что есть дефолтная категория
         viewModel.ensureDefaultCategory()
         
-        // Обновление placeholder и даты
+        // MARK: Обновление UI
+        updateUI()
         updatePlaceholder()
         updateDateText()
         
-        // Настройка searchBar
+        // MARK: Настройка searchBar
         ui.searchBar.delegate = self
         ui.searchBar.barTintColor = AppColors.background
         ui.searchBar.searchTextField.backgroundColor = AppColors.background
         ui.searchBar.searchTextField.textColor = AppColors.textPrimary
         ui.searchBar.searchTextField.tintColor = AppColors.primaryBlue
         
-        // Отладка расписания трекеров
-        viewModel.trackerStore.debugPrintSchedules()
-        
-        // Привязываем действия к кнопкам
+        // MARK: Привязка действий кнопок
         ui.addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
         ui.dateButton.addTarget(self, action: #selector(toggleCalendar), for: .touchUpInside)
         ui.filtersButton.addTarget(self, action: #selector(filtersTapped), for: .touchUpInside)
         ui.calendarView.addTarget(self, action: #selector(calendarDateChanged(_:)), for: .valueChanged)
-        ui.collectionView.dataSource = self
-        ui.collectionView.delegate = self
+        
+        // MARK: Отладка расписания трекеров
+        viewModel.trackerStore.debugPrintSchedules()
+        print("📦 trackers count:", viewModel.trackers.count)
+        print("📦 categories count:", viewModel.categories.count)
+        print("📦 filteredTrackers count:", viewModel.filteredTrackers.count)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -193,30 +201,102 @@ final class TrackersViewController: UIViewController {
     }
     
     // MARK: - Binding
-    private func bindViewModel() {
+    
+    private func setupBindings() {
         viewModel.onTrackersUpdated = { [weak self] in
-            self?.ui.collectionView.reloadData()
-            self?.updatePlaceholder()
+            self?.updateUI()
+        }
+    }
+    
+    
+    // MARK: - UI Update Debounce
+    private var uiUpdateWorkItem: DispatchWorkItem?
+
+    private func bindViewModel() {
+        
+        // Общая функция для отложенного обновления UI
+        func scheduleUIRefresh(reason: String) {
+            // Отменяем предыдущую задачу, если она ещё не выполнена
+            uiUpdateWorkItem?.cancel()
+            
+            let workItem = DispatchWorkItem { [weak self] in
+                guard let self = self else { return }
+                
+                // Пересчёт visibleCategories прямо перед reloadData
+                self.recalculateVisibleCategories()
+                
+                print("🔁 UI Refresh triggered by: \(reason)")
+                print("🔁 visibleCategories: \(self.visibleCategories.map { $0.title })")
+                
+                // Проверка, что collectionView в иерархии
+                guard self.ui.collectionView.window != nil else {
+                    print("⚠️ collectionView не в иерархии, reloadData пропущен")
+                    return
+                }
+                
+                self.ui.collectionView.reloadData()
+                self.updatePlaceholder()
+            }
+            
+            uiUpdateWorkItem = workItem
+            // Выполняем с небольшим дебаунсом, чтобы сгладить множественные обновления
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.9, execute: workItem)
         }
         
-        viewModel.onCategoriesUpdated = { [weak self] in
-            self?.ui.collectionView.reloadData()
+        // Единый обработчик всех обновлений
+        let refreshUI = { [weak self] (reason: String) in
+            guard let self = self else { return }
+            scheduleUIRefresh(reason: reason)
         }
         
-        viewModel.onDateChanged = { [weak self] date in
-            self?.updateDateText()
-            self?.ui.collectionView.reloadData()
+        // Подписки на события ViewModel
+        viewModel.onTrackersUpdated = { refreshUI("Trackers Updated") }
+        viewModel.onCategoriesUpdated = { refreshUI("Categories Updated") }
+        viewModel.onDateChanged = { date in
+            refreshUI("Date Changed")
+            print("🔁 onDateChanged called: \(date)")
         }
         
-        // Подписка на редактирование
         viewModel.onEditTracker = { [weak self] tracker in
             guard let self = self else { return }
-            // Находим CoreData объект по id
+            print("🖋 onEditTracker called for: \(tracker.name)")
+            
             guard let trackerCoreData = self.viewModel.trackerStore.fetchTracker(by: tracker.id) else {
                 print("❌ Не удалось найти TrackerCoreData для \(tracker.name)")
                 return
             }
             self.editTracker(trackerCoreData)
+        }
+    }
+
+    // MARK: - Visible Categories
+    var visibleCategories: [TrackerCategory] = []
+
+    private func recalculateVisibleCategories() {
+        visibleCategories = viewModel.categories.filter { category in
+            viewModel.filteredTrackers.contains { tracker in
+                (tracker.trackerCategory?.title ?? "Мои трекеры") == category.title
+            }
+        }
+    }
+
+    // MARK: - Update UI
+    func updateUI() {
+        // Пересчёт перед обновлением UI
+        recalculateVisibleCategories()
+        
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            // Проверка, что collectionView в иерархии
+            guard self.ui.collectionView.window != nil else {
+                print("⚠️ collectionView не в иерархии, reloadData пропущен")
+                return
+            }
+            
+            print("🔁 updateUI -> visibleCategories: \(self.visibleCategories.map { $0.title })")
+            print("🧩 reloadData called, filteredTrackers:", self.viewModel.filteredTrackers.count)
+            self.ui.collectionView.reloadData()
         }
     }
     
@@ -247,6 +327,7 @@ final class TrackersViewController: UIViewController {
         filtersVC.onFilterSelected = { [weak self] index in
             guard let self = self else { return }
             self.viewModel.selectedFilterIndex = index
+            print("🧩 reloadData called, filteredTrackers:", self.viewModel.filteredTrackers.count)
             self.ui.collectionView.reloadData()
         }
         filtersVC.modalPresentationStyle = .pageSheet
@@ -260,8 +341,8 @@ final class TrackersViewController: UIViewController {
         guard let indexPath = ui.collectionView.indexPathForItem(at: location),
               let cell = ui.collectionView.cellForItem(at: indexPath) else { return }
         
-        guard nonEmptyCategories.indices.contains(indexPath.section) else { return }
-        let category = nonEmptyCategories[indexPath.section]
+        guard visibleCategories.indices.contains(indexPath.section) else { return }
+        let category = visibleCategories[indexPath.section]
         
         let trackersInCategory = viewModel.filteredTrackers.filter { tracker in
             tracker.trackerCategory?.title == category.title ||
@@ -346,5 +427,6 @@ extension TrackersViewController: UISearchBarDelegate {
         updatePlaceholder()
     }
 }
+
 
 

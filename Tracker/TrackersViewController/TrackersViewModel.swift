@@ -22,9 +22,6 @@ final class TrackersViewModel {
     @Published var searchText: String = "" {
         didSet { filterTrackers() }
     }
-    
-    
-    
     // Словарь для запоминания исходной категории трекера
     private var originalCategoryMap: [UUID: String] = [:]
     
@@ -208,14 +205,13 @@ extension TrackersViewModel {
     }
     
     func deleteTracker(_ tracker: Tracker) {
+        print("🔴 Request delete tracker: \(tracker.name)")
         trackerStore.delete(tracker)
-        
-        trackers.removeAll { $0.id == tracker.id }
-        filteredTrackers.removeAll { $0.id == tracker.id }
-        completedTrackers.removeAll { $0.trackerId == tracker.id }
-        
+
+        // Перезагружаем из store, чтобы state был консистентным
+        reloadTrackers()
         onTrackersUpdated?()
-        print("Deleted tracker: \(tracker.name)")
+        print("✅ Deleted tracker: \(tracker.name). trackers.count = \(trackers.count)")
     }
 }
 
