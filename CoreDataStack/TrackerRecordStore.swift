@@ -35,6 +35,8 @@ final class TrackerRecordStore: NSObject {
             print("❌ Ошибка performFetch: \(error)")
         }
     }
+    
+    
 
     // MARK: - Access
 
@@ -95,6 +97,9 @@ final class TrackerRecordStore: NSObject {
         do {
             if backgroundContext.hasChanges {
                 try backgroundContext.save()
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(name: .trackerRecordsDidChange, object: nil)
+                }
             }
         } catch {
             print("❌ Ошибка сохранения backgroundContext: \(error)")
@@ -125,4 +130,19 @@ extension TrackerRecordStore {
             return nil
         }
     }
+    
+    func fetchAllRecords() -> [TrackerRecord] {
+            guard let objects = fetchedResultsController.fetchedObjects else { return [] }
+            return objects.compactMap { rec in
+                guard let tracker = rec.tracker,
+                      let trackerId = tracker.id,
+                      let date = rec.date else { return nil }
+                return TrackerRecord(trackerId: trackerId, date: date)
+            }
+        }
+}
+// MARK: - Notifications
+
+extension Notification.Name {
+    static let trackerRecordsDidChange = Notification.Name("trackerRecordsDidChange")
 }

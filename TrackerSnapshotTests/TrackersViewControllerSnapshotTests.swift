@@ -8,7 +8,7 @@ final class TrackersViewControllerSnapshotTests: XCTestCase {
     
     override func setUp() {
         super.setUp()
-        SnapshotTesting.isRecording = false   
+        SnapshotTesting.isRecording = false
         UIView.setAnimationsEnabled(false)
         viewController = TrackersViewController()
     }
@@ -21,10 +21,10 @@ final class TrackersViewControllerSnapshotTests: XCTestCase {
     
     private func prepareForSnapshot() {
         viewController.loadViewIfNeeded()
-        // Убедимся, что layout завершён
+        
         viewController.view.setNeedsLayout()
         viewController.view.layoutIfNeeded()
-        // Явно задаём размер в случае нестабильности:
+        
         viewController.view.frame = CGRect(origin: .zero, size: CGSize(width: 390, height: 844))
     }
     
