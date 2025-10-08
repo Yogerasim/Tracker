@@ -7,6 +7,9 @@ final class TrackerActionMenu: UIView {
     var onUnpin: (() -> Void)?
     var onEdit: (() -> Void)?
     var onDelete: (() -> Void)?
+    
+    var tracker: Tracker?
+    weak var store: TrackerStore?
 
     // MARK: - UI
     private lazy var stackView: UIStackView = {
@@ -96,7 +99,11 @@ final class TrackerActionMenu: UIView {
         }
     }
     @objc private func editTapped() { onEdit?() }
-    @objc private func deleteTapped() { onDelete?() }
+    @objc private func deleteTapped() {
+        guard let tracker = tracker else { return }
+        store?.delete(tracker)
+        onDelete?()  
+    }
 
     // MARK: - Helpers
     private func updatePinButtonTitle() {

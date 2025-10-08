@@ -24,6 +24,7 @@ final class TrackersViewModel {
     }
     
     
+    
     // Словарь для запоминания исходной категории трекера
     private var originalCategoryMap: [UUID: String] = [:]
     

@@ -5,150 +5,16 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - ViewModel
     let viewModel: TrackersViewModel
-    
-    // MARK: - UI Elements
-    lazy var filtersButton: FiltersButton = {
-        let button = FiltersButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(self, action: #selector(filtersTapped), for: .touchUpInside)
-        return button
-    }()
-    
-    lazy var addButton: UIButton = {
-        let button = UIButton(type: .system) // обязательно system!
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.widthAnchor.constraint(equalToConstant: 42).isActive = true
-        button.heightAnchor.constraint(equalToConstant: 42).isActive = true
-        
-        // Template Image из ассетов
-        if let image = UIImage(named: "plus")?.withRenderingMode(.alwaysTemplate) {
-            button.setImage(image, for: .normal)
-        }
-        
-        // Динамический tintColor
-        button.tintColor = UIColor { traitCollection in
-            traitCollection.userInterfaceStyle == .dark
-            ? AppColors.textPrimary
-            : AppColors.backgroundBlackButton
-        }
-        
-        button.imageView?.contentMode = .scaleAspectFit
-        button.imageEdgeInsets = UIEdgeInsets(top: 12, left: 11.5, bottom: 12, right: 11.5)
-        button.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
-        return button
-    }()
-    
-    lazy var dateButton: UIButton = {
-        let button = UIButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.widthAnchor.constraint(equalToConstant: 77).isActive = true
-        button.heightAnchor.constraint(equalToConstant: 34).isActive = true
-        button.backgroundColor = AppColors.textSecondary.withAlphaComponent(0.1)
-        button.layer.cornerRadius = 12
-        button.titleLabel?.font = AppFonts.caption2
-        button.setTitleColor(AppColors.textPrimary, for: .normal)
-        button.addTarget(self, action: #selector(toggleCalendar), for: .touchUpInside)
-        return button
-    }()
-    
-    let searchBar: UISearchBar = {
-        let sb = UISearchBar()
-        sb.placeholder = NSLocalizedString("trackers.search_placeholder", comment: "Placeholder для поиска трекеров")
-        sb.searchBarStyle = .minimal
-        sb.backgroundImage = UIImage()
-        sb.translatesAutoresizingMaskIntoConstraints = false
-        return sb
-    }()
-    
-    lazy var collectionView: UICollectionView = {
-        let layout = UICollectionViewCompositionalLayout { sectionIndex, _ in
-            // Item
-            let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.5),
-                                                  heightDimension: .absolute(140))
-            let item = NSCollectionLayoutItem(layoutSize: itemSize)
-            item.contentInsets = NSDirectionalEdgeInsets(top: 4, leading: 4, bottom: 4, trailing: 4)
-            
-            // Group
-            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
-                                                   heightDimension: .estimated(150))
-            let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-            
-            // Section
-            let section = NSCollectionLayoutSection(group: group)
-            section.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 0, bottom: 16, trailing: 0)
-            
-            // Header
-            let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
-                                                    heightDimension: .estimated(40))
-            let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(
-                layoutSize: headerSize,
-                elementKind: UICollectionView.elementKindSectionHeader,
-                alignment: .top)
-            section.boundarySupplementaryItems = [sectionHeader]
-            
-            return section
-        }
-        
-        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        cv.translatesAutoresizingMaskIntoConstraints = false
-        cv.backgroundColor = AppColors.background
-        cv.delegate = self
-        cv.dataSource = self
-        cv.register(TrackerCell.self, forCellWithReuseIdentifier: TrackerCell.reuseIdentifier)
-        cv.register(TrackerSectionHeaderView.self,
-                    forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
-                    withReuseIdentifier: TrackerSectionHeaderView.reuseIdentifier)
-        return cv
-    }()
+    let ui = TrackersUI()
     
     private let titleView = MainTitleLabelView(title: NSLocalizedString("trackers.title", comment: "Заголовок главного экрана трекеров"))
     private let placeholderView = PlaceholderView()
-    
-    
-    
-    // MARK: - Calendar Container
-    lazy var calendarContainer: UIView = {
-        let container = UIView()
-        container.translatesAutoresizingMaskIntoConstraints = false
-        container.backgroundColor = AppColors.background
-        container.layer.cornerRadius = AppLayout.cornerRadius
-        container.isHidden = true
-        
-        container.layer.shadowColor = UIColor.black.cgColor
-        container.layer.shadowOpacity = 0.1
-        container.layer.shadowOffset = CGSize(width: 0, height: 4)
-        container.layer.shadowRadius = 10
-        
-        container.addSubview(calendarView)
-        NSLayoutConstraint.activate([
-            calendarView.topAnchor.constraint(equalTo: container.topAnchor, constant: 8),
-            calendarView.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 8),
-            calendarView.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -8),
-            calendarView.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -8)
-        ])
-        
-        return container
-    }()
-    
-    lazy var calendarView: UIDatePicker = {
-        let dp = UIDatePicker()
-        dp.backgroundColor = AppColors.background
-        dp.overrideUserInterfaceStyle = traitCollection.userInterfaceStyle
-        dp.datePickerMode = .date
-        dp.preferredDatePickerStyle = .inline
-        dp.locale = Locale(identifier: "ru_RU")
-        dp.calendar = Calendar(identifier: .gregorian)
-        dp.addTarget(self, action: #selector(calendarDateChanged(_:)), for: .valueChanged)
-        dp.translatesAutoresizingMaskIntoConstraints = false
-        return dp
-    }()
     
     // MARK: - Init
     init(viewModel: TrackersViewModel = TrackersViewModel()) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
-    
     required init?(coder: NSCoder) {
         self.viewModel = TrackersViewModel()
         super.init(coder: coder)
@@ -157,47 +23,60 @@ final class TrackersViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // Цвет фона
         view.backgroundColor = AppColors.background
         
-        // MARK: Register header
-        collectionView.register(
+        // Регистрация header для коллекции
+        ui.collectionView.register(
             TrackerSectionHeaderView.self,
             forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
             withReuseIdentifier: TrackerSectionHeaderView.reuseIdentifier
         )
-        print("🟢 Header registered for kind:", UICollectionView.elementKindSectionHeader)
         
+        // Настройка layout через ui
         setupLayout()
+        
+        // Добавляем распознавание долгого нажатия на ячейки
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
-        collectionView.addGestureRecognizer(longPress)
-        setupPlaceholder()
-        placeholderView.configure(
+        ui.collectionView.addGestureRecognizer(longPress)
+        
+        // Настройка placeholder
+        ui.placeholderView.configure(
             imageName: "Star",
             text: NSLocalizedString("trackers.placeholder_text", comment: "Текст при отсутствии трекеров")
         )
         
+        // Настройка календаря
         setupCalendarContainer()
+        
+        // Привязка ViewModel
         bindViewModel()
         
+        // Убедимся, что есть дефолтная категория
         viewModel.ensureDefaultCategory()
+        
+        // Обновление placeholder и даты
         updatePlaceholder()
         updateDateText()
         
-        searchBar.delegate = self
-        searchBar.barTintColor = AppColors.background
-        searchBar.searchTextField.backgroundColor = AppColors.background
-        searchBar.searchTextField.textColor = AppColors.textPrimary
-        searchBar.searchTextField.tintColor = AppColors.primaryBlue
+        // Настройка searchBar
+        ui.searchBar.delegate = self
+        ui.searchBar.barTintColor = AppColors.background
+        ui.searchBar.searchTextField.backgroundColor = AppColors.background
+        ui.searchBar.searchTextField.textColor = AppColors.textPrimary
+        ui.searchBar.searchTextField.tintColor = AppColors.primaryBlue
         
+        // Отладка расписания трекеров
         viewModel.trackerStore.debugPrintSchedules()
         
-        view.addSubview(filtersButton)
-        NSLayoutConstraint.activate([
-            filtersButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            filtersButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
-            filtersButton.widthAnchor.constraint(equalToConstant: 114),
-            filtersButton.heightAnchor.constraint(equalToConstant: 50)
-        ])
+        // Привязываем действия к кнопкам
+        ui.addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
+        ui.dateButton.addTarget(self, action: #selector(toggleCalendar), for: .touchUpInside)
+        ui.filtersButton.addTarget(self, action: #selector(filtersTapped), for: .touchUpInside)
+        ui.calendarView.addTarget(self, action: #selector(calendarDateChanged(_:)), for: .valueChanged)
+        ui.collectionView.dataSource = self
+        ui.collectionView.delegate = self
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -212,53 +91,58 @@ final class TrackersViewController: UIViewController {
     
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
-        
+        // Фон экрана
         view.backgroundColor = AppColors.background
-        collectionView.backgroundColor = AppColors.background
-        
-        searchBar.barTintColor = AppColors.background
-        searchBar.searchTextField.backgroundColor = AppColors.background
-        searchBar.searchTextField.textColor = AppColors.textPrimary
-        
-        dateButton.backgroundColor = AppColors.textSecondary.withAlphaComponent(0.1)
-        dateButton.setTitleColor(AppColors.textPrimary, for: .normal)
-        
-        
-        calendarContainer.backgroundColor = AppColors.background
-        calendarView.backgroundColor = AppColors.background
+        // Коллекция
+        ui.collectionView.backgroundColor = AppColors.background
+        // Поисковая строка
+        ui.searchBar.barTintColor = AppColors.background
+        ui.searchBar.searchTextField.backgroundColor = AppColors.background
+        ui.searchBar.searchTextField.textColor = AppColors.textPrimary
+        // Кнопка даты
+        ui.dateButton.backgroundColor = AppColors.textSecondary.withAlphaComponent(0.1)
+        ui.dateButton.setTitleColor(AppColors.textPrimary, for: .normal)
+        // Календарь
+        ui.calendarContainer.backgroundColor = AppColors.background
+        ui.calendarView.backgroundColor = AppColors.background
     }
     
     // MARK: - Layout
     private func setupLayout() {
+        // Настраиваем основной layout через хелпер, передавая элементы из ui
         MainHeaderLayoutHelper.setupTrackerLayout(
             in: view,
-            titleView: titleView,
-            addButton: addButton,
-            dateButton: dateButton,
-            searchBar: searchBar,
-            collectionView: collectionView
+            titleView: ui.titleView,
+            addButton: ui.addButton,
+            dateButton: ui.dateButton,
+            searchBar: ui.searchBar,
+            collectionView: ui.collectionView
         )
         
-        // Добавляем остальные элементы
-        view.addSubview(searchBar)
-        view.addSubview(collectionView)
+        view.addSubview(ui.filtersButton)
+        NSLayoutConstraint.activate([
+            ui.filtersButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            ui.filtersButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            ui.filtersButton.widthAnchor.constraint(equalToConstant: 114),
+            ui.filtersButton.heightAnchor.constraint(equalToConstant: 50)
+        ])
         
-        // Отступы
+        // Отступы между поиском и коллекцией
         let spacingTitleToSearch: CGFloat = 2
         let spacingSearchToCollection: CGFloat = 8
         
-        // Активируем констрейнты
+        // Активируем констрейнты для поиска и коллекции
         NSLayoutConstraint.activate([
             // Поиск под заголовком
-            searchBar.topAnchor.constraint(equalTo: titleView.bottomAnchor, constant: spacingTitleToSearch),
-            searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            ui.searchBar.topAnchor.constraint(equalTo: ui.titleView.bottomAnchor, constant: spacingTitleToSearch),
+            ui.searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            ui.searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             
             // Коллекция под поиском
-            collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: spacingSearchToCollection),
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            ui.collectionView.topAnchor.constraint(equalTo: ui.searchBar.bottomAnchor, constant: spacingSearchToCollection),
+            ui.collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            ui.collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            ui.collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
     
@@ -271,33 +155,33 @@ final class TrackersViewController: UIViewController {
     }
     
     func setupCalendarContainer() {
-        view.addSubview(calendarContainer)
+        view.addSubview(ui.calendarContainer)
         NSLayoutConstraint.activate([
-            calendarContainer.topAnchor.constraint(equalTo: addButton.bottomAnchor, constant: 16),
-            calendarContainer.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            calendarContainer.widthAnchor.constraint(equalToConstant: 343),
-            calendarContainer.heightAnchor.constraint(equalToConstant: 325)
+            ui.calendarContainer.topAnchor.constraint(equalTo: ui.addButton.bottomAnchor, constant: 16),
+            ui.calendarContainer.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            ui.calendarContainer.widthAnchor.constraint(equalToConstant: 343),
+            ui.calendarContainer.heightAnchor.constraint(equalToConstant: 325)
         ])
     }
     
     func updatePlaceholder() {
         if viewModel.filteredTrackers.isEmpty {
-            placeholderView.isHidden = false
+            ui.placeholderView.isHidden = false
             
-            if let searchText = searchBar.text, !searchText.isEmpty {
-                placeholderView.configure(
+            if let searchText = ui.searchBar.text, !searchText.isEmpty {
+                ui.placeholderView.configure(
                     imageName: "NoSerach",
                     text: NSLocalizedString("trackers.placeholder_no_results", comment: "Текст при отсутствии результатов поиска")
                 )
             } else {
                 // Нет вообще трекеров
-                placeholderView.configure(
+                ui.placeholderView.configure(
                     imageName: "Star",
                     text: NSLocalizedString("trackers.placeholder_text", comment: "Текст при отсутствии трекеров")
                 )
             }
         } else {
-            placeholderView.isHidden = true
+            ui.placeholderView.isHidden = true
         }
     }
     
@@ -305,21 +189,23 @@ final class TrackersViewController: UIViewController {
         let df = DateFormatter()
         df.locale = Locale(identifier: "ru_RU")
         df.dateFormat = "dd.MM.yy"
-        dateButton.setTitle(df.string(from: viewModel.currentDate), for: .normal)
+        ui.dateButton.setTitle(df.string(from: viewModel.currentDate), for: .normal)
     }
     
     // MARK: - Binding
     private func bindViewModel() {
         viewModel.onTrackersUpdated = { [weak self] in
-            self?.collectionView.reloadData()
+            self?.ui.collectionView.reloadData()
             self?.updatePlaceholder()
         }
+        
         viewModel.onCategoriesUpdated = { [weak self] in
-            self?.collectionView.reloadData()
+            self?.ui.collectionView.reloadData()
         }
+        
         viewModel.onDateChanged = { [weak self] date in
             self?.updateDateText()
-            self?.collectionView.reloadData()
+            self?.ui.collectionView.reloadData()
         }
         
         // Подписка на редактирование
@@ -345,17 +231,15 @@ final class TrackersViewController: UIViewController {
     }
     
     @objc func toggleCalendar() {
-        calendarContainer.isHidden.toggle()
+        ui.calendarContainer.isHidden.toggle()
     }
     
     @objc func calendarDateChanged(_ sender: UIDatePicker) {
         viewModel.currentDate = sender.date
         updateDateText()
         viewModel.filterByDate()
-        collectionView.reloadData()
+        ui.collectionView.reloadData()
     }
-    
-    
     
     @objc private func filtersTapped() {
         AnalyticsService.shared.trackClick(item: "filter", screen: "Main")
@@ -363,22 +247,18 @@ final class TrackersViewController: UIViewController {
         filtersVC.onFilterSelected = { [weak self] index in
             guard let self = self else { return }
             self.viewModel.selectedFilterIndex = index
-            self.collectionView.reloadData()
+            self.ui.collectionView.reloadData()
         }
         filtersVC.modalPresentationStyle = .pageSheet
         present(filtersVC, animated: true)
     }
-}
-
-// MARK: - Tracker Actions
-private extension TrackersViewController {
     
-    @objc func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
         guard gesture.state == .began else { return }
         
-        let location = gesture.location(in: collectionView)
-        guard let indexPath = collectionView.indexPathForItem(at: location),
-              let cell = collectionView.cellForItem(at: indexPath) else { return }
+        let location = gesture.location(in: ui.collectionView)
+        guard let indexPath = ui.collectionView.indexPathForItem(at: location),
+              let cell = ui.collectionView.cellForItem(at: indexPath) else { return }
         
         guard nonEmptyCategories.indices.contains(indexPath.section) else { return }
         let category = nonEmptyCategories[indexPath.section]
