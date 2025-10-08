@@ -1,26 +1,27 @@
+import UIKit
 import YandexMobileMetrica
 
+// MARK: - AnalyticsService
 final class AnalyticsService {
-
+    
     static let shared = AnalyticsService()
-
     private init() {}
-
-    private let screenMain = "Main"
-
-    // MARK: - Отправка событий
-    func trackOpen(screen: String = "Main") {
-        sendEvent(event: "open", screen: screen)
+    
+    private let defaultScreen = "Main"
+    
+    // MARK: - Методы трекинга
+    func trackOpen(screen: String? = nil) {
+        sendEvent(event: "open", screen: screen ?? defaultScreen)
     }
-
-    func trackClose(screen: String = "Main") {
-        sendEvent(event: "close", screen: screen)
+    
+    func trackClose(screen: String? = nil) {
+        sendEvent(event: "close", screen: screen ?? defaultScreen)
     }
-
-    func trackClick(item: String, screen: String = "Main") {
-        sendEvent(event: "click", screen: screen, item: item)
+    
+    func trackClick(item: String, screen: String? = nil) {
+        sendEvent(event: "click", screen: screen ?? defaultScreen, item: item)
     }
-
+    
     // MARK: - Основной метод отправки
     private func sendEvent(event: String, screen: String, item: String? = nil) {
         var attributes: [String: Any] = [
@@ -30,14 +31,12 @@ final class AnalyticsService {
         if let item = item {
             attributes["item"] = item
         }
-
-        // 🔹 Отправка в AppMetrica
+        
         YMMYandexMetrica.reportEvent("user_action", parameters: attributes) { error in
-            if let error = error {
-                print("❌ Analytics error: \(error.localizedDescription)")
-            } else {
-                print("✅ Analytics sent: \(attributes)")
-            }
+            print("❌ Analytics error: \(error.localizedDescription)")
+            print("✅ Analytics sent: \(attributes)")
         }
     }
 }
+
+
