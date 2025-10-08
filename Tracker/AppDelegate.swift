@@ -1,5 +1,6 @@
 import UIKit
 import CoreData
+import YandexMobileMetrica
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -15,19 +16,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
     ) -> Bool {
-        
+
+        // 🔹 ValueTransformer для Core Data
         ValueTransformer.setValueTransformer(
             WeekDayArrayTransformer(),
             forName: NSValueTransformerName("WeekDayArrayTransformer")
         )
-        
+
+        // 🔹 Инициализация AppMetrica
+        let configuration = YMMYandexMetricaConfiguration(apiKey: "53e8c0c7-ca97-44d0-9b89-836ccff6b602")
+        YMMYandexMetrica.activate(with: configuration!)
+
+        // 🔹 Настройка главного окна
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = MainTabBarController()
         window?.makeKeyAndVisible()
-        
-        // 🔄 Проверим, что контейнер поднялся
+
+        // 🔄 Проверим, что контейнер Core Data поднялся
         _ = coreDataStack.context
-        
+
         return true
     }
 

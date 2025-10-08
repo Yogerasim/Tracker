@@ -19,19 +19,19 @@ final class TrackersViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         button.widthAnchor.constraint(equalToConstant: 42).isActive = true
         button.heightAnchor.constraint(equalToConstant: 42).isActive = true
-
+        
         // Template Image из ассетов
         if let image = UIImage(named: "plus")?.withRenderingMode(.alwaysTemplate) {
             button.setImage(image, for: .normal)
         }
-
+        
         // Динамический tintColor
         button.tintColor = UIColor { traitCollection in
             traitCollection.userInterfaceStyle == .dark
-                ? AppColors.textPrimary
-                : AppColors.backgroundBlackButton
+            ? AppColors.textPrimary
+            : AppColors.backgroundBlackButton
         }
-
+        
         button.imageView?.contentMode = .scaleAspectFit
         button.imageEdgeInsets = UIEdgeInsets(top: 12, left: 11.5, bottom: 12, right: 11.5)
         button.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
@@ -200,6 +200,16 @@ final class TrackersViewController: UIViewController {
         ])
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        AnalyticsService.shared.trackOpen(screen: "Main")
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        AnalyticsService.shared.trackClose(screen: "Main")
+    }
+    
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         
@@ -326,6 +336,7 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Actions
     @objc func addButtonTapped() {
+        AnalyticsService.shared.trackClick(item: "add_track", screen: "Main")
         let createTrackerVC = CreateTrackerViewController()
         createTrackerVC.onTrackerCreated = { [weak self] tracker in
             self?.viewModel.addTrackerToDefaultCategory(tracker)
@@ -344,13 +355,13 @@ final class TrackersViewController: UIViewController {
         collectionView.reloadData()
     }
     
-
+    
     
     @objc private func filtersTapped() {
+        AnalyticsService.shared.trackClick(item: "filter", screen: "Main")
         let filtersVC = FiltersViewController()
         filtersVC.onFilterSelected = { [weak self] index in
             guard let self = self else { return }
-            // index: 0 = Все, 1 = На сегодня, 2 = Завершенные, 3 = Не завершенные
             self.viewModel.selectedFilterIndex = index
             self.collectionView.reloadData()
         }
@@ -391,10 +402,13 @@ private extension TrackersViewController {
                       }
                   },
             .init(title: "Редактировать", style: .default) { [weak self] in
-                self?.viewModel.editTracker(tracker)
+                guard let self = self else { return }
+                AnalyticsService.shared.trackClick(item: "edit", screen: "Main")
+                self.viewModel.editTracker(tracker)
             },
             .init(title: "Удалить", style: .destructive) { [weak self] in
                 guard let self = self else { return }
+                AnalyticsService.shared.trackClick(item: "delete", screen: "Main")
                 let alert = UIAlertController(title: "Удалить трекер?", message: "Это действие нельзя отменить.", preferredStyle: .alert)
                 alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { _ in
                     self.viewModel.deleteTracker(tracker)
@@ -544,6 +558,9 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         cell.onToggleCompletion = { [weak self, weak collectionView] in
             guard let self = self, let collectionView = collectionView else { return }
             if isFuture { return }
+            
+            // 🔹 Отправка события в AppMetrica
+            AnalyticsService.shared.trackClick(item: "track", screen: "Main")
             
             if self.viewModel.isTrackerCompleted(tracker, on: self.viewModel.currentDate) {
                 self.viewModel.unmarkTrackerAsCompleted(tracker, on: self.viewModel.currentDate)
