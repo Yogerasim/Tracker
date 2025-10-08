@@ -11,12 +11,17 @@ final class PlaceholderView: UIView {
         return iv
     }()
 
+    
     private let label: UILabel = {
         let lbl = UILabel()
-        lbl.textColor = AppColors.backgroundBlackButton
         lbl.font = AppFonts.plug
         lbl.textAlignment = .center
         lbl.numberOfLines = 0
+        lbl.textColor = UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark
+                ? UIColor(white: 1.0, alpha: 0.9)  
+                : AppColors.backgroundBlackButton
+        }
         lbl.translatesAutoresizingMaskIntoConstraints = false
         return lbl
     }()

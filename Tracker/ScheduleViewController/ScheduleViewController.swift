@@ -19,7 +19,7 @@ final class ScheduleViewController: UIViewController {
     // MARK: - UI
     private let modalHeader = ModalHeaderView(title: NSLocalizedString("schedule.title", comment: "Заголовок расписания"))
     private let tableContainer = ContainerTableView()
-    private let doneButton = DoneButton()
+    private let doneButton = BlackButton(title: NSLocalizedString("done_button", comment: "Кнопка подтверждения"))
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -76,11 +76,8 @@ final class ScheduleViewController: UIViewController {
     }
 
     private func updateDoneButtonState() {
-        let enabled = true
-        doneButton.isEnabled = enabled
-        doneButton.backgroundColor = enabled ? AppColors.backgroundBlackButton : .systemGray3
-        doneButton.setTitleColor(AppColors.textPrimary, for: .normal)
-        doneButton.setTitle(NSLocalizedString("schedule.done_button", comment: "Кнопка завершения выбора дней"), for: .normal)
+        doneButton.isEnabled = !selectedDays.isEmpty
+        doneButton.alpha = doneButton.isEnabled ? 1.0 : 0.5
     }
 }
 
@@ -136,7 +133,6 @@ extension WeekDay {
         case .sunday: return "Вс"
         }
     }
-    
 }
 
 extension Array where Element == WeekDay {

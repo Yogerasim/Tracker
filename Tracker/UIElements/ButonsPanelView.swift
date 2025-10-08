@@ -18,6 +18,8 @@ final class ButonsPanelView: UIView {
     let createButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle(NSLocalizedString("create_button", comment: "Создать"), for: .normal)
+        button.backgroundColor = AppColors.backgroundBlackButton
+        button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = AppLayout.cornerRadius
         button.titleLabel?.font = AppFonts.subheadline
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -55,8 +57,7 @@ final class ButonsPanelView: UIView {
     // MARK: - Public
     func setCreateButton(enabled: Bool) {
         createButton.isEnabled = enabled
-        createButton.backgroundColor = enabled ? AppColors.backgroundBlackButton : .systemGray3
-        createButton.setTitleColor(AppColors.textPrimary, for: .normal)
+        createButton.alpha = enabled ? 1.0 : 0.5
     }
 
     // MARK: - Layout

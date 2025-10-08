@@ -32,13 +32,21 @@ final class MainTabBarController: UITabBarController {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
         
-        // фон таббара
-        appearance.backgroundColor = .white
+        // Фон таббара с поддержкой dark mode
+        appearance.backgroundColor = UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark
+                ? AppColors.backgroundBlackButton
+                : .white
+        }
         
-        // разделительная линия (тень сверху)
-        appearance.shadowColor = .gray
+        // Разделительная линия (тень сверху) с поддержкой dark mode
+        appearance.shadowColor = UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark
+                ? UIColor(white: 1.0, alpha: 0.1)
+                : UIColor.gray
+        }
         
-        // применяем для всех состояний
+        // Применяем для всех состояний
         tabBar.standardAppearance = appearance
         if #available(iOS 15.0, *) {
             tabBar.scrollEdgeAppearance = appearance

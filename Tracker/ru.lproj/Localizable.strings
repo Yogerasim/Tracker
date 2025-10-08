@@ -98,4 +98,6 @@
 //FiltersButton
 "filters.button_title" = "Фильтры";
 
+"edit_category_placeholder" = "Отредактируйте название категории";
+
 

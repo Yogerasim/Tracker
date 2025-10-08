@@ -15,12 +15,23 @@ final class TrackersViewController: UIViewController {
     }()
     
     lazy var addButton: UIButton = {
-        let button = UIButton()
+        let button = UIButton(type: .system) // обязательно system!
         button.translatesAutoresizingMaskIntoConstraints = false
         button.widthAnchor.constraint(equalToConstant: 42).isActive = true
         button.heightAnchor.constraint(equalToConstant: 42).isActive = true
-        let image = UIImage(named: "plus")?.withRenderingMode(.alwaysOriginal)
-        button.setImage(image, for: .normal)
+
+        // Template Image из ассетов
+        if let image = UIImage(named: "plus")?.withRenderingMode(.alwaysTemplate) {
+            button.setImage(image, for: .normal)
+        }
+
+        // Динамический tintColor
+        button.tintColor = UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark
+                ? AppColors.textPrimary
+                : AppColors.backgroundBlackButton
+        }
+
         button.imageView?.contentMode = .scaleAspectFit
         button.imageEdgeInsets = UIEdgeInsets(top: 12, left: 11.5, bottom: 12, right: 11.5)
         button.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
@@ -35,7 +46,7 @@ final class TrackersViewController: UIViewController {
         button.backgroundColor = AppColors.textSecondary.withAlphaComponent(0.1)
         button.layer.cornerRadius = 12
         button.titleLabel?.font = AppFonts.caption2
-        button.setTitleColor(AppColors.backgroundBlackButton, for: .normal)
+        button.setTitleColor(AppColors.textPrimary, for: .normal)
         button.addTarget(self, action: #selector(toggleCalendar), for: .touchUpInside)
         return button
     }()
@@ -80,7 +91,7 @@ final class TrackersViewController: UIViewController {
         
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
         cv.translatesAutoresizingMaskIntoConstraints = false
-        cv.backgroundColor = .clear
+        cv.backgroundColor = AppColors.background
         cv.delegate = self
         cv.dataSource = self
         cv.register(TrackerCell.self, forCellWithReuseIdentifier: TrackerCell.reuseIdentifier)
@@ -121,6 +132,8 @@ final class TrackersViewController: UIViewController {
     
     lazy var calendarView: UIDatePicker = {
         let dp = UIDatePicker()
+        dp.backgroundColor = AppColors.background
+        dp.overrideUserInterfaceStyle = traitCollection.userInterfaceStyle
         dp.datePickerMode = .date
         dp.preferredDatePickerStyle = .inline
         dp.locale = Locale(identifier: "ru_RU")
@@ -171,6 +184,10 @@ final class TrackersViewController: UIViewController {
         updateDateText()
         
         searchBar.delegate = self
+        searchBar.barTintColor = AppColors.background
+        searchBar.searchTextField.backgroundColor = AppColors.background
+        searchBar.searchTextField.textColor = AppColors.textPrimary
+        searchBar.searchTextField.tintColor = AppColors.primaryBlue
         
         viewModel.trackerStore.debugPrintSchedules()
         
@@ -181,6 +198,24 @@ final class TrackersViewController: UIViewController {
             filtersButton.widthAnchor.constraint(equalToConstant: 114),
             filtersButton.heightAnchor.constraint(equalToConstant: 50)
         ])
+    }
+    
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        
+        view.backgroundColor = AppColors.background
+        collectionView.backgroundColor = AppColors.background
+        
+        searchBar.barTintColor = AppColors.background
+        searchBar.searchTextField.backgroundColor = AppColors.background
+        searchBar.searchTextField.textColor = AppColors.textPrimary
+        
+        dateButton.backgroundColor = AppColors.textSecondary.withAlphaComponent(0.1)
+        dateButton.setTitleColor(AppColors.textPrimary, for: .normal)
+        
+        
+        calendarContainer.backgroundColor = AppColors.background
+        calendarView.backgroundColor = AppColors.background
     }
     
     // MARK: - Layout

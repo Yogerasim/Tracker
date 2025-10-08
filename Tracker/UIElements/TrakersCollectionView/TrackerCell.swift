@@ -40,7 +40,9 @@ final class TrackerCell: UICollectionViewCell {
     private let dayLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 12, weight: .medium)
-        label.textColor = .black
+        label.textColor = UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark ? UIColor.white : .black
+        }
         return label
     }()
 

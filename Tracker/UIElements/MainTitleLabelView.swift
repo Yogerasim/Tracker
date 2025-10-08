@@ -6,7 +6,11 @@ final class MainTitleLabelView: UIView {
     private let label: UILabel = {
         let label = UILabel()
         label.font = AppFonts.bigTitle
-        label.textColor = AppColors.backgroundBlackButton
+        label.textColor = UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark
+                ? UIColor.white
+                : AppColors.backgroundBlackButton
+        }
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
