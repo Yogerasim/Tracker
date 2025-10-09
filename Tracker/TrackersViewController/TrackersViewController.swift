@@ -280,7 +280,7 @@ final class TrackersViewController: UIViewController {
         }
     }
 
-    // MARK: - Update UI
+    // MARK: - UpdatUI
     func updateUI() {
         // Пересчёт перед обновлением UI
         recalculateVisibleCategories()
