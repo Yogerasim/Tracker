@@ -49,14 +49,11 @@ final class TrackersViewController: UIViewController {
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
         ui.collectionView.addGestureRecognizer(longPress)
         
-        // MARK: Настройка placeholder
-        ui.placeholderView.configure(
-            imageName: "Star",
-            text: NSLocalizedString("trackers.placeholder_text", comment: "Текст при отсутствии трекеров")
-        )
-        
         // MARK: Настройка календаря
         setupCalendarContainer()
+        
+        // MARK: Настройка placeholder
+        setupPlaceholder()
         
         // MARK: Привязка ViewModel
         bindViewModel()
@@ -154,12 +151,23 @@ final class TrackersViewController: UIViewController {
         ])
     }
     
-    func setupPlaceholder() {
-        view.addSubview(placeholderView)
+    // MARK: - Placeholder
+    private func setupPlaceholder() {
+        // Добавляем на главный view, чтобы центр был по экрану
+        view.addSubview(ui.placeholderView)
+        
+        ui.placeholderView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            placeholderView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            placeholderView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            ui.placeholderView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            ui.placeholderView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor)
         ])
+        
+        ui.placeholderView.configure(
+            imageName: "Star",
+            text: NSLocalizedString("trackers.placeholder_text", comment: "Текст при отсутствии трекеров")
+        )
+        
+        updatePlaceholder()
     }
     
     func setupCalendarContainer() {
@@ -173,23 +181,23 @@ final class TrackersViewController: UIViewController {
     }
     
     func updatePlaceholder() {
-        if viewModel.filteredTrackers.isEmpty {
-            ui.placeholderView.isHidden = false
-            
-            if let searchText = ui.searchBar.text, !searchText.isEmpty {
+        let hasTrackers = !viewModel.filteredTrackers.isEmpty
+        ui.placeholderView.isHidden = hasTrackers
+        ui.collectionView.isHidden = !hasTrackers
+        
+        if !hasTrackers {
+            let searchText = ui.searchBar.text ?? ""
+            if !searchText.isEmpty {
                 ui.placeholderView.configure(
-                    imageName: "NoSerach",
+                    imageName: "NoSearch",
                     text: NSLocalizedString("trackers.placeholder_no_results", comment: "Текст при отсутствии результатов поиска")
                 )
             } else {
-                // Нет вообще трекеров
                 ui.placeholderView.configure(
                     imageName: "Star",
                     text: NSLocalizedString("trackers.placeholder_text", comment: "Текст при отсутствии трекеров")
                 )
             }
-        } else {
-            ui.placeholderView.isHidden = true
         }
     }
     
