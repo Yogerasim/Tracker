@@ -14,12 +14,15 @@ final class NewCategoryView: UIView {
     let doneButton = BlackButton(
         title: NSLocalizedString("done_button", comment: "Кнопка подтверждения")
     )
+    
+    let placeholderView = PlaceholderView() // <- добавили placeholder
 
     // MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = AppColors.background
         setupLayout()
+        setupPlaceholder()
         configureInitialState()
     }
 
@@ -46,6 +49,19 @@ final class NewCategoryView: UIView {
             doneButton.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -16),
             doneButton.heightAnchor.constraint(equalToConstant: 60)
         ])
+    }
+
+    private func setupPlaceholder() {
+        addSubview(placeholderView)
+        NSLayoutConstraint.activate([
+            placeholderView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            placeholderView.centerYAnchor.constraint(equalTo: centerYAnchor)
+        ])
+        placeholderView.configure(
+            imageName: "Star",
+            text: NSLocalizedString("new_category_placeholder_text", comment: "Текст плейсхолдера")
+        )
+        placeholderView.isHidden = true // по умолчанию скрыт
     }
 
     // MARK: - Initial State

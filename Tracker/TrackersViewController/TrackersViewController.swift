@@ -320,6 +320,10 @@ final class TrackersViewController: UIViewController {
     
     @objc func toggleCalendar() {
         ui.calendarContainer.isHidden.toggle()
+        
+        if !ui.calendarContainer.isHidden {
+            view.bringSubviewToFront(ui.calendarContainer)
+        }
     }
     
     @objc func calendarDateChanged(_ sender: UIDatePicker) {
