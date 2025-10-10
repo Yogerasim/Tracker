@@ -4,9 +4,13 @@ import CoreData
 final class CategoryViewController: UIViewController {
 
     // MARK: - UI
-    private let header = ModalHeaderView(title: "Категория")
+    private let header = ModalHeaderView(
+        title: NSLocalizedString("category_title", comment: "Заголовок экрана выбора категории")
+    )
     private let placeholderView = PlaceholderView()
-    private let addButton = BlackButton(title: "Добавьте категорию")
+    private let addButton = BlackButton(
+        title: NSLocalizedString("add_category_button", comment: "Кнопка добавления новой категории")
+    )
     private let tableContainer = ContainerTableView()
     
     // MARK: - Dependencies
@@ -18,7 +22,7 @@ final class CategoryViewController: UIViewController {
 
     // MARK: - Constants
     private enum Constants {
-        static let checkmarkImageName = "ic 24x24"
+        static let checkmarkImageName = "ic 24x24" // имя картинки — не локализуем
         static let rowHeight: CGFloat = 75
     }
 
@@ -49,26 +53,33 @@ final class CategoryViewController: UIViewController {
         }
 
         NSLayoutConstraint.activate([
+            // Header
             header.topAnchor.constraint(equalTo: view.topAnchor),
             header.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             header.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             header.heightAnchor.constraint(equalToConstant: 90),
-
+            
+            // Add Button
             addButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             addButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             addButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             addButton.heightAnchor.constraint(equalToConstant: 60),
-
+            
+            // Table Container (без bottomAnchor!)
             tableContainer.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 16),
             tableContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            tableContainer.bottomAnchor.constraint(equalTo: addButton.topAnchor, constant: -16),
-
+            
+            // Placeholder View
             placeholderView.topAnchor.constraint(equalTo: tableContainer.topAnchor),
             placeholderView.leadingAnchor.constraint(equalTo: tableContainer.leadingAnchor),
             placeholderView.trailingAnchor.constraint(equalTo: tableContainer.trailingAnchor),
             placeholderView.heightAnchor.constraint(equalToConstant: 200)
         ])
+        
+        // Динамическая высота таблицы в зависимости от количества категорий
+        let categories = categoryStore.fetchCategories()
+        tableContainer.updateHeight(forRows: categories.count)
     }
 
     private func setupTableView() {
@@ -79,6 +90,9 @@ final class CategoryViewController: UIViewController {
         tableView.separatorStyle = .none
         tableView.isScrollEnabled = false
         tableView.rowHeight = Constants.rowHeight
+        
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+            tableView.addGestureRecognizer(longPress)
     }
 
     private func setupActions() {
@@ -88,17 +102,24 @@ final class CategoryViewController: UIViewController {
     private func updateUI() {
         let categories = categoryStore.fetchCategories()
         let hasCategories = !categories.isEmpty
-        placeholderView.configure(text: "Привычки и события можно\nобъединить по смыслу")
+        placeholderView.configure(
+            imageName: "Star",
+            text: NSLocalizedString(
+                "category_placeholder",
+                comment: "Текст плейсхолдера для пустого списка категорий"
+            )
+        )
         placeholderView.isHidden = hasCategories
         tableContainer.isHidden = !hasCategories
         tableContainer.updateHeight(forRows: categories.count)
         tableContainer.tableView.reloadData()
     }
+    
+    
 
     @objc private func addCategoryTapped() {
         let newCategoryVM = NewCategoryViewModel(store: categoryStore)
         newCategoryVM.onCategoryCreated = { [weak self] category in
-            // Добавляем в CoreData
             self?.categoryStore.add(category)
             self?.updateUI()
         }
@@ -106,6 +127,69 @@ final class CategoryViewController: UIViewController {
         let newCategoryVC = NewCategoryViewController(viewModel: newCategoryVM)
         present(newCategoryVC, animated: true)
     }
+    
+    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+        guard gesture.state == .began else { return }
+
+        let location = gesture.location(in: tableContainer.tableView)
+        guard let indexPath = tableContainer.tableView.indexPathForRow(at: location),
+              let cell = tableContainer.tableView.cellForRow(at: indexPath) else { return }
+
+        let category = categoryStore.fetchCategories()[indexPath.row]
+
+        ActionMenuPresenter.show(for: cell, in: self, actions: [
+            .init(title: "Редактировать", style: .default) { [weak self] in
+                self?.editCategory(category)
+            },
+            .init(title: "Удалить", style: .destructive) { [weak self] in
+                self?.deleteCategory(category)
+            }
+        ])
+    }
+    
+    // MARK: - Category Editing & Deletion
+    private func editCategory(_ category: TrackerCategoryCoreData) {
+        // Проверяем, что есть context
+        guard let context = category.managedObjectContext else { return }
+
+        // Создаём ViewModel для редактирования
+        let editVM = EditCategoryViewModel(category: category, context: context)
+        
+        // Создаём экран редактирования и показываем его
+        let editVC = EditCategoryViewController(viewModel: editVM)
+        present(editVC, animated: true)
+    }
+
+    private func deleteCategory(_ category: TrackerCategoryCoreData) {
+        guard let title = category.title else { return }
+
+        let alert = UIAlertController(
+            title: "Удалить категорию?",
+            message: "Вы точно хотите удалить категорию \"\(title)\"? Это действие нельзя отменить.",
+            preferredStyle: .alert
+        )
+
+        alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+            guard let self = self else { return }
+
+            // Получаем context из Core Data
+            if let context = category.managedObjectContext {
+                context.delete(category)
+                do {
+                    try context.save()
+                    print("🗑️ Категория \"\(title)\" удалена из Core Data")
+                    self.updateUI()
+                } catch {
+                    print("❌ Ошибка при удалении категории: \(error)")
+                }
+            }
+        })
+
+        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+
+        present(alert, animated: true)
+    }
+    
 
     // MARK: - Helpers
     private func configureCheckmark(for cell: UITableViewCell, at indexPath: IndexPath) {
@@ -156,8 +240,7 @@ extension CategoryViewController: UITableViewDataSource, UITableViewDelegate {
         tableView.reloadRows(at: indexPathsToReload, with: .none)
 
         let selectedCategory = categoryStore.fetchCategories()[indexPath.row]
-        print("Выбрана категория: \(selectedCategory.title ?? "")")
-        // Можно добавить замыкание для передачи выбранной категории наружу
+        print("Выбрана категория: \(selectedCategory.title ?? "")") // можно оставить как debug
         onCategorySelected?(selectedCategory)
     }
 }
@@ -168,5 +251,4 @@ extension CategoryViewController: TrackerCategoryStoreDelegate {
         updateUI()
     }
 }
-
 

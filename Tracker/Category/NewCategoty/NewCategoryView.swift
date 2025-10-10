@@ -3,15 +3,26 @@ import UIKit
 final class NewCategoryView: UIView {
 
     // MARK: - UI
-    let header = ModalHeaderView(title: "Новая категория")
-    let nameTextField = AppTextField(placeholder: "Введите название категории")
-    let doneButton = BlackButton(title: "Готово")
+    let header = ModalHeaderView(
+        title: NSLocalizedString("new_category_title", comment: "Заголовок экрана создания новой категории")
+    )
+    
+    let nameTextField = AppTextField(
+        placeholder: NSLocalizedString("new_category_placeholder", comment: "Плейсхолдер для поля ввода категории")
+    )
+    
+    let doneButton = BlackButton(
+        title: NSLocalizedString("done_button", comment: "Кнопка подтверждения")
+    )
+    
+    let placeholderView = PlaceholderView() // <- добавили placeholder
 
     // MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = AppColors.background
         setupLayout()
+        setupPlaceholder()
         configureInitialState()
     }
 
@@ -20,25 +31,37 @@ final class NewCategoryView: UIView {
     // MARK: - Layout
     private func setupLayout() {
         [header, nameTextField, doneButton].forEach { addSubview($0) }
+        nameTextField.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            // Header сверху
-            header.topAnchor.constraint(equalTo: topAnchor),
+            header.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
             header.leadingAnchor.constraint(equalTo: leadingAnchor),
             header.trailingAnchor.constraint(equalTo: trailingAnchor),
+            header.heightAnchor.constraint(equalToConstant: 90),
 
-            // TextField
-            nameTextField.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 5),
+            nameTextField.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 10),
             nameTextField.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
             nameTextField.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
             nameTextField.heightAnchor.constraint(equalToConstant: 75),
 
-            // DoneButton внизу
             doneButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
             doneButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
             doneButton.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -16),
             doneButton.heightAnchor.constraint(equalToConstant: 60)
         ])
+    }
+
+    private func setupPlaceholder() {
+        addSubview(placeholderView)
+        NSLayoutConstraint.activate([
+            placeholderView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            placeholderView.centerYAnchor.constraint(equalTo: centerYAnchor)
+        ])
+        placeholderView.configure(
+            imageName: "Star",
+            text: NSLocalizedString("new_category_placeholder_text", comment: "Текст плейсхолдера")
+        )
+        placeholderView.isHidden = true // по умолчанию скрыт
     }
 
     // MARK: - Initial State

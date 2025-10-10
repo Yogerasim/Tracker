@@ -151,15 +151,29 @@ final class SelectableCell: UICollectionViewCell {
             label.text = emoji
             label.isHidden = false
             colorView.isHidden = true
-            
-            contentView.backgroundColor = isSelected ? .systemGray6 : AppColors.background
-            
+
+            contentView.backgroundColor = isSelected
+                ? UIColor.systemGray5.withAlphaComponent(0.4)
+                : UIColor { traitCollection in
+                    traitCollection.userInterfaceStyle == .dark
+                    ? UIColor.systemGray6.withAlphaComponent(0.3)
+                    : AppColors.background
+                }
+
+            contentView.layer.borderWidth = isSelected ? 2 : 0
+            contentView.layer.borderColor = isSelected ? UIColor.systemGray4.cgColor : nil
+
         case .color(let color):
             label.isHidden = true
             colorView.isHidden = false
             colorView.backgroundColor = color
-            // добавим эффект выбора — рамка
-            contentView.backgroundColor = AppColors.background
+
+            contentView.backgroundColor = UIColor { traitCollection in
+                traitCollection.userInterfaceStyle == .dark
+                ? UIColor.systemBackground
+                : AppColors.background
+            }
+
             contentView.layer.borderWidth = isSelected ? 2 : 0
             contentView.layer.borderColor = isSelected ? UIColor.systemGray4.cgColor : nil
         }
@@ -171,8 +185,10 @@ final class HeaderView: UICollectionReusableView {
     
     let titleLabel: UILabel = {
         let label = UILabel()
-        label.font = AppFonts.bold(19)   
-        label.textColor = AppColors.backgroundBlackButton
+        label.font = AppFonts.bold(19)
+        label.textColor = UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark ? UIColor(white: 1.0, alpha: 0.9) : AppColors.backgroundBlackButton
+        }
         return label
     }()
     

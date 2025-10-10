@@ -8,6 +8,11 @@ final class ModalHeaderView: UIView {
         label.font = AppFonts.medium(16)
         label.textAlignment = .center
         label.numberOfLines = 1
+        label.textColor = UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark
+                ? UIColor(white: 1.0, alpha: 0.9) // светлый текст в темной теме
+                : AppColors.backgroundBlackButton   // цвет для светлой темы
+        }
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()

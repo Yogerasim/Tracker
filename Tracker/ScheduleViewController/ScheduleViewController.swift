@@ -6,20 +6,20 @@ final class ScheduleViewController: UIViewController {
     var selectedDays: [WeekDay] = []
     var onDone: (([WeekDay]) -> Void)?
 
-    private let daysOfWeek: [(title: String, day: WeekDay)] = [
-        ("Понедельник", .monday),
-        ("Вторник", .tuesday),
-        ("Среда", .wednesday),
-        ("Четверг", .thursday),
-        ("Пятница", .friday),
-        ("Суббота", .saturday),
-        ("Воскресенье", .sunday)
+    private let daysOfWeek: [(titleKey: String, day: WeekDay)] = [
+        ("schedule.monday", .monday),
+        ("schedule.tuesday", .tuesday),
+        ("schedule.wednesday", .wednesday),
+        ("schedule.thursday", .thursday),
+        ("schedule.friday", .friday),
+        ("schedule.saturday", .saturday),
+        ("schedule.sunday", .sunday)
     ]
 
     // MARK: - UI
-    private let modalHeader = ModalHeaderView(title: "Расписание")
+    private let modalHeader = ModalHeaderView(title: NSLocalizedString("schedule.title", comment: "Заголовок расписания"))
     private let tableContainer = ContainerTableView()
-    private let doneButton = DoneButton()
+    private let doneButton = BlackButton(title: NSLocalizedString("done_button", comment: "Кнопка подтверждения"))
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -70,17 +70,14 @@ final class ScheduleViewController: UIViewController {
     }
 
     @objc private func doneTapped() {
-        print("🔹 onDone selectedDays перед dismiss: \(selectedDays)") 
-
+        print("✅ Done tapped, sending back selectedDays: \(selectedDays.map { $0.shortName })")
         onDone?(selectedDays)
         dismiss(animated: true)
     }
 
     private func updateDoneButtonState() {
-        let enabled = true
-        doneButton.isEnabled = enabled
-        doneButton.backgroundColor = enabled ? AppColors.backgroundBlackButton : .systemGray3
-        doneButton.setTitleColor(AppColors.textPrimary, for: .normal)
+        doneButton.isEnabled = !selectedDays.isEmpty
+        doneButton.alpha = doneButton.isEnabled ? 1.0 : 0.5
     }
 }
 
@@ -92,7 +89,7 @@ extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell
         let item = daysOfWeek[indexPath.row]
-        cell.textLabel?.text = item.title
+        cell.textLabel?.text = NSLocalizedString(item.titleKey, comment: "")
         cell.isLastCell = indexPath.row == daysOfWeek.count - 1
 
         let toggle = UISwitch()
@@ -111,14 +108,41 @@ extension ScheduleViewController {
     @objc private func toggleChanged(_ sender: UISwitch) {
         let day = daysOfWeek[sender.tag].day
         if sender.isOn {
-            if !selectedDays.contains(day) { selectedDays.append(day) }
+            if !selectedDays.contains(day) {
+                selectedDays.append(day)
+                print("🔵 Added day: \(day.shortName), current selectedDays: \(selectedDays.map { $0.shortName })")
+            }
         } else {
             selectedDays.removeAll { $0 == day }
+            print("🔴 Removed day: \(day.shortName), current selectedDays: \(selectedDays.map { $0.shortName })")
         }
 
-        print("🔹 Toggle: \(day) isOn: \(sender.isOn)")
-        print("🔹 selectedDays сейчас: \(selectedDays)")      //сразу после обновления массива
-
         updateDoneButtonState()
+    }
+}
+
+extension WeekDay {
+    var shortName: String {
+        switch self {
+        case .monday: return "Пн"
+        case .tuesday: return "Вт"
+        case .wednesday: return "Ср"
+        case .thursday: return "Чт"
+        case .friday: return "Пт"
+        case .saturday: return "Сб"
+        case .sunday: return "Вс"
+        }
+    }
+}
+
+extension Array where Element == WeekDay {
+    var descriptionText: String {
+        if self.count == WeekDay.allCases.count {
+            return "Каждый день"
+        } else if self.isEmpty {
+            return NSLocalizedString("new_habit.schedule_not_selected", comment: "Не выбрано")
+        } else {
+            return self.map { $0.shortName }.joined(separator: ", ")
+        }
     }
 }

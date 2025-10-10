@@ -3,10 +3,16 @@ import UIKit
 final class CreateTrackerViewController: UIViewController {
 
     // MARK: - UI
-    private let modalHeader = ModalHeaderView(title: "Создание трекера")
-    private let habitButton = BlackButton(title: "Привычка")
-    private let irregularButton = BlackButton(title: "Нерегулярное событие")
-
+        private let modalHeader = ModalHeaderView(
+            title: NSLocalizedString("create_tracker_title", comment: "Заголовок создания трекера")
+        )
+        private let habitButton = BlackButton(
+            title: NSLocalizedString("habit_button_title", comment: "Кнопка для создания привычки")
+        )
+        private let irregularButton = BlackButton(
+            title: NSLocalizedString("irregular_button_title", comment: "Кнопка для создания нерегулярного события")
+        )
+    
     // MARK: - Callback
     var onTrackerCreated: ((Tracker) -> Void)?
 

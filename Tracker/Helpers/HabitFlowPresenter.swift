@@ -3,7 +3,10 @@ import Foundation
 final class HabitFlowPresenter {
 
     private let categoryStore: TrackerCategoryStore
-    private let defaultCategoryTitle = "Мои трекеры"
+    private let defaultCategoryTitle = NSLocalizedString(
+            "default_category_title",
+            comment: "Название категории по умолчанию для трекеров"
+        )
 
     init(categoryStore: TrackerCategoryStore) {
         self.categoryStore = categoryStore

@@ -1,0 +1,80 @@
+/* 
+  Localizable.strings
+  Tracker
+
+  Created by Филипп Герасимов on 01/10/25.
+  
+*/
+
+//NewCategoryView
+"new_category_title" = "New Category";
+"new_category_placeholder" = "Enter category name";
+"done_button" = "Done";
+
+//CategoryViewController
+"category_title" = "Category";
+"add_category_button" = "Add category";
+"category_placeholder" = "Habits and events can\nbe grouped by meaning";
+
+//CreateTrackerViewController
+"create_tracker_title" = "Create Tracker";
+"habit_button_title" = "Habit";
+"irregular_button_title" = "Irregular Event";
+
+//HabitFlowPresenter
+"default_category_title" = "My trackers";
+
+//MainTabBarController
+"tab_trackers" = "Trackers";
+"tab_statistics" = "Statistics";
+
+//NewHabitViewController
+"new_habit.title" = "New Habit";
+"new_habit.enter_name" = "Enter tracker name";
+"new_habit.emoji" = "Emoji";
+"new_habit.color" = "Color";
+"new_habit.category" = "Category";
+"new_habit.schedule" = "Schedule";
+"new_habit.cancel_log" = "NewHabitViewController: cancel";
+"new_habit.choose_emoji" = "Choose emoji";
+"new_habit.choose_color" = "Choose color";
+
+//NewIrregularEventViewController
+"new_irregular_event.title" = "New irregular event";
+"new_irregular_event.enter_name" = "Enter tracker name";
+"new_irregular_event.emoji" = "Emoji";
+"new_irregular_event.color" = "Color";
+"new_irregular_event.category" = "Category";
+"new_irregular_event.warning_choose_emoji" = "⚠️ Choose an emoji";
+"new_irregular_event.warning_choose_color" = "⚠️ Choose a color";
+
+//OnboardingViewController
+"onboarding.page1.text" = "Track only what you want";
+"onboarding.page2.text" = "Even if it's not liters of water and yoga";
+"onboarding.button" = "That's technology!";
+
+//ScheduleViewController
+"schedule.title" = "Schedule";
+"schedule.done_button" = "Done";
+"schedule.monday" = "Monday";
+"schedule.tuesday" = "Tuesday";
+"schedule.wednesday" = "Wednesday";
+"schedule.thursday" = "Thursday";
+"schedule.friday" = "Friday";
+"schedule.saturday" = "Saturday";
+"schedule.sunday" = "Sunday";
+
+//StatisticsViewController
+"statistics.title" = "Statistics";
+
+//TrackersViewController
+"trackers.title" = "Trackers";
+"trackers.search_placeholder" = "Search";
+"trackers.placeholder_text" = "What shall we track?";
+
+//ButonsPanelView
+"cancel_button" = "Cancel";
+"create_button" = "Create";
+
+//DoneButton
+"done_button" = "Done";

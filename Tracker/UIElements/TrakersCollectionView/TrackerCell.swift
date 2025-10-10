@@ -40,7 +40,9 @@ final class TrackerCell: UICollectionViewCell {
     private let dayLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 12, weight: .medium)
-        label.textColor = .black
+        label.textColor = UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark ? UIColor.white : .black
+        }
         return label
     }()
 
@@ -101,13 +103,11 @@ final class TrackerCell: UICollectionViewCell {
     }
 
     private func updateDayLabel() {
-        let dayWord: String
-        switch daysCount {
-        case 1: dayWord = "день"
-        case 2...4: dayWord = "дня"
-        default: dayWord = "дней"
-        }
-        dayLabel.text = "\(daysCount) \(dayWord)"
+        let formatted = String.localizedStringWithFormat(
+            NSLocalizedString("days_count", comment: "Number of days tracker completed"),
+            daysCount
+        )
+        dayLabel.text = formatted
     }
 
     private func updateButton() {
