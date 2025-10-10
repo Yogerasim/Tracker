@@ -317,7 +317,7 @@ final class TrackersViewController: UIViewController {
     @objc func calendarDateChanged(_ sender: UIDatePicker) {
         viewModel.currentDate = sender.date
         updateDateText()
-        viewModel.filterByDate()
+        viewModel.filterByDate() // включает фильтрацию по дате
         ui.collectionView.reloadData()
     }
     

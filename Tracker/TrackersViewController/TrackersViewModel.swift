@@ -38,6 +38,7 @@ final class TrackersViewModel {
             applyFilter()
         }
     }
+    var isDateFilterEnabled: Bool = false
     
     // MARK: - Init
     init(container: NSPersistentContainer = CoreDataStack.shared.persistentContainer) {
@@ -92,24 +93,30 @@ final class TrackersViewModel {
     }
     
     func filterByDate() {
+        isDateFilterEnabled = true // включаем фильтрацию по дате только при выборе вручную
         filterTrackers()
         onDateChanged?(currentDate)
     }
-    
+
     private func filterTrackers() {
         let text = searchText.lowercased()
         
-        // Получаем день недели из текущей даты
+        // Если фильтр по дате не включен, показываем все трекеры независимо от расписания
+        if !isDateFilterEnabled {
+            filteredTrackers = trackers.filter { tracker in
+                text.isEmpty || tracker.name.lowercased().contains(text)
+            }
+            onTrackersUpdated?()
+            return
+        }
+        
+        // Если фильтр по дате включен — применяем стандартную логику
         let weekdayInt = Calendar.current.component(.weekday, from: currentDate)
         let selectedDay = WeekDay(rawValue: weekdayInt)
         
         filteredTrackers = trackers.filter { tracker in
-            // Проверяем: подходит ли трекер по дню недели
             let matchesSchedule = selectedDay.map { tracker.schedule.contains($0) } ?? true
-            
-            // Проверяем: подходит ли по поиску
             let matchesSearch = text.isEmpty || tracker.name.lowercased().contains(text)
-            
             return matchesSchedule && matchesSearch
         }
         
@@ -198,7 +205,7 @@ extension TrackersViewModel {
 // MARK: - Edit / Delete
 extension TrackersViewModel {
     
-
+    
     func editTracker(_ tracker: Tracker) {
         print("🟢 Edit tracker tapped: \(tracker.name)")
         onEditTracker?(tracker)
@@ -207,7 +214,7 @@ extension TrackersViewModel {
     func deleteTracker(_ tracker: Tracker) {
         print("🔴 Request delete tracker: \(tracker.name)")
         trackerStore.delete(tracker)
-
+        
         // Перезагружаем из store, чтобы state был консистентным
         reloadTrackers()
         onTrackersUpdated?()
