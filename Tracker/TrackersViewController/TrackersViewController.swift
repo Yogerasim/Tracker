@@ -24,10 +24,9 @@ final class TrackersViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // MARK: Базовая настройка фона
         view.backgroundColor = AppColors.background
         
-        // MARK: Регистрация header и ячеек
+        // Регистрация ячеек
         ui.collectionView.register(
             TrackerSectionHeaderView.self,
             forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
@@ -38,50 +37,37 @@ final class TrackersViewController: UIViewController {
             forCellWithReuseIdentifier: TrackerCell.reuseIdentifier
         )
         
-        // MARK: Настройка layout через ui
-        setupLayout()
+        // Перемещаем кнопки в navigationBar
+        setupNavigationBarButtons()
         
-        // MARK: Привязка DataSource / Delegate
+        // Остальные элементы остаются в view
+        [ui.titleView, ui.searchBar, ui.collectionView].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview($0)
+        }
+        
+        setupLayoutForRest() // layout для titleView, searchBar, collectionView
+        
         ui.collectionView.dataSource = self
         ui.collectionView.delegate = self
         
-        // MARK: Добавляем long press на ячейки
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
         ui.collectionView.addGestureRecognizer(longPress)
         
-        // MARK: Настройка календаря
         setupCalendarContainer()
-        
-        // MARK: Настройка placeholder
         setupPlaceholder()
-        
-        // MARK: Привязка ViewModel
         bindViewModel()
         viewModel.ensureDefaultCategory()
         
-        // MARK: Обновление UI
         updateUI()
         updatePlaceholder()
         updateDateText()
         
-        // MARK: Настройка searchBar
         ui.searchBar.delegate = self
         ui.searchBar.barTintColor = AppColors.background
         ui.searchBar.searchTextField.backgroundColor = AppColors.background
         ui.searchBar.searchTextField.textColor = AppColors.textPrimary
         ui.searchBar.searchTextField.tintColor = AppColors.primaryBlue
-        
-        // MARK: Привязка действий кнопок
-        ui.addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
-        ui.dateButton.addTarget(self, action: #selector(toggleCalendar), for: .touchUpInside)
-        ui.filtersButton.addTarget(self, action: #selector(filtersTapped), for: .touchUpInside)
-        ui.calendarView.addTarget(self, action: #selector(calendarDateChanged(_:)), for: .valueChanged)
-        
-        // MARK: Отладка расписания трекеров
-        viewModel.trackerStore.debugPrintSchedules()
-        print("📦 trackers count:", viewModel.trackers.count)
-        print("📦 categories count:", viewModel.categories.count)
-        print("📦 filteredTrackers count:", viewModel.filteredTrackers.count)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -113,38 +99,66 @@ final class TrackersViewController: UIViewController {
     }
     
     // MARK: - Layout
-    private func setupLayout() {
-        // Настраиваем основной layout через хелпер, передавая элементы из ui
-        MainHeaderLayoutHelper.setupTrackerLayout(
-            in: view,
-            titleView: ui.titleView,
-            addButton: ui.addButton,
-            dateButton: ui.dateButton,
-            searchBar: ui.searchBar,
-            collectionView: ui.collectionView
-        )
+    private func setupNavigationBarButtons() {
+        // "+" кнопка
+        ui.addButton.translatesAutoresizingMaskIntoConstraints = false
+        ui.addButton.widthAnchor.constraint(equalToConstant: 42).isActive = true
+        ui.addButton.heightAnchor.constraint(equalToConstant: 42).isActive = true
+        ui.addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
+        let addItem = UIBarButtonItem(customView: ui.addButton)
+        navigationItem.leftBarButtonItem = addItem
         
-        view.addSubview(ui.filtersButton)
+        // Кнопка даты
+        ui.dateButton.translatesAutoresizingMaskIntoConstraints = false
+        ui.dateButton.widthAnchor.constraint(equalToConstant: 77).isActive = true
+        ui.dateButton.heightAnchor.constraint(equalToConstant: 34).isActive = true
+        ui.dateButton.addTarget(self, action: #selector(toggleCalendar), for: .touchUpInside)
+        let dateItem = UIBarButtonItem(customView: ui.dateButton)
+        navigationItem.rightBarButtonItem = dateItem
+        
+        // Убираем стандартный title, если нужно
+        navigationItem.titleView = nil
+    }
+    
+    private func setupLayoutForRest() {
+        // MARK: - Добавляем кнопки в navigationBar
+        let addButtonItem = UIBarButtonItem(customView: ui.addButton)
+        let dateButtonItem = UIBarButtonItem(customView: ui.dateButton)
+        
+        // Принудительно задаём размеры
+        ui.addButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            ui.filtersButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            ui.filtersButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
-            ui.filtersButton.widthAnchor.constraint(equalToConstant: 114),
-            ui.filtersButton.heightAnchor.constraint(equalToConstant: 50)
+            ui.addButton.widthAnchor.constraint(equalToConstant: 42),
+            ui.addButton.heightAnchor.constraint(equalToConstant: 42)
         ])
         
-        // Отступы между поиском и коллекцией
-        let spacingTitleToSearch: CGFloat = 2
-        let spacingSearchToCollection: CGFloat = 8
-        
-        // Активируем констрейнты для поиска и коллекции
+        ui.dateButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
+            ui.dateButton.widthAnchor.constraint(equalToConstant: 77),
+            ui.dateButton.heightAnchor.constraint(equalToConstant: 34)
+        ])
+        
+        navigationItem.leftBarButtonItem = addButtonItem
+        navigationItem.rightBarButtonItem = dateButtonItem
+
+        // MARK: - Layout для остальных элементов
+        [ui.titleView, ui.searchBar, ui.collectionView].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview($0)
+        }
+
+        NSLayoutConstraint.activate([
+            // Заголовок под navigationBar (используем safeArea)
+            ui.titleView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
+            ui.titleView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 25),
+
             // Поиск под заголовком
-            ui.searchBar.topAnchor.constraint(equalTo: ui.titleView.bottomAnchor, constant: spacingTitleToSearch),
+            ui.searchBar.topAnchor.constraint(equalTo: ui.titleView.bottomAnchor, constant: 2),
             ui.searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             ui.searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            
+
             // Коллекция под поиском
-            ui.collectionView.topAnchor.constraint(equalTo: ui.searchBar.bottomAnchor, constant: spacingSearchToCollection),
+            ui.collectionView.topAnchor.constraint(equalTo: ui.searchBar.bottomAnchor, constant: 8),
             ui.collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             ui.collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             ui.collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
@@ -172,8 +186,10 @@ final class TrackersViewController: UIViewController {
     
     func setupCalendarContainer() {
         view.addSubview(ui.calendarContainer)
+        ui.calendarContainer.translatesAutoresizingMaskIntoConstraints = false
+        
         NSLayoutConstraint.activate([
-            ui.calendarContainer.topAnchor.constraint(equalTo: ui.addButton.bottomAnchor, constant: 16),
+            ui.calendarContainer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
             ui.calendarContainer.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             ui.calendarContainer.widthAnchor.constraint(equalToConstant: 343),
             ui.calendarContainer.heightAnchor.constraint(equalToConstant: 325)
@@ -219,7 +235,7 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - UI Update Debounce
     private var uiUpdateWorkItem: DispatchWorkItem?
-
+    
     private func bindViewModel() {
         
         // Общая функция для отложенного обновления UI
@@ -276,10 +292,10 @@ final class TrackersViewController: UIViewController {
             self.editTracker(trackerCoreData)
         }
     }
-
+    
     // MARK: - Visible Categories
     var visibleCategories: [TrackerCategory] = []
-
+    
     private func recalculateVisibleCategories() {
         visibleCategories = viewModel.categories.filter { category in
             viewModel.filteredTrackers.contains { tracker in
@@ -287,7 +303,7 @@ final class TrackersViewController: UIViewController {
             }
         }
     }
-
+    
     // MARK: - UpdatUI
     func updateUI() {
         // Пересчёт перед обновлением UI
@@ -439,6 +455,7 @@ extension TrackersViewController: UISearchBarDelegate {
         updatePlaceholder()
     }
 }
+
 
 
 

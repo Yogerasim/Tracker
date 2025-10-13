@@ -21,6 +21,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             print("❌ YandexMetrica configuration failed")
         }
 
+        // 🔹 Включаем глобальное автозакрытие клавиатуры по тапу
+        UIViewController.enableGlobalKeyboardDismiss()
+
         // 🔹 Настройка главного окна
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = MainTabBarController()
