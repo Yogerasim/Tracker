@@ -55,6 +55,7 @@ final class TrackersViewController: UIViewController {
         ui.collectionView.addGestureRecognizer(longPress)
         
         ui.filtersButton.addTarget(self, action: #selector(filtersTapped), for: .touchUpInside)
+        ui.calendarView.addTarget(self, action: #selector(calendarDateChanged(_:)), for: .valueChanged)
         
         setupCalendarContainer()
         setupPlaceholder()
@@ -230,7 +231,6 @@ final class TrackersViewController: UIViewController {
     func updateDateText() {
         let df = DateFormatter()
         
-        // Получаем язык устройства (iOS 16+)
         let languageCode = Locale.current.language.languageCode?.identifier ?? "en"
         
         switch languageCode {
