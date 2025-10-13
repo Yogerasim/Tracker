@@ -90,16 +90,17 @@ final class TrackersUI {
     let placeholderView = PlaceholderView()
     
     // MARK: - Calendar
-    lazy var calendarView: UIDatePicker = {
-        let dp = UIDatePicker()
-        dp.translatesAutoresizingMaskIntoConstraints = false
-        dp.datePickerMode = .date
-        dp.preferredDatePickerStyle = .inline
-        dp.locale = Locale(identifier: "ru_RU")
-        dp.calendar = Calendar(identifier: .gregorian)
-        dp.backgroundColor = AppColors.background
-        return dp
-    }()
+    // MARK: - Calendar
+        lazy var calendarView: UIDatePicker = {
+            let dp = UIDatePicker()
+            dp.translatesAutoresizingMaskIntoConstraints = false
+            dp.datePickerMode = .date
+            dp.preferredDatePickerStyle = .inline
+            dp.locale = Locale(identifier: "ru_RU")
+            dp.calendar = Calendar(identifier: .gregorian)
+            dp.backgroundColor = AppColors.background
+            return dp
+        }()
     
     lazy var calendarContainer: UIView = {
         let container = UIView()

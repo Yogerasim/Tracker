@@ -92,36 +92,33 @@ final class TrackersViewModel {
         return recordStore.isCompleted(for: trackerCoreData, date: date)
     }
     
-    func filterByDate() {
-        isDateFilterEnabled = true // включаем фильтрацию по дате только при выборе вручную
-        filterTrackers()
-        onDateChanged?(currentDate)
-    }
+    // MARK: - Фильтрация
+        func filterByDate() {
+            isDateFilterEnabled = true
+            filterTrackers()
+            onDateChanged?(currentDate)
+        }
 
-    private func filterTrackers() {
-        let text = searchText.lowercased()
-        
-        // Если фильтр по дате не включен, показываем все трекеры независимо от расписания
-        if !isDateFilterEnabled {
+        private func filterTrackers() {
+            let text = searchText.lowercased()
+
             filteredTrackers = trackers.filter { tracker in
-                text.isEmpty || tracker.name.lowercased().contains(text)
+                let matchesSearch = text.isEmpty || tracker.name.lowercased().contains(text)
+
+                // Фильтруем по дате только если включен фильтр
+                let matchesDate: Bool
+                if isDateFilterEnabled {
+                    let selectedDay = WeekDay.from(date: currentDate)
+                    matchesDate = tracker.schedule.contains(selectedDay)
+                } else {
+                    matchesDate = true
+                }
+
+                return matchesSearch && matchesDate
             }
+
             onTrackersUpdated?()
-            return
         }
-        
-        // Если фильтр по дате включен — применяем стандартную логику
-        let weekdayInt = Calendar.current.component(.weekday, from: currentDate)
-        let selectedDay = WeekDay(rawValue: weekdayInt)
-        
-        filteredTrackers = trackers.filter { tracker in
-            let matchesSchedule = selectedDay.map { tracker.schedule.contains($0) } ?? true
-            let matchesSearch = text.isEmpty || tracker.name.lowercased().contains(text)
-            return matchesSchedule && matchesSearch
-        }
-        
-        onTrackersUpdated?()
-    }
     
     private func reloadTrackers() {
         self.trackers = trackerStore.getTrackers()

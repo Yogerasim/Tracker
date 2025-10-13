@@ -15,6 +15,11 @@
 "category_title" = "Category";
 "add_category_button" = "Add category";
 "category_placeholder" = "Habits and events can\nbe grouped by meaning";
+"category.action.edit" = "Edit";
+"category.action.delete" = "Delete";
+"category.action.delete_alert_title" = "Delete category?";
+"category.action.delete_alert_message" = "Are you sure you want to delete the category \"%@\"? This action cannot be undone.";
+"category.action.cancel" = "Cancel";
 
 //CreateTrackerViewController
 "create_tracker_title" = "Create Tracker";
@@ -64,11 +69,17 @@
 "schedule.saturday" = "Saturday";
 "schedule.sunday" = "Sunday";
 
+"weekdays.short.monday" = "Mon";
+"weekdays.short.tuesday" = "Tue";
+"weekdays.short.wednesday" = "Wed";
+"weekdays.short.thursday" = "Thu";
+"weekdays.short.friday" = "Fri";
+"weekdays.short.saturday" = "Sat";
+"weekdays.short.sunday" = "Sun";
+
 //StatisticsViewController
 "statistics.title" = "Statistics";
 "statistics.placeholder_text" = "There is nothing to analyze yet";
-
-
 "statistics.best_period_label" = "Best period";
 "statistics.ideal_days_label" = "Ideal days";
 "statistics.completed_trackers_label" = "Trackers completed";
@@ -82,6 +93,14 @@
 "trackers.pinned_category" = "Pinned";
 "trackers.default_category" = "My Trackers";
 
+"tracker.action.pin" = "Pin";
+"tracker.action.unpin" = "Unpin";
+"tracker.action.edit" = "Edit";
+"tracker.action.delete" = "Delete";
+"tracker.action.delete_alert_title" = "Delete tracker?";
+"tracker.action.delete_alert_message" = "This action cannot be undone.";
+"tracker.action.cancel" = "Cancel";
+
 //ButonsPanelView
 "cancel_button" = "Cancel";
 "create_button" = "Create";
@@ -90,3 +109,12 @@
 "done_button" = "Done";
 //FiltersButton
 "filters.button_title" = "Filters";
+
+//EditHabitViewController
+"edit_habit.save" = "Save";
+"edit_habit.title" = "Edit habit";
+"edit_habit.days_count.one" = "%d day";
+"edit_habit.days_count.other" = "%d days";
+
+//EditCategoryView
+"edit_category_title" = "Editing category";

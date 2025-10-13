@@ -123,15 +123,17 @@ extension ScheduleViewController {
 
 extension WeekDay {
     var shortName: String {
+        let key: String
         switch self {
-        case .monday: return "Пн"
-        case .tuesday: return "Вт"
-        case .wednesday: return "Ср"
-        case .thursday: return "Чт"
-        case .friday: return "Пт"
-        case .saturday: return "Сб"
-        case .sunday: return "Вс"
+        case .monday: key = "weekdays.short.monday"
+        case .tuesday: key = "weekdays.short.tuesday"
+        case .wednesday: key = "weekdays.short.wednesday"
+        case .thursday: key = "weekdays.short.thursday"
+        case .friday: key = "weekdays.short.friday"
+        case .saturday: key = "weekdays.short.saturday"
+        case .sunday: key = "weekdays.short.sunday"
         }
+        return NSLocalizedString(key, comment: "Short name for \(self)")
     }
 }
 

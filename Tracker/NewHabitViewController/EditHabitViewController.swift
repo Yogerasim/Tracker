@@ -82,7 +82,7 @@ final class EditHabitViewController: UIViewController {
         
         // 🔹 Устанавливаем количество дней
         let daysCount = viewModel.tracker.decodedSchedule.count
-                daysCountLabel.text = "\(daysCount) \(russianDayForm(daysCount))"
+        daysCountLabel.text = localizedDaysText(for: daysCount)
         
         // Обработка выбора эмодзи
         emojiCollectionVC.onItemSelected = { [weak self] item in
@@ -105,19 +105,34 @@ final class EditHabitViewController: UIViewController {
         }
     }
     
-    private func russianDayForm(_ n: Int) -> String {
-        let nAbs = abs(n) % 100
-        let n1 = nAbs % 10
-        if nAbs > 10 && nAbs < 20 {
-            return "дней"
+    private func localizedDaysText(for count: Int) -> String {
+        let locale = Locale.current.languageCode ?? "en"
+        
+        if locale == "ru" {
+            // русская форма
+            let nAbs = abs(count) % 100
+            let n1 = nAbs % 10
+            
+            let key: String
+            if nAbs > 10 && nAbs < 20 {
+                key = "edit_habit.days_count.many"
+            } else if n1 == 1 {
+                key = "edit_habit.days_count.one"
+            } else if n1 >= 2 && n1 <= 4 {
+                key = "edit_habit.days_count.few"
+            } else {
+                key = "edit_habit.days_count.many"
+            }
+            
+            let format = NSLocalizedString(key, comment: "Количество дней")
+            return String(format: format, count)
+            
+        } else {
+            // английский
+            let key = (count == 1) ? "edit_habit.days_count.one" : "edit_habit.days_count.other"
+            let format = NSLocalizedString(key, comment: "Number of days")
+            return String(format: format, count)
         }
-        if n1 == 1 {
-            return "день"
-        }
-        if n1 >= 2 && n1 <= 4 {
-            return "дня"
-        }
-        return "дней"
     }
 
     // MARK: - Helpers

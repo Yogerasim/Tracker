@@ -138,10 +138,10 @@ final class CategoryViewController: UIViewController {
         let category = categoryStore.fetchCategories()[indexPath.row]
 
         ActionMenuPresenter.show(for: cell, in: self, actions: [
-            .init(title: "Редактировать", style: .default) { [weak self] in
+            .init(title: NSLocalizedString("category.action.edit", comment: "Edit"), style: .default) { [weak self] in
                 self?.editCategory(category)
             },
-            .init(title: "Удалить", style: .destructive) { [weak self] in
+            .init(title: NSLocalizedString("category.action.delete", comment: "Delete"), style: .destructive) { [weak self] in
                 self?.deleteCategory(category)
             }
         ])
@@ -164,15 +164,14 @@ final class CategoryViewController: UIViewController {
         guard let title = category.title else { return }
 
         let alert = UIAlertController(
-            title: "Удалить категорию?",
-            message: "Вы точно хотите удалить категорию \"\(title)\"? Это действие нельзя отменить.",
+            title: NSLocalizedString("category.action.delete_alert_title", comment: "Delete category?"),
+            message: String(format: NSLocalizedString("category.action.delete_alert_message", comment: "Are you sure you want to delete the category?"), title),
             preferredStyle: .alert
         )
 
-        alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+        alert.addAction(UIAlertAction(title: NSLocalizedString("category.action.delete", comment: "Delete"), style: .destructive) { [weak self] _ in
             guard let self = self else { return }
 
-            // Получаем context из Core Data
             if let context = category.managedObjectContext {
                 context.delete(category)
                 do {
@@ -185,7 +184,7 @@ final class CategoryViewController: UIViewController {
             }
         })
 
-        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        alert.addAction(UIAlertAction(title: NSLocalizedString("category.action.cancel", comment: "Cancel"), style: .cancel))
 
         present(alert, animated: true)
     }

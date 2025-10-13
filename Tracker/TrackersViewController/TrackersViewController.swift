@@ -229,8 +229,22 @@ final class TrackersViewController: UIViewController {
     
     func updateDateText() {
         let df = DateFormatter()
-        df.locale = Locale(identifier: "ru_RU")
-        df.dateFormat = "dd.MM.yy"
+        
+        // Получаем язык устройства (iOS 16+)
+        let languageCode = Locale.current.language.languageCode?.identifier ?? "en"
+        
+        switch languageCode {
+        case "ru":
+            df.locale = Locale(identifier: "ru_RU")
+            df.dateFormat = "dd.MM.yy"
+        case "fr":
+            df.locale = Locale(identifier: "fr_FR")
+            df.dateFormat = "dd/MM/yy"
+        default: // английский
+            df.locale = Locale(identifier: "en_US")
+            df.dateFormat = "MM/dd/yy"
+        }
+        
         ui.dateButton.setTitle(df.string(from: viewModel.currentDate), for: .normal)
     }
     
@@ -382,35 +396,42 @@ final class TrackersViewController: UIViewController {
 
         let trackersInCategory = viewModel.filteredTrackers.filter { tracker in
             tracker.trackerCategory?.title == category.title ||
-            (tracker.trackerCategory == nil && category.title == "Мои трекеры")
+            (tracker.trackerCategory == nil && category.title == NSLocalizedString("trackers.default_category", comment: "My Trackers"))
         }
 
         guard trackersInCategory.indices.contains(indexPath.item) else { return }
         let tracker = trackersInCategory[indexPath.item]
 
+        let isPinned = tracker.trackerCategory?.title == viewModel.pinnedCategoryTitle
+
         ActionMenuPresenter.show(for: cell, in: self, actions: [
-            .init(title: (tracker.trackerCategory?.title == viewModel.pinnedCategoryTitle) ? "Открепить" : "Закрепить",
+            .init(title: isPinned ? NSLocalizedString("tracker.action.unpin", comment: "Unpin") :
+                                     NSLocalizedString("tracker.action.pin", comment: "Pin"),
                   style: .default) { [weak self] in
-                      guard let self = self else { return }
-                      if tracker.trackerCategory?.title == self.viewModel.pinnedCategoryTitle {
-                          self.viewModel.unpinTracker(tracker)
-                      } else {
-                          self.viewModel.pinTracker(tracker)
-                      }
-                  },
-            .init(title: "Редактировать", style: .default) { [weak self] in
+                guard let self = self else { return }
+                if isPinned {
+                    self.viewModel.unpinTracker(tracker)
+                } else {
+                    self.viewModel.pinTracker(tracker)
+                }
+            },
+            .init(title: NSLocalizedString("tracker.action.edit", comment: "Edit"), style: .default) { [weak self] in
                 guard let self = self else { return }
                 AnalyticsService.shared.trackClick(item: "edit", screen: "Main")
                 self.viewModel.editTracker(tracker)
             },
-            .init(title: "Удалить", style: .destructive) { [weak self] in
+            .init(title: NSLocalizedString("tracker.action.delete", comment: "Delete"), style: .destructive) { [weak self] in
                 guard let self = self else { return }
                 AnalyticsService.shared.trackClick(item: "delete", screen: "Main")
-                let alert = UIAlertController(title: "Удалить трекер?", message: "Это действие нельзя отменить.", preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { _ in
+                let alert = UIAlertController(
+                    title: NSLocalizedString("tracker.action.delete_alert_title", comment: "Delete tracker?"),
+                    message: NSLocalizedString("tracker.action.delete_alert_message", comment: "This action cannot be undone."),
+                    preferredStyle: .alert
+                )
+                alert.addAction(UIAlertAction(title: NSLocalizedString("tracker.action.delete", comment: "Delete"), style: .destructive) { _ in
                     self.viewModel.deleteTracker(tracker)
                 })
-                alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+                alert.addAction(UIAlertAction(title: NSLocalizedString("tracker.action.cancel", comment: "Cancel"), style: .cancel))
                 self.present(alert, animated: true)
             }
         ])
