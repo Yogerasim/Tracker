@@ -90,8 +90,8 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
             collectionView.reloadData()
         }
         
-        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
-        cell.addGestureRecognizer(longPressGesture)
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
+        ui.collectionView.addGestureRecognizer(tapGesture)
         
         return cell
     }

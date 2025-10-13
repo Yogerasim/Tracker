@@ -51,8 +51,10 @@ final class TrackersViewController: UIViewController {
         ui.collectionView.dataSource = self
         ui.collectionView.delegate = self
         
-        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleTap(_:)))
         ui.collectionView.addGestureRecognizer(longPress)
+        
+        ui.filtersButton.addTarget(self, action: #selector(filtersTapped), for: .touchUpInside)
         
         setupCalendarContainer()
         setupPlaceholder()
@@ -146,6 +148,14 @@ final class TrackersViewController: UIViewController {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
+        
+        view.addSubview(ui.filtersButton)
+        NSLayoutConstraint.activate([
+            ui.filtersButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            ui.filtersButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            ui.filtersButton.widthAnchor.constraint(equalToConstant: 114),
+            ui.filtersButton.heightAnchor.constraint(equalToConstant: 50)
+        ])
 
         NSLayoutConstraint.activate([
             // Заголовок под navigationBar (используем safeArea)
@@ -362,24 +372,22 @@ final class TrackersViewController: UIViewController {
         present(filtersVC, animated: true)
     }
     
-    @objc func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
-        guard gesture.state == .began else { return }
-        
+    @objc func handleTap(_ gesture: UITapGestureRecognizer) {
         let location = gesture.location(in: ui.collectionView)
         guard let indexPath = ui.collectionView.indexPathForItem(at: location),
               let cell = ui.collectionView.cellForItem(at: indexPath) else { return }
-        
+
         guard visibleCategories.indices.contains(indexPath.section) else { return }
         let category = visibleCategories[indexPath.section]
-        
+
         let trackersInCategory = viewModel.filteredTrackers.filter { tracker in
             tracker.trackerCategory?.title == category.title ||
             (tracker.trackerCategory == nil && category.title == "Мои трекеры")
         }
-        
+
         guard trackersInCategory.indices.contains(indexPath.item) else { return }
         let tracker = trackersInCategory[indexPath.item]
-        
+
         ActionMenuPresenter.show(for: cell, in: self, actions: [
             .init(title: (tracker.trackerCategory?.title == viewModel.pinnedCategoryTitle) ? "Открепить" : "Закрепить",
                   style: .default) { [weak self] in
