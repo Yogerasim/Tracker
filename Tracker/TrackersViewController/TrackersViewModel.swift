@@ -81,11 +81,10 @@ final class TrackersViewModel {
         reloadTrackers()
     }
     
-    func unmarkTrackerAsCompleted(_ tracker: Tracker, on date: Date) {
-        guard let trackerCoreData = recordStore.fetchTracker(by: tracker.id) else { return }
-        recordStore.removeRecord(for: trackerCoreData, date: date)
-        reloadTrackers()
-    }
+    
+    
+    
+    
     
     func isTrackerCompleted(_ tracker: Tracker, on date: Date) -> Bool {
         guard let trackerCoreData = recordStore.fetchTracker(by: tracker.id) else { return false }
