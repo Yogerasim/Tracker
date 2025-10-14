@@ -207,22 +207,36 @@ final class TrackersViewController: UIViewController {
         ui.calendarContainer.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            ui.calendarContainer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
+            ui.calendarContainer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 60),
             ui.calendarContainer.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            ui.calendarContainer.widthAnchor.constraint(equalToConstant: 343),
+            ui.calendarContainer.widthAnchor.constraint(equalToConstant: 365),
             ui.calendarContainer.heightAnchor.constraint(equalToConstant: 325)
         ])
         
+        ui.calendarContainer.layer.shadowColor = UIColor.black.cgColor
+        ui.calendarContainer.layer.shadowOpacity = 0.1
+        ui.calendarContainer.layer.shadowOffset = CGSize(width: 0, height: 4)
+        ui.calendarContainer.layer.shadowRadius = 8
+        ui.calendarContainer.layer.masksToBounds = false
+        
         let languageCode = Locale.current.language.languageCode?.identifier ?? "en"
-
-            switch languageCode {
-            case "ru":
-                ui.calendarView.locale = Locale(identifier: "ru_RU")
-            case "fr":
-                ui.calendarView.locale = Locale(identifier: "fr_FR")
-            default:
-                ui.calendarView.locale = Locale(identifier: "en_US")
-            }
+        let localeIdentifier: String
+        
+        switch languageCode {
+        case "ru":
+            localeIdentifier = "ru_RU"
+        case "fr":
+            localeIdentifier = "fr_FR"
+        default:
+            localeIdentifier = "en_GB"
+        }
+        
+        let locale = Locale(identifier: localeIdentifier)
+        ui.calendarView.locale = locale
+        
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.firstWeekday = 2 // Понедельник
+        ui.calendarView.calendar = calendar
     }
     
     func updatePlaceholder() {
