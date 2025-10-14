@@ -28,9 +28,14 @@ final class StatisticsViewController: UIViewController {
         table.separatorStyle = .none
         table.showsVerticalScrollIndicator = false
         table.isScrollEnabled = false
-        table.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 20, right: 0) // небольшой нижний отступ
+        table.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 20, right: 0)
         return table
     }()
+
+    // MARK: - Layout Constraints
+    private var titleTopConstraint: NSLayoutConstraint!
+    private var tableViewCenterYConstraint: NSLayoutConstraint!
+    private var tableViewHeightConstraint: NSLayoutConstraint!
 
     // MARK: - Data
     private var items: [(Int, String)] = []
@@ -52,7 +57,7 @@ final class StatisticsViewController: UIViewController {
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleTrackerRecordsDidChange),
-            name: .trackersDidChange, // 🔹 новое уведомление
+            name: .trackersDidChange,
             object: nil
         )
     }
@@ -70,6 +75,7 @@ final class StatisticsViewController: UIViewController {
         ]
 
         tableView.reloadData()
+        updateTableHeight()
         updatePlaceholderVisibility(using: stats)
     }
 
@@ -77,7 +83,6 @@ final class StatisticsViewController: UIViewController {
     private func updatePlaceholderVisibility(using stats: CalculateStatistics.Statistics) {
         let hasAnyTrackers = trackerRecordStore.hasAnyTrackers()
         
-        // если вообще нет трекеров — показываем плейсхолдер
         if !hasAnyTrackers {
             placeholderView.isHidden = false
             tableView.isHidden = true
@@ -86,7 +91,6 @@ final class StatisticsViewController: UIViewController {
                 text: NSLocalizedString("statistics.placeholder.empty", comment: "Пустая статистика — нечего анализировать")
             )
         } else {
-            // если трекеры есть — всегда показываем таблицу
             placeholderView.isHidden = true
             tableView.isHidden = false
         }
@@ -94,15 +98,28 @@ final class StatisticsViewController: UIViewController {
 
     // MARK: - Layout
     private func setupLayout() {
-        MainHeaderLayoutHelper.setupSimpleTitle(in: view, titleView: titleView)
+        // 🔹 Используем MainHeaderLayoutHelper
+        view.addSubview(titleView)
+        titleView.translatesAutoresizingMaskIntoConstraints = false
+        titleTopConstraint = titleView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 44) // визуальный отступ
+        NSLayoutConstraint.activate([
+            titleTopConstraint,
+            titleView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 25)
+        ])
+
+        // Таблица и плейсхолдер
         view.addSubview(tableView)
         view.addSubview(placeholderView)
-
+        tableViewCenterYConstraint = tableView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        tableViewHeightConstraint = tableView.heightAnchor.constraint(equalToConstant: 0) // позже обновим
         NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: titleView.bottomAnchor, constant: 20),
+            titleView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
+            titleView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 25),
+            
+            tableViewCenterYConstraint,
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20), // не lessThanOrEqualTo
+            tableViewHeightConstraint,
 
             placeholderView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             placeholderView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
@@ -111,6 +128,11 @@ final class StatisticsViewController: UIViewController {
         ])
 
         placeholderView.isHidden = true
+    }
+
+    private func updateTableHeight() {
+        let totalHeight = CGFloat(items.count * 90 + (items.count - 1) * 16)
+        tableViewHeightConstraint.constant = totalHeight
     }
 
     private func setupTableView() {
@@ -127,7 +149,14 @@ final class StatisticsViewController: UIViewController {
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-    
+
+    // MARK: - Title Manipulation
+    func moveTitle(upBy offset: CGFloat) {
+        titleTopConstraint.constant = 44 - offset
+        UIView.animate(withDuration: 0.25) {
+            self.view.layoutIfNeeded()
+        }
+    }
 }
 
 // MARK: - UITableViewDataSource
