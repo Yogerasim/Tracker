@@ -107,26 +107,24 @@ final class TrackersViewModel {
             onDateChanged?(currentDate)
         }
 
-        private func filterTrackers() {
-            let text = searchText.lowercased()
+    private func filterTrackers() {
+        let text = searchText.lowercased()
 
-            filteredTrackers = trackers.filter { tracker in
-                let matchesSearch = text.isEmpty || tracker.name.lowercased().contains(text)
+        filteredTrackers = trackers.filter { tracker in
+            let matchesSearch = text.isEmpty || tracker.name.lowercased().contains(text)
 
-                
-                let matchesDate: Bool
-                if isDateFilterEnabled {
-                    let selectedDay = WeekDay.from(date: currentDate)
-                    matchesDate = tracker.schedule.contains(selectedDay)
-                } else {
-                    matchesDate = true
-                }
-
-                return matchesSearch && matchesDate
+            let matchesDate: Bool
+            if isDateFilterEnabled {
+                matchesDate = tracker.schedule.contains(currentDate.weekDay)
+            } else {
+                matchesDate = true
             }
 
-            onTrackersUpdated?()
+            return matchesSearch && matchesDate
         }
+
+        onTrackersUpdated?()
+    }
     
     private func reloadTrackers() {
         self.trackers = trackerStore.getTrackers()
@@ -142,12 +140,8 @@ final class TrackersViewModel {
             filteredTrackers = trackers // Все трекеры
         case 1:
             // Трекеры на сегодня
-            let weekdayInt = Calendar.current.component(.weekday, from: currentDate)
-            if let today = WeekDay(rawValue: weekdayInt) {
-                filteredTrackers = trackers.filter { $0.schedule.contains(today) }
-            } else {
-                filteredTrackers = []
-            }
+            let today = currentDate.weekDay
+            filteredTrackers = trackers.filter { $0.schedule.contains(today) }
         case 2:
             // Завершенные
             filteredTrackers = trackers.filter { isTrackerCompleted($0, on: currentDate) }
@@ -157,6 +151,7 @@ final class TrackersViewModel {
         default:
             filteredTrackers = trackers
         }
+
         onTrackersUpdated?()
     }
     
@@ -244,5 +239,10 @@ extension TrackersViewModel: TrackerCategoryStoreDelegate {
     func didUpdateCategories() {
         self.categories = categoryStore.categories
         onCategoriesUpdated?()
+    }
+}
+extension Date {
+    var weekDay: WeekDay {
+        WeekDay.from(date: self)
     }
 }
