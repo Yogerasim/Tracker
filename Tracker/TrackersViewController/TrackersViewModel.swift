@@ -70,9 +70,18 @@ final class TrackersViewModel {
     }
     
     func addTrackerToDefaultCategory(_ tracker: Tracker) {
-        categoryStore.addTracker(tracker, to: defaultCategoryTitle)
+        // Проверяем, что категория "Мои трекеры" существует
+        ensureDefaultCategory()
+        
+        // Добавляем трекер только через trackerStore
         trackerStore.add(tracker)
+        
+        // Привязываем к категории через moveTracker
+        categoryStore.moveTracker(tracker, to: defaultCategoryTitle)
+        
+        // Обновляем данные и уведомляем UI
         reloadTrackers()
+        
     }
     
     func markTrackerAsCompleted(_ tracker: Tracker, on date: Date) {
@@ -123,6 +132,8 @@ final class TrackersViewModel {
         self.trackers = trackerStore.getTrackers()
         self.completedTrackers = recordStore.completedTrackers
         filterTrackers()
+        
+        NotificationCenter.default.post(name: .trackerRecordsDidChange, object: nil)
     }
     
     private func applyFilter() {
@@ -215,6 +226,8 @@ extension TrackersViewModel {
         reloadTrackers()
         onTrackersUpdated?()
         print("✅ Deleted tracker: \(tracker.name). trackers.count = \(trackers.count)")
+        
+        NotificationCenter.default.post(name: .trackersDidChange, object: nil)
     }
 }
 

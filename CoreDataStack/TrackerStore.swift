@@ -139,7 +139,10 @@ final class TrackerStore: NSObject {
 // MARK: - NSFetchedResultsControllerDelegate
 extension TrackerStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        print("📡 TrackerStore content changed — notifying delegate + NotificationCenter")
         notifyDelegate()
+        // 🔹 Добавляем уведомление, чтобы статистика или другие экраны могли обновляться
+        NotificationCenter.default.post(name: .trackersDidChange, object: nil)
     }
 }
 

@@ -105,6 +105,21 @@ final class TrackerRecordStore: NSObject {
             print("❌ Ошибка сохранения backgroundContext: \(error)")
         }
     }
+    
+    func hasAnyTrackers() -> Bool {
+        viewContext.performAndWait {
+            let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
+            request.fetchLimit = 1
+            do {
+                let count = try viewContext.count(for: request)
+                return count > 0
+            } catch {
+                print("❌ Ошибка при проверке наличия трекеров: \(error)")
+                return false
+            }
+        }
+    }
+    
 }
 
 // MARK: - NSFetchedResultsControllerDelegate
@@ -145,4 +160,5 @@ extension TrackerRecordStore {
 
 extension Notification.Name {
     static let trackerRecordsDidChange = Notification.Name("trackerRecordsDidChange")
+    static let trackersDidChange = Notification.Name("trackersDidChange")
 }

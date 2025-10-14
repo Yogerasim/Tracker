@@ -49,6 +49,12 @@ final class StatisticsViewController: UIViewController {
             name: .trackerRecordsDidChange,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleTrackerRecordsDidChange),
+            name: .trackersDidChange, // 🔹 новое уведомление
+            object: nil
+        )
     }
 
     // MARK: - Load Data
@@ -69,19 +75,20 @@ final class StatisticsViewController: UIViewController {
 
     // MARK: - Placeholder Logic
     private func updatePlaceholderVisibility(using stats: CalculateStatistics.Statistics) {
-        let allZero = stats.bestPeriod == 0 &&
-                      stats.idealDays == 0 &&
-                      stats.completedTrackers == 0 &&
-                      stats.averageTrackersPerDay == 0
-
-        placeholderView.isHidden = !allZero
-        tableView.isHidden = allZero // скрываем только если нет данных
-
-        if allZero {
+        let hasAnyTrackers = trackerRecordStore.hasAnyTrackers()
+        
+        // если вообще нет трекеров — показываем плейсхолдер
+        if !hasAnyTrackers {
+            placeholderView.isHidden = false
+            tableView.isHidden = true
             placeholderView.configure(
                 imageName: "NoStatistic",
                 text: NSLocalizedString("statistics.placeholder.empty", comment: "Пустая статистика — нечего анализировать")
             )
+        } else {
+            // если трекеры есть — всегда показываем таблицу
+            placeholderView.isHidden = true
+            tableView.isHidden = false
         }
     }
 
@@ -113,12 +120,14 @@ final class StatisticsViewController: UIViewController {
     }
 
     @objc private func handleTrackerRecordsDidChange() {
+        print("📊 StatisticsViewController received notification — reloading stats")
         loadStatistics()
     }
 
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
+    
 }
 
 // MARK: - UITableViewDataSource
