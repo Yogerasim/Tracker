@@ -12,23 +12,18 @@ struct Tracker {
 enum WeekDay: Int, CaseIterable, Codable {
     case monday = 1, tuesday, wednesday, thursday, friday, saturday, sunday
 
-    /// Конвертация Date -> WeekDay, неделя начинается с понедельника
+    /// Конвертация Date -> WeekDay
     static func from(date: Date, calendar: Calendar = .current) -> WeekDay {
-        var cal = calendar
-        cal.firstWeekday = 2 // 1 = Sunday, 2 = Monday
+        // Calendar.component(.weekday) возвращает 1 = Sunday, 2 = Monday, ..., 7 = Saturday
+        let weekday = calendar.component(.weekday, from: date)
 
-        let weekday = cal.component(.weekday, from: date)
-        // weekday: 1 = Monday, 2 = Tuesday ... 7 = Sunday
-        switch weekday {
-        case 1: return .monday
-        case 2: return .tuesday
-        case 3: return .wednesday
-        case 4: return .thursday
-        case 5: return .friday
-        case 6: return .saturday
-        case 7: return .sunday
-        default: return .monday
+        // Если weekday == 1 -> Sunday (в enum .sunday == 7)
+        if weekday == 1 {
+            return .sunday
         }
+
+        // Иначе weekday 2..7 -> Monday..Saturday, соответствуют rawValue 1..6
+        return WeekDay(rawValue: weekday - 1) ?? .monday
     }
 }
 

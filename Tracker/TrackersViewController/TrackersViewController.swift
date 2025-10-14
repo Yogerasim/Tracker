@@ -411,6 +411,13 @@ final class TrackersViewController: UIViewController {
         filtersVC.onFilterSelected = { [weak self] index in
             guard let self = self else { return }
             self.viewModel.selectedFilterIndex = index
+            // Если выбрали "Трекеры на сегодня" (index 1)
+            if index == 1 {
+                let today = Date()
+                self.viewModel.currentDate = today
+                self.ui.calendarView.date = today  // обновляем UIDatePicker
+                self.updateDateText()             // обновляем кнопку с датой
+            }
             print("🧩 reloadData called, filteredTrackers:", self.viewModel.filteredTrackers.count)
             self.ui.collectionView.reloadData()
         }

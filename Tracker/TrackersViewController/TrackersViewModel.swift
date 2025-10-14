@@ -113,7 +113,7 @@ final class TrackersViewModel {
             filteredTrackers = trackers.filter { tracker in
                 let matchesSearch = text.isEmpty || tracker.name.lowercased().contains(text)
 
-                // Фильтруем по дате только если включен фильтр
+                
                 let matchesDate: Bool
                 if isDateFilterEnabled {
                     let selectedDay = WeekDay.from(date: currentDate)
