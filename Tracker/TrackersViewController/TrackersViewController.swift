@@ -212,6 +212,17 @@ final class TrackersViewController: UIViewController {
             ui.calendarContainer.widthAnchor.constraint(equalToConstant: 343),
             ui.calendarContainer.heightAnchor.constraint(equalToConstant: 325)
         ])
+        
+        let languageCode = Locale.current.language.languageCode?.identifier ?? "en"
+
+            switch languageCode {
+            case "ru":
+                ui.calendarView.locale = Locale(identifier: "ru_RU")
+            case "fr":
+                ui.calendarView.locale = Locale(identifier: "fr_FR")
+            default:
+                ui.calendarView.locale = Locale(identifier: "en_US")
+            }
     }
     
     func updatePlaceholder() {
