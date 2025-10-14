@@ -3,8 +3,9 @@ import UIKit
 final class AppTextField: UIView, UITextFieldDelegate {
 
     // MARK: - UI
-    let textField: UITextField
+    let textField: CustomTextField
     private let charLimitLabel: UILabel
+    private let clearButton: UIButton
 
     // Максимальное количество символов
     private let maxCharacters: Int
@@ -14,12 +15,14 @@ final class AppTextField: UIView, UITextFieldDelegate {
 
     // MARK: - Init
     init(placeholder: String, maxCharacters: Int = 38) {
-        self.textField = UITextField()
+        self.textField = CustomTextField()
         self.charLimitLabel = UILabel()
+        self.clearButton = UIButton(type: .system)
         self.maxCharacters = maxCharacters
         super.init(frame: .zero)
 
         setupUI(placeholder: placeholder)
+        setupClearButton()
     }
 
     required init?(coder: NSCoder) {
@@ -40,8 +43,8 @@ final class AppTextField: UIView, UITextFieldDelegate {
         textField.addTarget(self, action: #selector(textChanged), for: .editingChanged)
 
         // Настройка подписи лимита символов
-        charLimitLabel.font = AppFonts.regular(17) // caption2
-        charLimitLabel.textColor = UIColor(hex: "#FD4C49") // gradientStart
+        charLimitLabel.font = AppFonts.regular(17)
+        charLimitLabel.textColor = UIColor(hex: "#FD4C49")
         charLimitLabel.textAlignment = .center
         charLimitLabel.text = "Ограничение \(maxCharacters) символов"
         charLimitLabel.isHidden = true
@@ -64,6 +67,25 @@ final class AppTextField: UIView, UITextFieldDelegate {
         ])
     }
 
+    // MARK: - Clear Button
+    private func setupClearButton() {
+        clearButton.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
+        clearButton.tintColor = UIColor.systemGray3
+        clearButton.addTarget(self, action: #selector(clearText), for: .touchUpInside)
+        
+        let container = UIView(frame: CGRect(x: 0, y: 0, width: 17, height: 17))
+        clearButton.frame = container.bounds
+        container.addSubview(clearButton)
+        
+        textField.rightView = container
+        textField.rightViewMode = .whileEditing
+    }
+
+    @objc private func clearText() {
+        textField.text = ""
+        textChanged()
+    }
+
     // MARK: - Actions
     @objc private func textChanged() {
         let text = textField.text ?? ""
@@ -73,7 +95,6 @@ final class AppTextField: UIView, UITextFieldDelegate {
 
     // MARK: - UITextFieldDelegate
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        // Блокируем ввод после maxCharacters
         let currentText = textField.text ?? ""
         guard let stringRange = Range(range, in: currentText) else { return false }
         let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
@@ -85,9 +106,19 @@ final class AppTextField: UIView, UITextFieldDelegate {
         get { textField.text ?? "" }
         set { textField.text = newValue }
     }
-    
+
     func setText(_ text: String) {
-           textField.text = text
-           textChanged() // обновляем лимит символов и вызываем callback
-       }
+        textField.text = text
+        textChanged() // обновляем лимит символов и вызываем callback
+    }
+}
+
+// MARK: - Custom UITextField для сдвига rightView
+final class CustomTextField: UITextField {
+    override func rightViewRect(forBounds bounds: CGRect) -> CGRect {
+        var rect = super.rightViewRect(forBounds: bounds)
+        rect.origin.x -= 10 // сдвиг влево
+        rect.origin.y += 0  // сдвиг вниз
+        return rect
+    }
 }
