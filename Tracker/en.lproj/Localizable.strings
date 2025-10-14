@@ -84,6 +84,7 @@
 "statistics.ideal_days_label" = "Ideal days";
 "statistics.completed_trackers_label" = "Trackers completed";
 "statistics.average_label" = "Average value";
+"statistics.placeholder.empty" = "Nothing to analyze yet";
 
 //TrackersViewController
 "trackers.title" = "Trackers";

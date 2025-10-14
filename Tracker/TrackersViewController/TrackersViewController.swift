@@ -51,6 +51,13 @@ final class TrackersViewController: UIViewController {
         ui.collectionView.dataSource = self
         ui.collectionView.delegate = self
         
+        ui.collectionView.contentInset = UIEdgeInsets(
+            top: 0,
+            left: 0,
+            bottom: view.safeAreaInsets.bottom + 50, // можно изменить 50 на любое число
+            right: 0
+        )
+        
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleTap(_:)))
         ui.collectionView.addGestureRecognizer(longPress)
         
@@ -143,7 +150,7 @@ final class TrackersViewController: UIViewController {
         
         navigationItem.leftBarButtonItem = addButtonItem
         navigationItem.rightBarButtonItem = dateButtonItem
-
+        
         // MARK: - Layout для остальных элементов
         [ui.titleView, ui.searchBar, ui.collectionView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
@@ -157,17 +164,17 @@ final class TrackersViewController: UIViewController {
             ui.filtersButton.widthAnchor.constraint(equalToConstant: 114),
             ui.filtersButton.heightAnchor.constraint(equalToConstant: 50)
         ])
-
+        
         NSLayoutConstraint.activate([
             // Заголовок под navigationBar (используем safeArea)
             ui.titleView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
             ui.titleView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 25),
-
+            
             // Поиск под заголовком
             ui.searchBar.topAnchor.constraint(equalTo: ui.titleView.bottomAnchor, constant: 2),
             ui.searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             ui.searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-
+            
             // Коллекция под поиском
             ui.collectionView.topAnchor.constraint(equalTo: ui.searchBar.bottomAnchor, constant: 8),
             ui.collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
@@ -390,31 +397,31 @@ final class TrackersViewController: UIViewController {
         let location = gesture.location(in: ui.collectionView)
         guard let indexPath = ui.collectionView.indexPathForItem(at: location),
               let cell = ui.collectionView.cellForItem(at: indexPath) else { return }
-
+        
         guard visibleCategories.indices.contains(indexPath.section) else { return }
         let category = visibleCategories[indexPath.section]
-
+        
         let trackersInCategory = viewModel.filteredTrackers.filter { tracker in
             tracker.trackerCategory?.title == category.title ||
             (tracker.trackerCategory == nil && category.title == NSLocalizedString("trackers.default_category", comment: "My Trackers"))
         }
-
+        
         guard trackersInCategory.indices.contains(indexPath.item) else { return }
         let tracker = trackersInCategory[indexPath.item]
-
+        
         let isPinned = tracker.trackerCategory?.title == viewModel.pinnedCategoryTitle
-
+        
         ActionMenuPresenter.show(for: cell, in: self, actions: [
             .init(title: isPinned ? NSLocalizedString("tracker.action.unpin", comment: "Unpin") :
-                                     NSLocalizedString("tracker.action.pin", comment: "Pin"),
+                    NSLocalizedString("tracker.action.pin", comment: "Pin"),
                   style: .default) { [weak self] in
-                guard let self = self else { return }
-                if isPinned {
-                    self.viewModel.unpinTracker(tracker)
-                } else {
-                    self.viewModel.pinTracker(tracker)
-                }
-            },
+                      guard let self = self else { return }
+                      if isPinned {
+                          self.viewModel.unpinTracker(tracker)
+                      } else {
+                          self.viewModel.pinTracker(tracker)
+                      }
+                  },
             .init(title: NSLocalizedString("tracker.action.edit", comment: "Edit"), style: .default) { [weak self] in
                 guard let self = self else { return }
                 AnalyticsService.shared.trackClick(item: "edit", screen: "Main")

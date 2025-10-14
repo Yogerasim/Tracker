@@ -90,9 +90,6 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
             collectionView.reloadData()
         }
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
-        ui.collectionView.addGestureRecognizer(tapGesture)
-        
         return cell
     }
     

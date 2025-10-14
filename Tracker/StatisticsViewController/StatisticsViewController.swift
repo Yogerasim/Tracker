@@ -80,7 +80,7 @@ final class StatisticsViewController: UIViewController {
         if allZero {
             placeholderView.configure(
                 imageName: "NoStatistic",
-                text: "Анализировать пока нечего"
+                text: NSLocalizedString("statistics.placeholder.empty", comment: "Пустая статистика — нечего анализировать")
             )
         }
     }

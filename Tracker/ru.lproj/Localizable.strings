@@ -85,6 +85,7 @@
 "statistics.ideal_days_label" = "Идеальные дни";
 "statistics.completed_trackers_label" = "Трекеров завершено";
 "statistics.average_label" = "Среднее значение";
+"statistics.placeholder.empty" = "Анализировать пока нечего";
 
 //TrackersViewController
 "trackers.title" = "Трекеры";

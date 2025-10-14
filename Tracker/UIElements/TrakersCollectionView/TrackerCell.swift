@@ -75,6 +75,12 @@ final class TrackerCell: UICollectionViewCell {
 
     // MARK: - Actions
     @objc private func toggleTapped() {
+        
+        toggleButton.isUserInteractionEnabled = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            self.toggleButton.isUserInteractionEnabled = true
+        }
+        
         onToggleCompletion?()
     }
     
