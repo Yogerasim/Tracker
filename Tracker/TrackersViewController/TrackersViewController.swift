@@ -243,6 +243,7 @@ final class TrackersViewController: UIViewController {
         let hasTrackers = !viewModel.filteredTrackers.isEmpty
         ui.placeholderView.isHidden = hasTrackers
         ui.collectionView.isHidden = !hasTrackers
+        ui.filtersButton.isHidden = !hasTrackers
         
         if !hasTrackers {
             let searchText = ui.searchBar.text ?? ""
