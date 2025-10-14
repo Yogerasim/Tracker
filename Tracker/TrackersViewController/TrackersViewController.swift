@@ -58,8 +58,8 @@ final class TrackersViewController: UIViewController {
             right: 0
         )
         
-        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleTap(_:)))
-        ui.collectionView.addGestureRecognizer(longPress)
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
+        ui.collectionView.addGestureRecognizer(tapGesture)
         
         ui.filtersButton.addTarget(self, action: #selector(filtersTapped), for: .touchUpInside)
         ui.calendarView.addTarget(self, action: #selector(calendarDateChanged(_:)), for: .valueChanged)
