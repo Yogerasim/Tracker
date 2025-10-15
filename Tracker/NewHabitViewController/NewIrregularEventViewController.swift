@@ -9,7 +9,7 @@ final class NewIrregularEventViewController: BaseTrackerCreationViewController {
     // MARK: - Init
     init() {
         super.init(title: NSLocalizedString("new_irregular_event.title", comment: ""))
-        // Только одна строка для категории
+        // Таблица только с одной строкой
         tableContainer.updateHeight(forRows: 1)
     }
 
@@ -25,6 +25,9 @@ final class NewIrregularEventViewController: BaseTrackerCreationViewController {
             let hasText = !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             self?.bottomButtons.setCreateButton(enabled: hasText)
         }
+
+        // Подстраиваем высоту таблицы при старте
+        tableContainer.updateHeight(forRows: numberOfRowsInTable())
     }
 
     // MARK: - Create Action
@@ -37,7 +40,7 @@ final class NewIrregularEventViewController: BaseTrackerCreationViewController {
         guard let color = selectedColor else { print("⚠️ Пожалуйста, выберите цвет"); return enableCreateButton() }
         guard let selectedCategory = selectedCategory else { print("⚠️ Пожалуйста, выберите категорию"); return enableCreateButton() }
 
-        // Проверка на существующий трекер в выбранной категории
+        // Проверка на существующий трекер
         let fetchRequest: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "name == %@ AND category == %@", title, selectedCategory)
         if let existing = try? context.fetch(fetchRequest), !existing.isEmpty {
@@ -82,7 +85,7 @@ final class NewIrregularEventViewController: BaseTrackerCreationViewController {
             trackerCategory: selectedCategory
         )
 
-        onEventCreated?(tracker)
+        
         dismiss(animated: true)
         enableCreateButton()
     }
@@ -97,7 +100,7 @@ final class NewIrregularEventViewController: BaseTrackerCreationViewController {
         dismiss(animated: true)
     }
 
-    // Таблица только с категорией
+    // MARK: - Таблица с категорией
     override func numberOfRowsInTable() -> Int { 1 }
 
     override func tableViewCell(for tableView: UITableView, indexPath: IndexPath) -> UITableViewCell {
@@ -116,9 +119,14 @@ final class NewIrregularEventViewController: BaseTrackerCreationViewController {
         let categoryStore = TrackerCategoryStore(context: context)
         let categoryVC = CategoryViewController(store: categoryStore)
         categoryVC.onCategorySelected = { [weak self] category in
-            self?.selectedCategory = category
+            guard let self = self else { return }
+            self.selectedCategory = category
             tableView.reloadRows(at: [indexPath], with: .automatic)
-            self?.dismiss(animated: true)
+            
+            // Обновляем высоту таблицы после выбора категории
+            self.tableContainer.updateHeight(forRows: self.numberOfRowsInTable())
+            
+            self.dismiss(animated: true)
         }
 
         if let sheet = categoryVC.sheetPresentationController {
