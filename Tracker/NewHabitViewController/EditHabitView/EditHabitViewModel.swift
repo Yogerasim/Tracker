@@ -32,9 +32,17 @@ final class EditHabitViewModel {
 
         self.name = name
         self.selectedEmoji = emoji
-        self.selectedColor = UIColor(hex: colorHex) // используем твой UIColor(hex:)
+        // используем твой UIColor(hex:) конструктор
+        self.selectedColor = UIColor(hex: colorHex)
         self.selectedCategory = category
-        self.selectedDays = tracker.decodedSchedule
+
+        // Декодируем расписание прямо здесь — если расширение недоступно
+        if let scheduleData = tracker.schedule as? Data,
+           let decoded = try? JSONDecoder().decode([WeekDay].self, from: scheduleData) {
+            self.selectedDays = decoded
+        } else {
+            self.selectedDays = []
+        }
     }
 
     func saveChanges() {
@@ -43,9 +51,16 @@ final class EditHabitViewModel {
 
         tracker.name = trimmedName
         tracker.emoji = selectedEmoji
-        tracker.color = selectedColor.toHexString() // оставляем метод преобразования в hex, его можно оставить в отдельном UIColor+Hex файле
+        tracker.color = selectedColor.toHexString() // остаётся преобразование в hex
         tracker.category = selectedCategory
-        tracker.decodedSchedule = selectedDays
+
+        // Кодируем selectedDays обратно в tracker.schedule (NSData)
+        if let encoded = try? JSONEncoder().encode(selectedDays) {
+            tracker.schedule = encoded as NSData
+        } else {
+            // Если не удалось закодировать (маловероятно) — записываем пустой массив
+            tracker.schedule = (try? JSONEncoder().encode([WeekDay]())) as NSData?
+        }
 
         do {
             try context.save()
@@ -56,5 +71,3 @@ final class EditHabitViewModel {
         }
     }
 }
-
-
