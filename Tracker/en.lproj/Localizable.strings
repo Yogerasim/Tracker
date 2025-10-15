@@ -69,6 +69,9 @@
 "schedule.saturday" = "Saturday";
 "schedule.sunday" = "Sunday";
 
+"every_day" = "Every day";
+"new_habit.schedule_not_selected" = "Not selected";
+
 "weekdays.short.monday" = "Mon";
 "weekdays.short.tuesday" = "Tue";
 "weekdays.short.wednesday" = "Wed";

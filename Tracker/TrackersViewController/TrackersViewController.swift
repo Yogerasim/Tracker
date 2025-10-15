@@ -417,7 +417,8 @@ final class TrackersViewController: UIViewController {
                 let today = Date()
                 self.viewModel.currentDate = today
                 self.ui.calendarView.date = today  // обновляем UIDatePicker
-                self.updateDateText()             // обновляем кнопку с датой
+                self.updateDateText()
+                self.viewModel.filterByDate()
             }
             print("🧩 reloadData called, filteredTrackers:", self.viewModel.filteredTrackers.count)
             self.ui.collectionView.reloadData()

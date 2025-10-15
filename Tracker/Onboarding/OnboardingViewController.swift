@@ -75,14 +75,7 @@ final class OnboardingViewController: UIPageViewController, UIPageViewController
     
     // MARK: - Actions
     @objc private func finishOnboarding() {
-        UserDefaults.standard.set(true, forKey: "hasSeenOnboarding")
-        
-        let trackersVC = TrackersViewController()
-        let navVC = UINavigationController(rootViewController: trackersVC)
-        if let window = UIApplication.shared.windows.first {
-            window.rootViewController = navVC
-            window.makeKeyAndVisible()
-        }
+        dismiss(animated: true)
     }
     
     // MARK: - UIPageViewControllerDataSource
