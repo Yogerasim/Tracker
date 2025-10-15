@@ -12,15 +12,19 @@ final class HabitFlowPresenter {
         self.categoryStore = categoryStore
     }
 
-    /// Добавляет трекер в категорию по умолчанию
+    
     func addTracker(_ tracker: Tracker, completion: @escaping () -> Void) {
-        ensureDefaultCategory()
-        categoryStore.addTracker(tracker, to: defaultCategoryTitle)
-        print("📌 Трекер '\(tracker.name)' добавлен в категорию '\(defaultCategoryTitle)'")
-        DispatchQueue.main.async {
-            completion()
+            // ⚠️ Не создаём категорию автоматически
+            if let _ = categoryStore.fetchCategories().first(where: { $0.title == defaultCategoryTitle }) {
+                categoryStore.addTracker(tracker, to: defaultCategoryTitle)
+                print("📌 Трекер '\(tracker.name)' добавлен в '\(defaultCategoryTitle)'")
+            } else {
+                print("⚠️ Категория '\(defaultCategoryTitle)' отсутствует, создайте вручную.")
+            }
+            DispatchQueue.main.async {
+                completion()
+            }
         }
-    }
 
     private func ensureDefaultCategory() {
         

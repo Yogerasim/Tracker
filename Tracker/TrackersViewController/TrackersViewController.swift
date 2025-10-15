@@ -67,7 +67,7 @@ final class TrackersViewController: UIViewController {
         setupCalendarContainer()
         setupPlaceholder()
         bindViewModel()
-        viewModel.ensureDefaultCategory()
+        
         
         updateUI()
         updatePlaceholder()

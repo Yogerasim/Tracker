@@ -60,28 +60,20 @@ final class TrackersViewModel {
     }
     
     // MARK: - Business Logic
-    func ensureDefaultCategory() {
-        if !categories.contains(where: { $0.title == defaultCategoryTitle }) {
-            let defaultCategory = TrackerCategory(id: UUID(), title: defaultCategoryTitle, trackers: [])
-            categoryStore.add(defaultCategory)
-            categories = categoryStore.categories
-            onCategoriesUpdated?()
-        }
-    }
+    
     
     func addTrackerToDefaultCategory(_ tracker: Tracker) {
-        // Проверяем, что категория "Мои трекеры" существует
-        ensureDefaultCategory()
-        
-        // Добавляем трекер только через trackerStore
-        trackerStore.add(tracker)
-        
-        // Привязываем к категории через moveTracker
-        categoryStore.moveTracker(tracker, to: defaultCategoryTitle)
-        
-        // Обновляем данные и уведомляем UI
+        // Проверяем, существует ли категория "Мои трекеры"
+        if let _ = categories.first(where: { $0.title == defaultCategoryTitle }) {
+            // Добавляем трекер только если категория есть
+            trackerStore.add(tracker)
+            categoryStore.moveTracker(tracker, to: defaultCategoryTitle)
+        } else {
+            // Если категории нет — просто добавляем трекер в базу без категории
+            trackerStore.add(tracker)
+        }
+
         reloadTrackers()
-        
     }
     
     func markTrackerAsCompleted(_ tracker: Tracker, on date: Date) {
