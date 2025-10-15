@@ -1,4 +1,5 @@
 import UIKit
+import CoreData
 
 final class NewIrregularEventViewController: UIViewController, UITextFieldDelegate {
     
@@ -6,6 +7,7 @@ final class NewIrregularEventViewController: UIViewController, UITextFieldDelega
     private let scrollView = UIScrollView()
     private let contentStack = UIStackView()
     private var selectedCategory: TrackerCategoryCoreData?
+    private let context = CoreDataStack.shared.context
     
     private let modalHeader = ModalHeaderView(
         title: NSLocalizedString("new_irregular_event.title", comment: "")
@@ -145,17 +147,40 @@ final class NewIrregularEventViewController: UIViewController, UITextFieldDelega
     }
     
     @objc private func createTapped() {
+        // 🔒 Блокируем кнопку, чтобы избежать двойных нажатий
+        bottomButtons.createButton.isEnabled = false
+
         let title = nameTextField.textValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !title.isEmpty else { return }
+        guard !title.isEmpty else {
+            bottomButtons.createButton.isEnabled = true
+            return
+        }
+
         guard let emoji = selectedEmoji else {
             print(NSLocalizedString("new_irregular_event.warning_choose_emoji", comment: ""))
+            bottomButtons.createButton.isEnabled = true
             return
         }
+
         guard let color = selectedColor else {
             print(NSLocalizedString("new_irregular_event.warning_choose_color", comment: ""))
+            bottomButtons.createButton.isEnabled = true
             return
         }
-        
+
+        // ⚙️ Проверка на дубликаты по названию и категории (если она выбрана)
+        if let selectedCategory = selectedCategory {
+            let fetchRequest: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "name == %@ AND category == %@", title, selectedCategory)
+
+            if let existing = try? context.fetch(fetchRequest), !existing.isEmpty {
+                print("⚠️ Такой трекер уже существует, создание пропущено")
+                bottomButtons.createButton.isEnabled = true
+                return
+            }
+        }
+
+        // ✅ Создаём трекер (твоя оригинальная логика)
         let tracker = Tracker(
             id: UUID(),
             name: title,
@@ -164,9 +189,17 @@ final class NewIrregularEventViewController: UIViewController, UITextFieldDelega
             schedule: [],
             trackerCategory: selectedCategory
         )
-        
+
+        // 🧩 Вызываем колбэк
         onEventCreated?(tracker)
+
+        // 💾 Закрываем экран
         dismiss(animated: true)
+
+        // 🔓 Разблокируем кнопку через короткую задержку
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            self.bottomButtons.createButton.isEnabled = true
+        }
     }
     
     // MARK: - UITextField
