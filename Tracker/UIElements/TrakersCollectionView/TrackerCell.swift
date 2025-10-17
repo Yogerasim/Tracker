@@ -76,12 +76,19 @@ final class TrackerCell: UICollectionViewCell {
     
     // MARK: - Actions
     @objc private func toggleTapped() {
-        
+        // Блокируем кнопку на короткое время, чтобы избежать двойных нажатий
         toggleButton.isUserInteractionEnabled = false
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             self.toggleButton.isUserInteractionEnabled = true
         }
-        
+
+        // Мгновенно меняем состояние кнопки
+        isCompleted.toggle()
+        updateButton()
+        daysCount += isCompleted ? 1 : -1
+        updateDayLabel()
+
+        // Вызываем callback
         onToggleCompletion?()
     }
     

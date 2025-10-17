@@ -80,11 +80,6 @@
 			path = Tracker;
 			sourceTree = "<group>";
 		};
-		A712CEBD2E4A66F20050C5DC /* TrackerTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = TrackerTests;
-			sourceTree = "<group>";
-		};
 		A78A24742E958790006F379A /* TrackerSnapshotTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = TrackerSnapshotTests;
@@ -136,7 +131,6 @@
 				A712CEA62E4A66F10050C5DC /* Tracker */,
 				A7B7BD212E79205C000579FD /* CoreDataStack */,
 				A76B44382E744A7300E6F830 /* Tracker.xcdatamodeld */,
-				A712CEBD2E4A66F20050C5DC /* TrackerTests */,
 				A78A24742E958790006F379A /* TrackerSnapshotTests */,
 				A712CEA52E4A66F10050C5DC /* Products */,
 			);
@@ -204,9 +198,6 @@
 			);
 			dependencies = (
 				A712CEBC2E4A66F20050C5DC /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				A712CEBD2E4A66F20050C5DC /* TrackerTests */,
 			);
 			name = TrackerTests;
 			packageProductDependencies = (
