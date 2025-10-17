@@ -127,30 +127,3 @@ extension ScheduleViewController {
     }
 }
 
-extension WeekDay {
-    var shortName: String {
-        let key: String
-        switch self {
-        case .monday: key = "weekdays.short.monday"
-        case .tuesday: key = "weekdays.short.tuesday"
-        case .wednesday: key = "weekdays.short.wednesday"
-        case .thursday: key = "weekdays.short.thursday"
-        case .friday: key = "weekdays.short.friday"
-        case .saturday: key = "weekdays.short.saturday"
-        case .sunday: key = "weekdays.short.sunday"
-        }
-        return NSLocalizedString(key, comment: "Short name for \(self)")
-    }
-}
-
-extension Array where Element == WeekDay {
-    var descriptionText: String {
-        if self.count == WeekDay.allCases.count {
-            return NSLocalizedString("every_day", comment: "Каждый день / Every day")
-        } else if self.isEmpty {
-            return NSLocalizedString("new_habit.schedule_not_selected", comment: "Не выбрано / Not selected")
-        } else {
-            return self.map { $0.shortName }.joined(separator: ", ")
-        }
-    }
-}

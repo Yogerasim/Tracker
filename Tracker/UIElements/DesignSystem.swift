@@ -1,44 +1,33 @@
 import UIKit
 
 enum AppColors {
-    
     static let background = UIColor { traitCollection in
         traitCollection.userInterfaceStyle == .dark
         ? AppColors.backgroundBlackButton
         : .white
     }
-    
     static let containerCellDarkBackground = UIColor(red: 65/255, green: 65/255, blue: 65/255, alpha: 0.85)
-    
     static let backgroundBlackButton = UIColor(hex: "#1A1B22")
-    
     static let primaryBlue = UIColor(hex: "#4685FF")
-    
     static let textPrimary = UIColor { traitCollection in
         traitCollection.userInterfaceStyle == .dark
         ? .white
         : .black
     }
-    
     static let textSecondary = UIColor { traitCollection in
         traitCollection.userInterfaceStyle == .dark
         ? UIColor(white: 1.0, alpha: 0.7)
         : UIColor(hex: "#8E8E93")
     }
-
     static let errorRed = UIColor(hex: "#F56B6C")
-
     static let gray = UIColor(hex: "#AEAFB4")
-
     static let darkBlue = UIColor(hex: "#3772E7")
-
-    static let gradientStart = UIColor(hex: "#FD4C49")
-    static let gradientMiddle = UIColor(hex: "#46E69D")
-    static let gradientEnd = UIColor(hex: "#007BFA")
+    static let gradientRed = UIColor(hex: "#FD4C49")
+    static let gradientGreen = UIColor(hex: "#46E69D")
+    static let gradientBlue = UIColor(hex: "#007BFA")
 }
 
 enum AppFonts {
-    
     // MARK: - Presets
     static let title = AppFonts.bold(20)
     static let bigTitle = AppFonts.bold(34)
@@ -56,15 +45,12 @@ enum AppFonts {
     static func regular(_ size: CGFloat) -> UIFont {
         UIFont.systemFont(ofSize: size, weight: .regular)
     }
-    
     static func medium(_ size: CGFloat) -> UIFont {
         UIFont.systemFont(ofSize: size, weight: .medium)
     }
-    
     static func semibold(_ size: CGFloat) -> UIFont {
         UIFont.systemFont(ofSize: size, weight: .semibold)
     }
-    
     static func bold(_ size: CGFloat) -> UIFont {
         UIFont.systemFont(ofSize: size, weight: .bold)
     }
@@ -77,9 +63,18 @@ enum AppLayout {
 
 enum UIConstants {
     static let horizontalPadding: CGFloat = 16.0
-    
     static var defaultInsets: UIEdgeInsets {
         UIEdgeInsets(top: 0, left: horizontalPadding, bottom: 0, right: horizontalPadding)
+    }
+}
+
+enum ImageResource: String {
+    case plus
+}
+
+extension UIImage {
+    convenience init?(resource: ImageResource) {
+        self.init(named: resource.rawValue)
     }
 }
 

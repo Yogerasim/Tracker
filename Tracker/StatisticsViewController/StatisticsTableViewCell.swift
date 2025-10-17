@@ -101,11 +101,3 @@ final class StatisticsTableViewCell: UITableViewCell {
         shapeLayer.path = path.cgPath
     }
 }
-
-// MARK: - AppColors Gradient
-
-extension AppColors {
-    static let gradientRed = UIColor(hex: "#FD4C49")
-    static let gradientGreen = UIColor(hex: "#46E69D")
-    static let gradientBlue = UIColor(hex: "#007BFA")
-}

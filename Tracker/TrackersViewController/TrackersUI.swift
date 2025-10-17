@@ -14,9 +14,9 @@ final class TrackersUI {
         button.translatesAutoresizingMaskIntoConstraints = false
         button.widthAnchor.constraint(equalToConstant: 42).isActive = true
         button.heightAnchor.constraint(equalToConstant: 42).isActive = true
-        if let image = UIImage(named: "plus")?.withRenderingMode(.alwaysTemplate) {
-            button.setImage(image, for: .normal)
-        }
+        if let image = UIImage(resource: .plus)?.withRenderingMode(.alwaysTemplate) {
+                button.setImage(image, for: .normal)
+            }
         button.tintColor = UIColor { traitCollection in
             traitCollection.userInterfaceStyle == .dark
             ? AppColors.textPrimary

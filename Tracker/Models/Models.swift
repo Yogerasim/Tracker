@@ -9,21 +9,6 @@ struct Tracker {
     let trackerCategory: TrackerCategoryCoreData?
 }
 
-enum WeekDay: Int, CaseIterable, Codable {
-    case monday = 1, tuesday, wednesday, thursday, friday, saturday, sunday
-    
-    static func from(date: Date, calendar: Calendar = .current) -> WeekDay {
-
-        let weekday = calendar.component(.weekday, from: date)
-        
-        if weekday == 1 {
-            return .sunday
-        }
-        
-        return WeekDay(rawValue: weekday - 1) ?? .monday
-    }
-}
-
 struct TrackerCategory {
     let id: UUID
     let title: String
