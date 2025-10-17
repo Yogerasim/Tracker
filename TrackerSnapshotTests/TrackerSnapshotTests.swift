@@ -1,10 +1,3 @@
-//
-//  TrackerSnapshotTests.swift
-//  TrackerSnapshotTests
-//
-//  Created by Филипп Герасимов on 07/10/25.
-//
-
 import Testing
 
 struct TrackerSnapshotTests {

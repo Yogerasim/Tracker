@@ -8,7 +8,6 @@ final class TrackersViewControllerSnapshotTests: XCTestCase {
     
     override func setUp() {
         super.setUp()
-        SnapshotTesting.isRecording = false
         UIView.setAnimationsEnabled(false)
         viewController = TrackersViewController()
     }
@@ -21,10 +20,8 @@ final class TrackersViewControllerSnapshotTests: XCTestCase {
     
     private func prepareForSnapshot() {
         viewController.loadViewIfNeeded()
-        
         viewController.view.setNeedsLayout()
         viewController.view.layoutIfNeeded()
-        
         viewController.view.frame = CGRect(origin: .zero, size: CGSize(width: 390, height: 844))
     }
     
@@ -32,27 +29,31 @@ final class TrackersViewControllerSnapshotTests: XCTestCase {
         viewController.overrideUserInterfaceStyle = .light
         prepareForSnapshot()
         
-        assertSnapshot(
-            matching: viewController,
-            as: .image(
-                on: .iPhone13Pro,
-                traits: .init(userInterfaceStyle: .light)
-            ),
-            named: "TrackersViewController_Light"
-        )
+        withSnapshotTesting(record: false) {
+            assertSnapshot(
+                of: viewController,
+                as: .image(
+                    on: .iPhone13Pro,
+                    traits: .init(userInterfaceStyle: .light)
+                ),
+                named: "TrackersViewController_Light"
+            )
+        }
     }
     
     func testTrackersViewControllerDarkTheme() {
         viewController.overrideUserInterfaceStyle = .dark
         prepareForSnapshot()
         
-        assertSnapshot(
-            matching: viewController,
-            as: .image(
-                on: .iPhone13Pro,
-                traits: .init(userInterfaceStyle: .dark)
-            ),
-            named: "TrackersViewController_Dark"
-        )
+        withSnapshotTesting(record: false) {
+            assertSnapshot(
+                of: viewController,
+                as: .image(
+                    on: .iPhone13Pro,
+                    traits: .init(userInterfaceStyle: .dark)
+                ),
+                named: "TrackersViewController_Dark"
+            )
+        }
     }
 }
