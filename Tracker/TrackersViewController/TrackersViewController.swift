@@ -58,9 +58,6 @@ final class TrackersViewController: UIViewController {
             right: 0
         )
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
-        ui.collectionView.addGestureRecognizer(tapGesture)
-        
         ui.filtersButton.addTarget(self, action: #selector(filtersTapped), for: .touchUpInside)
         ui.calendarView.addTarget(self, action: #selector(calendarDateChanged(_:)), for: .valueChanged)
         
@@ -427,56 +424,6 @@ final class TrackersViewController: UIViewController {
         present(filtersVC, animated: true)
     }
     
-    @objc func handleTap(_ gesture: UITapGestureRecognizer) {
-        let location = gesture.location(in: ui.collectionView)
-        guard let indexPath = ui.collectionView.indexPathForItem(at: location),
-              let cell = ui.collectionView.cellForItem(at: indexPath) else { return }
-        
-        guard visibleCategories.indices.contains(indexPath.section) else { return }
-        let category = visibleCategories[indexPath.section]
-        
-        let trackersInCategory = viewModel.filteredTrackers.filter { tracker in
-            tracker.trackerCategory?.title == category.title ||
-            (tracker.trackerCategory == nil && category.title == NSLocalizedString("trackers.default_category", comment: "My Trackers"))
-        }
-        
-        guard trackersInCategory.indices.contains(indexPath.item) else { return }
-        let tracker = trackersInCategory[indexPath.item]
-        
-        let isPinned = tracker.trackerCategory?.title == viewModel.pinnedCategoryTitle
-        
-        ActionMenuPresenter.show(for: cell, in: self, actions: [
-            .init(title: isPinned ? NSLocalizedString("tracker.action.unpin", comment: "Unpin") :
-                    NSLocalizedString("tracker.action.pin", comment: "Pin"),
-                  style: .default) { [weak self] in
-                      guard let self = self else { return }
-                      if isPinned {
-                          self.viewModel.unpinTracker(tracker)
-                      } else {
-                          self.viewModel.pinTracker(tracker)
-                      }
-                  },
-            .init(title: NSLocalizedString("tracker.action.edit", comment: "Edit"), style: .default) { [weak self] in
-                guard let self = self else { return }
-                AnalyticsService.shared.trackClick(item: "edit", screen: "Main")
-                self.viewModel.editTracker(tracker)
-            },
-            .init(title: NSLocalizedString("tracker.action.delete", comment: "Delete"), style: .destructive) { [weak self] in
-                guard let self = self else { return }
-                AnalyticsService.shared.trackClick(item: "delete", screen: "Main")
-                let alert = UIAlertController(
-                    title: NSLocalizedString("tracker.action.delete_alert_title", comment: "Delete tracker?"),
-                    message: NSLocalizedString("tracker.action.delete_alert_message", comment: "This action cannot be undone."),
-                    preferredStyle: .alert
-                )
-                alert.addAction(UIAlertAction(title: NSLocalizedString("tracker.action.delete", comment: "Delete"), style: .destructive) { _ in
-                    self.viewModel.deleteTracker(tracker)
-                })
-                alert.addAction(UIAlertAction(title: NSLocalizedString("tracker.action.cancel", comment: "Cancel"), style: .cancel))
-                self.present(alert, animated: true)
-            }
-        ])
-    }
     
     func togglePin(for tracker: Tracker) {
         if tracker.trackerCategory?.title == viewModel.pinnedCategoryTitle {
