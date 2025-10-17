@@ -22,7 +22,7 @@ final class CategoryViewController: UIViewController {
 
     // MARK: - Constants
     private enum Constants {
-        static let checkmarkImageName = "ic 24x24" // имя картинки — не локализуем
+        static let checkmarkImageName = "ic 24x24"
         static let rowHeight: CGFloat = 75
     }
 
@@ -65,7 +65,7 @@ final class CategoryViewController: UIViewController {
             addButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             addButton.heightAnchor.constraint(equalToConstant: 60),
             
-            // Table Container (без bottomAnchor!)
+            // Table Container
             tableContainer.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 16),
             tableContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
@@ -77,7 +77,6 @@ final class CategoryViewController: UIViewController {
             placeholderView.heightAnchor.constraint(equalToConstant: 200)
         ])
         
-        // Динамическая высота таблицы в зависимости от количества категорий
         let categories = categoryStore.fetchCategories()
         tableContainer.updateHeight(forRows: categories.count)
     }
@@ -90,9 +89,6 @@ final class CategoryViewController: UIViewController {
         tableView.separatorStyle = .none
         tableView.isScrollEnabled = false
         tableView.rowHeight = Constants.rowHeight
-        
-        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
-            tableView.addGestureRecognizer(longPress)
     }
 
     private func setupActions() {
@@ -114,8 +110,6 @@ final class CategoryViewController: UIViewController {
         tableContainer.updateHeight(forRows: categories.count)
         tableContainer.tableView.reloadData()
     }
-    
-    
 
     @objc private func addCategoryTapped() {
         let newCategoryVM = NewCategoryViewModel(store: categoryStore)
@@ -127,35 +121,12 @@ final class CategoryViewController: UIViewController {
         let newCategoryVC = NewCategoryViewController(viewModel: newCategoryVM)
         present(newCategoryVC, animated: true)
     }
-    
-    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
-        guard gesture.state == .began else { return }
 
-        let location = gesture.location(in: tableContainer.tableView)
-        guard let indexPath = tableContainer.tableView.indexPathForRow(at: location),
-              let cell = tableContainer.tableView.cellForRow(at: indexPath) else { return }
-
-        let category = categoryStore.fetchCategories()[indexPath.row]
-
-        ActionMenuPresenter.show(for: cell, in: self, actions: [
-            .init(title: NSLocalizedString("category.action.edit", comment: "Edit"), style: .default) { [weak self] in
-                self?.editCategory(category)
-            },
-            .init(title: NSLocalizedString("category.action.delete", comment: "Delete"), style: .destructive) { [weak self] in
-                self?.deleteCategory(category)
-            }
-        ])
-    }
-    
     // MARK: - Category Editing & Deletion
     private func editCategory(_ category: TrackerCategoryCoreData) {
-        // Проверяем, что есть context
         guard let context = category.managedObjectContext else { return }
 
-        // Создаём ViewModel для редактирования
         let editVM = EditCategoryViewModel(category: category, context: context)
-        
-        // Создаём экран редактирования и показываем его
         let editVC = EditCategoryViewController(viewModel: editVM)
         present(editVC, animated: true)
     }
@@ -185,10 +156,8 @@ final class CategoryViewController: UIViewController {
         })
 
         alert.addAction(UIAlertAction(title: NSLocalizedString("category.action.cancel", comment: "Cancel"), style: .cancel))
-
         present(alert, animated: true)
     }
-    
 
     // MARK: - Helpers
     private func configureCheckmark(for cell: UITableViewCell, at indexPath: IndexPath) {
@@ -196,12 +165,9 @@ final class CategoryViewController: UIViewController {
             let checkmark = UIImageView(image: UIImage(named: Constants.checkmarkImageName))
             checkmark.contentMode = .scaleAspectFit
 
-            let container = UIView(
-                frame: CGRect(x: 0, y: 0, width: 24, height: Int(Constants.rowHeight) - 1)
-            )
+            let container = UIView(frame: CGRect(x: 0, y: 0, width: 24, height: Int(Constants.rowHeight) - 1))
             checkmark.frame = container.bounds
             container.addSubview(checkmark)
-
             cell.accessoryView = container
         } else {
             cell.accessoryView = nil
@@ -223,6 +189,13 @@ extension CategoryViewController: UITableViewDataSource, UITableViewDelegate {
         cell.isLastCell = indexPath.row == categoryStore.fetchCategories().count - 1
 
         configureCheckmark(for: cell, at: indexPath)
+
+        // Добавляем контекстное меню (новый способ)
+        cell.gestureRecognizers?.forEach { cell.removeGestureRecognizer($0) }
+        cell.interactions.forEach { cell.removeInteraction($0) }
+        let interaction = UIContextMenuInteraction(delegate: self)
+        cell.addInteraction(interaction)
+
         return cell
     }
 
@@ -239,8 +212,39 @@ extension CategoryViewController: UITableViewDataSource, UITableViewDelegate {
         tableView.reloadRows(at: indexPathsToReload, with: .none)
 
         let selectedCategory = categoryStore.fetchCategories()[indexPath.row]
-        print("Выбрана категория: \(selectedCategory.title ?? "")") // можно оставить как debug
+        print("Выбрана категория: \(selectedCategory.title ?? "")")
         onCategorySelected?(selectedCategory)
+    }
+}
+
+// MARK: - Context Menu 
+extension CategoryViewController: UIContextMenuInteractionDelegate {
+    func contextMenuInteraction(
+        _ interaction: UIContextMenuInteraction,
+        configurationForMenuAtLocation location: CGPoint
+    ) -> UIContextMenuConfiguration? {
+        guard
+            let cell = interaction.view as? ContainerTableViewCell,
+            let indexPath = tableContainer.tableView.indexPath(for: cell)
+        else { return nil }
+
+        let categories = categoryStore.fetchCategories()
+        guard categories.indices.contains(indexPath.row) else { return nil }
+        let category = categories[indexPath.row]
+
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
+            guard let self else { return nil }
+
+            let editAction = UIAction(title: "Редактировать", image: UIImage(systemName: "pencil")) { _ in
+                self.editCategory(category)
+            }
+
+            let deleteAction = UIAction(title: "Удалить", image: UIImage(systemName: "trash"), attributes: .destructive) { _ in
+                self.deleteCategory(category)
+            }
+
+            return UIMenu(title: "", children: [editAction, deleteAction])
+        }
     }
 }
 
@@ -250,4 +254,3 @@ extension CategoryViewController: TrackerCategoryStoreDelegate {
         updateUI()
     }
 }
-
