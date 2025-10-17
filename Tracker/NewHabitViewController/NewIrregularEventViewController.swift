@@ -25,8 +25,7 @@ final class NewIrregularEventViewController: BaseTrackerCreationViewController {
             let hasText = !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             self?.bottomButtons.setCreateButton(enabled: hasText)
         }
-        
-        // Подстраиваем высоту таблицы при старте
+
         tableContainer.updateHeight(forRows: numberOfRowsInTable())
     }
     
@@ -39,34 +38,29 @@ final class NewIrregularEventViewController: BaseTrackerCreationViewController {
         guard let emoji = selectedEmoji else { print("⚠️ Пожалуйста, выберите эмоджи"); return enableCreateButton() }
         guard let color = selectedColor else { print("⚠️ Пожалуйста, выберите цвет"); return enableCreateButton() }
         guard let selectedCategory = selectedCategory else { print("⚠️ Пожалуйста, выберите категорию"); return enableCreateButton() }
-        
-        // Проверка на существующий трекер
         let fetchRequest: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "name == %@ AND category == %@", title, selectedCategory)
         if let existing = try? context.fetch(fetchRequest), !existing.isEmpty {
             print("⚠️ Такой трекер уже существует")
             return enableCreateButton()
         }
-        
-        // Создаём Core Data объект
+
         let trackerCD = TrackerCoreData(context: context)
         trackerCD.id = UUID()
         trackerCD.name = title
         trackerCD.emoji = emoji
         trackerCD.color = color.toHexString()
         trackerCD.category = selectedCategory
-        
-        // Каждый день по дефолту для schedule
+    
         do {
             let scheduleData = try JSONEncoder().encode(WeekDay.allCases.map { $0.rawValue })
-            trackerCD.schedule = scheduleData as NSData // приведение к NSObject
+            trackerCD.schedule = scheduleData as NSData
         } catch {
             print("⚠️ Ошибка кодирования schedule: \(error)")
             enableCreateButton()
             return
         }
-        
-        // Сохраняем Core Data
+
         do {
             try context.save()
         } catch {
@@ -74,8 +68,7 @@ final class NewIrregularEventViewController: BaseTrackerCreationViewController {
             enableCreateButton()
             return
         }
-        
-        // Конвертируем в модель для UI
+
         let tracker = Tracker(
             id: trackerCD.id!,
             name: trackerCD.name ?? "",
@@ -84,7 +77,7 @@ final class NewIrregularEventViewController: BaseTrackerCreationViewController {
             schedule: WeekDay.allCases,
             trackerCategory: selectedCategory
         )
-        
+        onEventCreated?(tracker)
         
         dismiss(animated: true)
         enableCreateButton()

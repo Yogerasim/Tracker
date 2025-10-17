@@ -147,7 +147,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         }
 
         let category = visibleCategories[indexPath.section]
-        header.configure(with: category.title ?? "")
+        header.configure(with: category.title)
         return header
     }
     

@@ -12,8 +12,8 @@ final class TrackersUI {
     lazy var addButton: UIButton = {
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.widthAnchor.constraint(equalToConstant: 42).isActive = true
-        button.heightAnchor.constraint(equalToConstant: 42).isActive = true
+        button.widthAnchor.constraint(equalToConstant: 20).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 20).isActive = true
         if let image = UIImage(resource: .plus)?.withRenderingMode(.alwaysTemplate) {
                 button.setImage(image, for: .normal)
             }
@@ -23,7 +23,7 @@ final class TrackersUI {
             : AppColors.backgroundBlackButton
         }
         button.imageView?.contentMode = .scaleAspectFit
-        button.imageEdgeInsets = UIEdgeInsets(top: 12, left: 11.5, bottom: 12, right: 11.5)
+        button.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 11.5, bottom: 12, trailing: 11.5)
         return button
     }()
     

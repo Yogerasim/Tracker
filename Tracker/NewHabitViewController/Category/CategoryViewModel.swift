@@ -1,13 +1,16 @@
-final class CategoryViewModel {
+protocol CategoryType { }
+extension TrackerCategoryCoreData: CategoryType { }
+
+final class CategoryViewModel<T: CategoryType> {
     
     private let categoryStore: TrackerCategoryStore
     
     // MARK: - Bindings
-    var onCategoriesChanged: (([TrackerCategoryCoreData]) -> Void)?
-    var onCategorySelected: ((TrackerCategoryCoreData) -> Void)?
+    var onCategoriesChanged: (([T]) -> Void)?
+    var onCategorySelected: ((T) -> Void)?
     
     // MARK: - Data
-    private(set) var categories: [TrackerCategoryCoreData] = [] {
+    private(set) var categories: [T] = [] {
         didSet { onCategoriesChanged?(categories) }
     }
     
@@ -18,7 +21,7 @@ final class CategoryViewModel {
     }
     
     func loadCategories() {
-        categories = categoryStore.fetchCategories()
+        categories = categoryStore.fetchCategories() as! [T]
     }
     
     func selectCategory(at index: Int) {
@@ -35,7 +38,7 @@ final class CategoryViewModel {
     
     func categoryName(at index: Int) -> String {
         guard index < categories.count else { return "" }
-        return categories[index].title ?? ""
+        return (categories[index] as! TrackerCategoryCoreData).title ?? ""
     }
 }
 

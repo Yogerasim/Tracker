@@ -63,8 +63,14 @@ private extension EditHabitViewController {
     }
     
     func localizedDaysText(for count: Int) -> String {
-        let locale = Locale.current.languageCode ?? "en"
-        if locale == "ru" {
+        let localeIdentifier: String
+        if #available(iOS 16.0, *) {
+            localeIdentifier = Locale.current.language.languageCode?.identifier ?? "en"
+        } else {
+            localeIdentifier = Locale.current.languageCode ?? "en"
+        }
+        
+        if localeIdentifier == "ru" {
             let nAbs = abs(count) % 100
             let n1 = nAbs % 10
             
@@ -83,8 +89,8 @@ private extension EditHabitViewController {
             return String(format: format, count)
         } else {
             let key = (count == 1)
-            ? "edit_habit.days_count.one"
-            : "edit_habit.days_count.other"
+                ? "edit_habit.days_count.one"
+                : "edit_habit.days_count.other"
             let format = NSLocalizedString(key, comment: "Number of days")
             return String(format: format, count)
         }

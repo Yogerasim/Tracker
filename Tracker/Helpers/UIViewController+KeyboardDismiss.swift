@@ -2,7 +2,7 @@ import UIKit
 import ObjectiveC.runtime
 
 private struct AssociatedKeys {
-    static var keyboardDismissAdded = "keyboardDismissAddedKey"
+    static var keyboardDismissAdded: UInt8 = 0
 }
 
 private final class KeyboardDismissGestureDelegate: NSObject, UIGestureRecognizerDelegate {
