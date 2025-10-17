@@ -1,18 +1,18 @@
 import UIKit
 
 final class AppTextField: UIView, UITextFieldDelegate {
-
+    
     // MARK: - UI
     let textField: CustomTextField
     private let charLimitLabel: UILabel
     private let clearButton: UIButton
-
+    
     // Максимальное количество символов
     private let maxCharacters: Int
-
+    
     // Callback при изменении текста
     var onTextChanged: ((String) -> Void)?
-
+    
     // MARK: - Init
     init(placeholder: String, maxCharacters: Int = 38) {
         self.textField = CustomTextField()
@@ -20,15 +20,15 @@ final class AppTextField: UIView, UITextFieldDelegate {
         self.clearButton = UIButton(type: .system)
         self.maxCharacters = maxCharacters
         super.init(frame: .zero)
-
+        
         setupUI(placeholder: placeholder)
         setupClearButton()
     }
-
+    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
     // MARK: - UI Setup
     private func setupUI(placeholder: String) {
         // Настройка текстового поля
@@ -41,7 +41,7 @@ final class AppTextField: UIView, UITextFieldDelegate {
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.delegate = self
         textField.addTarget(self, action: #selector(textChanged), for: .editingChanged)
-
+        
         // Настройка подписи лимита символов
         charLimitLabel.font = AppFonts.regular(17)
         charLimitLabel.textColor = UIColor(hex: "#FD4C49")
@@ -49,16 +49,16 @@ final class AppTextField: UIView, UITextFieldDelegate {
         charLimitLabel.text = "Ограничение \(maxCharacters) символов"
         charLimitLabel.isHidden = true
         charLimitLabel.translatesAutoresizingMaskIntoConstraints = false
-
+        
         addSubview(textField)
         addSubview(charLimitLabel)
-
+        
         NSLayoutConstraint.activate([
             textField.topAnchor.constraint(equalTo: topAnchor),
             textField.leadingAnchor.constraint(equalTo: leadingAnchor),
             textField.trailingAnchor.constraint(equalTo: trailingAnchor),
             textField.heightAnchor.constraint(equalToConstant: 75),
-
+            
             charLimitLabel.topAnchor.constraint(equalTo: textField.bottomAnchor, constant: 4),
             charLimitLabel.leadingAnchor.constraint(equalTo: leadingAnchor),
             charLimitLabel.trailingAnchor.constraint(equalTo: trailingAnchor),
@@ -66,7 +66,7 @@ final class AppTextField: UIView, UITextFieldDelegate {
             charLimitLabel.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
     }
-
+    
     // MARK: - Clear Button
     private func setupClearButton() {
         clearButton.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
@@ -80,19 +80,19 @@ final class AppTextField: UIView, UITextFieldDelegate {
         textField.rightView = container
         textField.rightViewMode = .whileEditing
     }
-
+    
     @objc private func clearText() {
         textField.text = ""
         textChanged()
     }
-
+    
     // MARK: - Actions
     @objc private func textChanged() {
         let text = textField.text ?? ""
         charLimitLabel.isHidden = text.count < maxCharacters
         onTextChanged?(text)
     }
-
+    
     // MARK: - UITextFieldDelegate
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         let currentText = textField.text ?? ""
@@ -100,13 +100,13 @@ final class AppTextField: UIView, UITextFieldDelegate {
         let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
         return updatedText.count <= maxCharacters
     }
-
+    
     // Удобный геттер для текста
     var textValue: String {
         get { textField.text ?? "" }
         set { textField.text = newValue }
     }
-
+    
     func setText(_ text: String) {
         textField.text = text
         textChanged() // обновляем лимит символов и вызываем callback

@@ -10,6 +10,8 @@ final class TrackersViewController: UIViewController {
     private let titleView = MainTitleLabelView(title: NSLocalizedString("trackers.title", comment: "Заголовок главного экрана трекеров"))
     private let placeholderView = PlaceholderView()
     
+    var contextMenuController: BaseContextMenuController<TrackerCell>?
+    
     // MARK: - Init
     init(viewModel: TrackersViewModel = TrackersViewModel()) {
         self.viewModel = viewModel
@@ -65,6 +67,7 @@ final class TrackersViewController: UIViewController {
         setupPlaceholder()
         bindViewModel()
         
+        setupContextMenuController()
         
         updateUI()
         updatePlaceholder()
@@ -198,6 +201,59 @@ final class TrackersViewController: UIViewController {
         
         updatePlaceholder()
     }
+    private func setupContextMenuController() {
+        contextMenuController = BaseContextMenuController(
+            owner: self,
+            container: ui.collectionView,
+            indexPathProvider: { [weak self] cell in
+                self?.ui.collectionView.indexPath(for: cell)
+            },
+            actionsProvider: { [weak self] indexPath in
+                guard let self else { return [] }
+                guard self.visibleCategories.indices.contains(indexPath.section) else { return [] }
+                
+                let category = self.visibleCategories[indexPath.section]
+                let trackersInCategory = self.viewModel.filteredTrackers.filter {
+                    $0.trackerCategory?.title == category.title
+                }
+                guard trackersInCategory.indices.contains(indexPath.item) else { return [] }
+                
+                let tracker = trackersInCategory[indexPath.item]
+                let isPinned = tracker.trackerCategory?.title == self.viewModel.pinnedCategoryTitle
+                
+                // Создаем действия
+                let pinTitle = isPinned
+                ? NSLocalizedString("tracker.action.unpin", comment: "Открепить трекер")
+                : NSLocalizedString("tracker.action.pin", comment: "Закрепить трекер")
+                let pinAction = UIAction(
+                    title: pinTitle,
+                    image: UIImage(systemName: isPinned ? "pin.slash" : "pin")
+                ) { _ in
+                    if isPinned {
+                        self.viewModel.unpinTracker(tracker)
+                    } else {
+                        self.viewModel.pinTracker(tracker)
+                    }
+                }
+                
+                let editAction = UIAction(title: NSLocalizedString("tracker.action.edit", comment: "Редактировать трекер"), image: UIImage(systemName: "pencil")) { _ in
+                    self.viewModel.editTracker(tracker)
+                }
+                
+                let deleteAction = UIAction(
+                    title: NSLocalizedString("tracker.action.delete", comment: "Удалить трекер"),
+                    image: UIImage(systemName: "trash"),
+                    attributes: .destructive
+                ) { _ in
+                    self.deleteTracker(tracker)
+                }
+                
+                
+                return [pinAction, editAction, deleteAction]
+            }
+        )
+    }
+    
     
     func setupCalendarContainer() {
         view.addSubview(ui.calendarContainer)

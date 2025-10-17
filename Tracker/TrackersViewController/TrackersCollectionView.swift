@@ -93,11 +93,9 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
             
             collectionView.reloadItems(at: [indexPath])
         }
-        
-        cell.gestureRecognizers?.forEach { cell.removeGestureRecognizer($0) }
-        cell.interactions.forEach { cell.removeInteraction($0) }
-        let interaction = UIContextMenuInteraction(delegate: self)
-        cell.addInteraction(interaction)
+        if let contextMenuController {
+            contextMenuController.addInteraction(to: cell)
+        }
         
         return cell
     }
@@ -205,50 +203,5 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     }
 }
 
-extension TrackersViewController: UIContextMenuInteractionDelegate {
-    func contextMenuInteraction(
-        _ interaction: UIContextMenuInteraction,
-        configurationForMenuAtLocation location: CGPoint
-    ) -> UIContextMenuConfiguration? {
-        
-        guard
-            let cell = interaction.view as? TrackerCell,
-            let indexPath = ui.collectionView.indexPath(for: cell),
-            visibleCategories.indices.contains(indexPath.section)
-        else { return nil }
-        
-        let category = visibleCategories[indexPath.section]
-        let trackersInCategory = viewModel.filteredTrackers.filter {
-            $0.trackerCategory?.title == category.title
-        }
-        
-        guard trackersInCategory.indices.contains(indexPath.item) else { return nil }
-        let tracker = trackersInCategory[indexPath.item]
-        let isPinned = tracker.trackerCategory?.title == viewModel.pinnedCategoryTitle
-        
-        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
-            let pinTitle = isPinned ? "Открепить" : "Закрепить"
-            let pinAction = UIAction(title: pinTitle, image: UIImage(systemName: isPinned ? "pin.slash" : "pin")) { [weak self] _ in
-                guard let self else { return }
-                if isPinned {
-                    self.viewModel.unpinTracker(tracker)
-                } else {
-                    self.viewModel.pinTracker(tracker)
-                }
-            }
-            
-            let editAction = UIAction(title: "Редактировать", image: UIImage(systemName: "pencil")) { [weak self] _ in
-                guard let self else { return }
-                self.viewModel.editTracker(tracker)
-            }
-            
-            let deleteAction = UIAction(title: "Удалить", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
-                guard let self else { return }
-                self.deleteTracker(tracker)
-            }
-            
-            return UIMenu(title: "", children: [pinAction, editAction, deleteAction])
-        }
-    }
-}
+
 

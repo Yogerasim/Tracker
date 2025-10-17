@@ -151,29 +151,29 @@ final class SelectableCell: UICollectionViewCell {
             label.text = emoji
             label.isHidden = false
             colorView.isHidden = true
-
+            
             contentView.backgroundColor = isSelected
-                ? UIColor.systemGray5.withAlphaComponent(0.4)
-                : UIColor { traitCollection in
-                    traitCollection.userInterfaceStyle == .dark
-                    ? UIColor.systemGray6.withAlphaComponent(0.3)
-                    : AppColors.background
-                }
-
+            ? UIColor.systemGray5.withAlphaComponent(0.4)
+            : UIColor { traitCollection in
+                traitCollection.userInterfaceStyle == .dark
+                ? UIColor.systemGray6.withAlphaComponent(0.3)
+                : AppColors.background
+            }
+            
             contentView.layer.borderWidth = isSelected ? 2 : 0
             contentView.layer.borderColor = isSelected ? UIColor.systemGray4.cgColor : nil
-
+            
         case .color(let color):
             label.isHidden = true
             colorView.isHidden = false
             colorView.backgroundColor = color
-
+            
             contentView.backgroundColor = UIColor { traitCollection in
                 traitCollection.userInterfaceStyle == .dark
                 ? UIColor.systemBackground
                 : AppColors.background
             }
-
+            
             contentView.layer.borderWidth = isSelected ? 2 : 0
             contentView.layer.borderColor = isSelected ? UIColor.systemGray4.cgColor : nil
         }

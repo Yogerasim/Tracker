@@ -2,27 +2,27 @@ import Foundation
 import CoreData
 
 final class CalculateStatistics {
-
+    
     private let trackerRecordStore: TrackerRecordStore
-
+    
     init(trackerRecordStore: TrackerRecordStore) {
         self.trackerRecordStore = trackerRecordStore
     }
-
+    
     struct Statistics {
         let bestPeriod: Int
         let idealDays: Int
         let completedTrackers: Int
         let averageTrackersPerDay: Int
     }
-
+    
     func calculateStatistics() -> Statistics {
         let records = trackerRecordStore.fetchAllRecords().sorted { $0.date < $1.date }
-
+        
         guard !records.isEmpty else {
             return Statistics(bestPeriod: 0, idealDays: 0, completedTrackers: 0, averageTrackersPerDay: 0)
         }
-
+        
         // MARK: - Best Period
         var bestStreak = records.isEmpty ? 0 : 1
         var currentStreak = 1
@@ -38,11 +38,11 @@ final class CalculateStatistics {
             }
             bestStreak = max(bestStreak, currentStreak)
         }
-
+        
         let totalCompleted = records.count
         let days = Set(records.map { Calendar.current.startOfDay(for: $0.date) }).count
         let average = days > 0 ? totalCompleted / days : 0
-
+        
         let allTrackersCount = fetchAllTrackersCount()
         var idealDaysCount = 0
         let recordsByDay = Dictionary(grouping: records) { Calendar.current.startOfDay(for: $0.date) }
@@ -51,7 +51,7 @@ final class CalculateStatistics {
                 idealDaysCount += 1
             }
         }
-
+        
         return Statistics(
             bestPeriod: bestStreak,
             idealDays: idealDaysCount,
@@ -59,7 +59,7 @@ final class CalculateStatistics {
             averageTrackersPerDay: average
         )
     }
-
+    
     private func fetchAllTrackersCount() -> Int {
         let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         do {

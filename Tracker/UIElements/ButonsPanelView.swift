@@ -1,7 +1,7 @@
 import UIKit
 
 final class ButonsPanelView: UIView {
-
+    
     // MARK: - UI
     let cancelButton: UIButton = {
         let button = UIButton(type: .system)
@@ -14,7 +14,7 @@ final class ButonsPanelView: UIView {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-
+    
     let createButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle(NSLocalizedString("create_button", comment: "Создать"), for: .normal)
@@ -25,7 +25,7 @@ final class ButonsPanelView: UIView {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-
+    
     private lazy var stackView: UIStackView = {
         let stack = UIStackView(arrangedSubviews: [cancelButton, createButton])
         stack.axis = .horizontal
@@ -34,7 +34,7 @@ final class ButonsPanelView: UIView {
         stack.translatesAutoresizingMaskIntoConstraints = false
         return stack
     }()
-
+    
     // MARK: - Init
     var onCreateTapped: (() -> Void)?
     
@@ -53,17 +53,17 @@ final class ButonsPanelView: UIView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
     // MARK: - Public
     func setCreateButton(enabled: Bool) {
         createButton.isEnabled = enabled
         createButton.alpha = enabled ? 1.0 : 0.5
     }
-
+    
     // MARK: - Layout
     private func setupLayout() {
         addSubview(stackView)
-
+        
         NSLayoutConstraint.activate([
             stackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: UIConstants.horizontalPadding),
             stackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -UIConstants.horizontalPadding),

@@ -35,15 +35,15 @@ final class MainTabBarController: UITabBarController {
         // Фон таббара с поддержкой dark mode
         appearance.backgroundColor = UIColor { traitCollection in
             traitCollection.userInterfaceStyle == .dark
-                ? AppColors.backgroundBlackButton
-                : .white
+            ? AppColors.backgroundBlackButton
+            : .white
         }
         
         // Разделительная линия (тень сверху) с поддержкой dark mode
         appearance.shadowColor = UIColor { traitCollection in
             traitCollection.userInterfaceStyle == .dark
-                ? UIColor(white: 1.0, alpha: 0.1)
-                : UIColor.gray
+            ? UIColor(white: 1.0, alpha: 0.1)
+            : UIColor.gray
         }
         
         // Применяем для всех состояний

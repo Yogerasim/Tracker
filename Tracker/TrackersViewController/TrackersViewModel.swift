@@ -72,7 +72,7 @@ final class TrackersViewModel {
             // Если категории нет — просто добавляем трекер в базу без категории
             trackerStore.add(tracker)
         }
-
+        
         reloadTrackers()
     }
     
@@ -93,28 +93,28 @@ final class TrackersViewModel {
     }
     
     // MARK: - Фильтрация
-        func filterByDate() {
-            isDateFilterEnabled = true
-            filterTrackers()
-            onDateChanged?(currentDate)
-        }
-
+    func filterByDate() {
+        isDateFilterEnabled = true
+        filterTrackers()
+        onDateChanged?(currentDate)
+    }
+    
     private func filterTrackers() {
         let text = searchText.lowercased()
-
+        
         filteredTrackers = trackers.filter { tracker in
             let matchesSearch = text.isEmpty || tracker.name.lowercased().contains(text)
-
+            
             let matchesDate: Bool
             if isDateFilterEnabled {
                 matchesDate = tracker.schedule.contains(currentDate.weekDay)
             } else {
                 matchesDate = true
             }
-
+            
             return matchesSearch && matchesDate
         }
-
+        
         onTrackersUpdated?()
     }
     
@@ -143,7 +143,7 @@ final class TrackersViewModel {
         default:
             filteredTrackers = trackers
         }
-
+        
         onTrackersUpdated?()
     }
     

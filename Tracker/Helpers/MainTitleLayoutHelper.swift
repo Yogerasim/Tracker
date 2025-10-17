@@ -24,7 +24,7 @@ enum MainHeaderLayoutHelper {
                 print("✅ Disabled interaction for:", subview)
             }
         }
-
+        
         let spacingButtonToTitle: CGFloat = 2
         let spacingTitleToSearch: CGFloat = 2
         let spacingSearchToCollection: CGFloat = 8

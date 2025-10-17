@@ -8,8 +8,8 @@ final class MainTitleLabelView: UIView {
         label.font = AppFonts.bigTitle
         label.textColor = UIColor { traitCollection in
             traitCollection.userInterfaceStyle == .dark
-                ? UIColor.white
-                : AppColors.backgroundBlackButton
+            ? UIColor.white
+            : AppColors.backgroundBlackButton
         }
         label.translatesAutoresizingMaskIntoConstraints = false
         return label

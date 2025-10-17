@@ -70,7 +70,7 @@ final class NewHabitViewController: BaseTrackerCreationViewController {
 extension NewHabitViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-
+        
         if indexPath.row == 0 {
             let categoryVC = CategoryViewController(store: TrackerCategoryStore(context: context))
             categoryVC.onCategorySelected = { [weak self] category in
@@ -84,7 +84,7 @@ extension NewHabitViewController {
             }
             present(categoryVC, animated: true)
         }
-
+        
         if indexPath.row == 1 {
             let scheduleVC = ScheduleViewController()
             scheduleVC.selectedDays = selectedDays

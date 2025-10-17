@@ -9,21 +9,21 @@ final class StatisticsTableViewCell: UITableViewCell {
         label.font = AppFonts.bold(34)
         label.textColor = UIColor { traitCollection in
             traitCollection.userInterfaceStyle == .dark
-                ? .white
-                : AppColors.backgroundBlackButton
+            ? .white
+            : AppColors.backgroundBlackButton
         }
         label.textAlignment = .left
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-
+    
     private let subtitleLabel: UILabel = {
         let label = UILabel()
         label.font = AppFonts.medium(12)
         label.textColor = UIColor { traitCollection in
             traitCollection.userInterfaceStyle == .dark
             ? .white
-                : AppColors.backgroundBlackButton
+            : AppColors.backgroundBlackButton
         }
         label.textAlignment = .left
         label.translatesAutoresizingMaskIntoConstraints = false

@@ -2,7 +2,7 @@ import UIKit
 
 final class TrackerSectionHeaderView: UICollectionReusableView {
     static let reuseIdentifier = "TrackerSectionHeaderView"
-
+    
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.font = AppFonts.bold
@@ -13,7 +13,7 @@ final class TrackerSectionHeaderView: UICollectionReusableView {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         addSubview(titleLabel)
@@ -24,11 +24,11 @@ final class TrackerSectionHeaderView: UICollectionReusableView {
             titleLabel.topAnchor.constraint(equalTo: topAnchor)
         ])
     }
-
+    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
     func configure(with title: String) {
         titleLabel.text = title
         print("🧩 Header view configured with title:", title)
