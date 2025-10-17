@@ -104,10 +104,13 @@ final class NewIrregularEventViewController: BaseTrackerCreationViewController {
     override func numberOfRowsInTable() -> Int { 1 }
     
     override func tableViewCell(for tableView: UITableView, indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as? ContainerTableViewCell else {
+            return UITableViewCell()
+        }
+
         cell.configure(
             title: NSLocalizedString("new_irregular_event.category", comment: "Категория"),
-            detail: selectedCategory?.title
+            detail: selectedCategory?.title ?? ""
         )
         cell.isLastCell = true
         return cell

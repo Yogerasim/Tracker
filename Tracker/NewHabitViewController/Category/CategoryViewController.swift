@@ -216,14 +216,18 @@ extension CategoryViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell
-        let category = categoryStore.fetchCategories()[indexPath.row]
-        cell.textLabel?.text = category.title
-        cell.isLastCell = indexPath.row == categoryStore.fetchCategories().count - 1
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as? ContainerTableViewCell else {
+            return UITableViewCell()
+        }
         
-        configureCheckmark(for: cell, at: indexPath)
-        
-        contextMenuController?.attach(to: cell)
+        let categories = categoryStore.fetchCategories()
+        if categories.indices.contains(indexPath.row) {
+            let category = categories[indexPath.row]
+            cell.textLabel?.text = category.title ?? ""
+            cell.isLastCell = indexPath.row == categories.count - 1
+            configureCheckmark(for: cell, at: indexPath)
+            contextMenuController?.attach(to: cell)
+        }
         
         return cell
     }

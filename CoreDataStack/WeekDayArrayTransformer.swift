@@ -4,7 +4,7 @@ import CoreData
 final class WeekDayArrayTransformer: ValueTransformer {
     
     override class func transformedValueClass() -> AnyClass {
-        return NSData.self
+        NSData.self
     }
     
     override func transformedValue(_ value: Any?) -> Any? {
@@ -14,11 +14,15 @@ final class WeekDayArrayTransformer: ValueTransformer {
     }
     
     override func reverseTransformedValue(_ value: Any?) -> Any? {
-        guard let data = value as? Data else { return nil }
-        guard let rawValues = try? NSKeyedUnarchiver.unarchivedObject(
-            ofClasses: [NSArray.self, NSNumber.self],
-            from: data
-        ) as? [Int] else { return nil }
+        guard
+            let data = value as? Data,
+            let rawValues = try? NSKeyedUnarchiver.unarchivedObject(
+                ofClasses: [NSArray.self, NSNumber.self],
+                from: data
+            ) as? [Int]
+        else {
+            return nil
+        }
         return rawValues.map { WeekDay(rawValue: $0)! }
     }
 }

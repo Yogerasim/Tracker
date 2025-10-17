@@ -97,10 +97,16 @@ extension FiltersViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell
-        cell.textLabel?.text = filters[indexPath.row]
-        cell.isLastCell = indexPath.row == filters.count - 1
-        configureCheckmark(for: cell, at: indexPath)
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as? ContainerTableViewCell else {
+            return UITableViewCell()
+        }
+
+        if filters.indices.contains(indexPath.row) {
+            cell.textLabel?.text = filters[indexPath.row]
+            cell.isLastCell = indexPath.row == filters.count - 1
+            configureCheckmark(for: cell, at: indexPath)
+        }
+
         return cell
     }
     

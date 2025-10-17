@@ -20,7 +20,7 @@ class BaseTrackerCreationViewController: UIViewController {
         items: CollectionData.colors,
         headerTitle: NSLocalizedString("new_habit.color", comment: "")
     )
-    let bottomButtons = ButonsPanelView()
+    let bottomButtons = ButonnsPanelView()
     
     // MARK: - Core Data
     let context = CoreDataStack.shared.context
@@ -150,14 +150,21 @@ class BaseTrackerCreationViewController: UIViewController {
     func numberOfRowsInTable() -> Int { 2 } 
     
     func tableViewCell(for tableView: UITableView, indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as? ContainerTableViewCell else {
+            return UITableViewCell()
+        }
+
         if indexPath.row == 0 {
-            cell.configure(title: NSLocalizedString("new_habit.category", comment: ""),
-                           detail: selectedCategory?.title)
+            cell.configure(
+                title: NSLocalizedString("new_habit.category", comment: ""),
+                detail: selectedCategory?.title ?? ""
+            )
         } else {
             let detailText = selectedDays.isEmpty ? nil : selectedDays.descriptionText
-            cell.configure(title: NSLocalizedString("new_habit.schedule", comment: ""),
-                           detail: detailText)
+            cell.configure(
+                title: NSLocalizedString("new_habit.schedule", comment: ""),
+                detail: detailText
+            )
         }
         cell.isLastCell = indexPath.row == numberOfRowsInTable() - 1
         return cell

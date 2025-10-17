@@ -1,6 +1,6 @@
 import UIKit
 
-final class ButonsPanelView: UIView {
+final class ButonnsPanelView: UIView {
     
     // MARK: - UI
     let cancelButton: UIButton = {

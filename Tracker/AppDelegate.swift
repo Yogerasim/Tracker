@@ -3,7 +3,7 @@ import CoreData
 import YandexMobileMetrica
 
 @main
-class AppDelegate: UIResponder, UIApplicationDelegate {
+final class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var window: UIWindow?
     
@@ -24,10 +24,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = MainTabBarController()
         window?.makeKeyAndVisible()
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            AnalyticsService.shared.trackOpen()
-        }
         
         return true
     }

@@ -57,26 +57,34 @@ extension SelectableCollectionViewController: UICollectionViewDataSource {
         items.count
     }
     
-    func collectionView(_ collectionView: UICollectionView,
-                        cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: SelectableCell.reuseId,
             for: indexPath
-        ) as! SelectableCell
-        
-        let isSelected = indexPath == selectedIndexPath
-        cell.configure(with: items[indexPath.item], isSelected: isSelected)
+        ) as? SelectableCell else {
+            return UICollectionViewCell()
+        }
+
+        if items.indices.contains(indexPath.item) {
+            let isSelected = indexPath == selectedIndexPath
+            cell.configure(with: items[indexPath.item], isSelected: isSelected)
+        }
+
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         viewForSupplementaryElementOfKind kind: String,
                         at indexPath: IndexPath) -> UICollectionReusableView {
-        let header = collectionView.dequeueReusableSupplementaryView(
+
+        guard let header = collectionView.dequeueReusableSupplementaryView(
             ofKind: kind,
             withReuseIdentifier: HeaderView.reuseId,
             for: indexPath
-        ) as! HeaderView
+        ) as? HeaderView else {
+            return UICollectionReusableView()
+        }
+
         header.titleLabel.text = headerTitle
         return header
     }

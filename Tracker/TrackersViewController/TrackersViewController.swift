@@ -75,6 +75,10 @@ final class TrackersViewController: UIViewController {
         ui.searchBar.searchTextField.backgroundColor = AppColors.background
         ui.searchBar.searchTextField.textColor = AppColors.textPrimary
         ui.searchBar.searchTextField.tintColor = AppColors.primaryBlue
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleScreenTap(_:)))
+            tapGesture.cancelsTouchesInView = false
+            view.addGestureRecognizer(tapGesture)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -493,6 +497,17 @@ final class TrackersViewController: UIViewController {
         })
         alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
         present(alert, animated: true)
+    }
+    
+    
+    @objc private func handleScreenTap(_ sender: UITapGestureRecognizer) {
+        let location = sender.location(in: view)
+        if ui.calendarContainer.frame.contains(location) {
+            return
+        }
+        if !ui.calendarContainer.isHidden {
+            ui.calendarContainer.isHidden = true
+        }
     }
 }
 extension TrackersViewController: UISearchBarDelegate {

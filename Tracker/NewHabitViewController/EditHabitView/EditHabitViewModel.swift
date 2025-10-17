@@ -1,4 +1,3 @@
-import Foundation
 import CoreData
 import UIKit
 
@@ -12,12 +11,10 @@ final class EditHabitViewModel {
             isButtonEnabled?( !name.trimmingCharacters(in: .whitespaces).isEmpty )
         }
     }
-    
     var selectedEmoji: String
     var selectedColor: UIColor
     var selectedCategory: TrackerCategoryCoreData
     var selectedDays: [WeekDay]
-    
     var isButtonEnabled: ((Bool) -> Void)?
     var onHabitEdited: (() -> Void)?
     
@@ -26,10 +23,8 @@ final class EditHabitViewModel {
               let emoji = tracker.emoji,
               let colorHex = tracker.color,
               let category = tracker.category else { return nil }
-        
         self.tracker = tracker
         self.context = context
-        
         self.name = name
         self.selectedEmoji = emoji
         self.selectedColor = UIColor(hex: colorHex)

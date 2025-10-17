@@ -108,8 +108,11 @@ final class TrackerCategoryStore: NSObject {
     }
     
     func moveTracker(_ tracker: Tracker, to categoryTitle: String) {
-        guard let categoryCoreData = fetchCategoryByTitle(categoryTitle) else { return }
-        guard let trackerCoreData = fetchTracker(by: tracker.id) else { return }
+        guard
+            let categoryCoreData = fetchCategoryByTitle(categoryTitle),
+            let trackerCoreData = fetchTracker(by: tracker.id)
+        else { return }
+
         trackerCoreData.category = categoryCoreData
         saveContext()
     }

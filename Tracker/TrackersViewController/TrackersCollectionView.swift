@@ -124,13 +124,18 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     func collectionView(_ collectionView: UICollectionView,
                         viewForSupplementaryElementOfKind kind: String,
                         at indexPath: IndexPath) -> UICollectionReusableView {
-        
+
         guard kind == UICollectionView.elementKindSectionHeader else {
             print("⚪️ Unknown supplementary element kind: \(kind)")
             return UICollectionReusableView()
         }
-        
-        guard visibleCategories.indices.contains(indexPath.section) else {
+
+        guard visibleCategories.indices.contains(indexPath.section),
+              let header = collectionView.dequeueReusableSupplementaryView(
+                ofKind: kind,
+                withReuseIdentifier: TrackerSectionHeaderView.reuseIdentifier,
+                for: indexPath
+              ) as? TrackerSectionHeaderView else {
             print("⚠️ No category at section \(indexPath.section), returning empty header")
             let emptyHeader = collectionView.dequeueReusableSupplementaryView(
                 ofKind: kind,
@@ -140,14 +145,9 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
             emptyHeader?.configure(with: "")
             return emptyHeader ?? UICollectionReusableView()
         }
-        
+
         let category = visibleCategories[indexPath.section]
-        let header = collectionView.dequeueReusableSupplementaryView(
-            ofKind: kind,
-            withReuseIdentifier: TrackerSectionHeaderView.reuseIdentifier,
-            for: indexPath
-        ) as! TrackerSectionHeaderView
-        header.configure(with: category.title)
+        header.configure(with: category.title ?? "")
         return header
     }
     
