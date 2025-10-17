@@ -34,7 +34,8 @@ final class CategoryViewController: UIViewController {
         self.categoryStore.delegate = self
     }
     
-    required init?(coder: NSCoder) { fatalError() }
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { nil }
     
     // MARK: - Lifecycle
     override func viewDidLoad() {

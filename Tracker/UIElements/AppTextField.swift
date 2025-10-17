@@ -23,9 +23,8 @@ final class AppTextField: UIView, UITextFieldDelegate {
         setupClearButton()
     }
     
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { nil }
     
     // MARK: - UI Setup
     private func setupUI(placeholder: String) {

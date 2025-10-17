@@ -23,7 +23,8 @@ final class EditCategoryView: UIView {
         configureInitialState()
     }
     
-    required init?(coder: NSCoder) { fatalError() }
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { nil }
     
     // MARK: - Layout
     private func setupLayout() {

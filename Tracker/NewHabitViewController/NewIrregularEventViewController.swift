@@ -9,11 +9,11 @@ final class NewIrregularEventViewController: BaseTrackerCreationViewController {
     // MARK: - Init
     init() {
         super.init(title: NSLocalizedString("new_irregular_event.title", comment: ""))
-        // Таблица только с одной строкой
         tableContainer.updateHeight(forRows: 1)
     }
     
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { nil }
     
     // MARK: - Lifecycle
     override func viewDidLoad() {

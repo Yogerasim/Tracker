@@ -14,7 +14,8 @@ final class SelectableCollectionViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
     }
     
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { nil }
     
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -149,7 +150,8 @@ final class SelectableCell: UICollectionViewCell {
         contentView.layer.masksToBounds = true
     }
     
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { nil }
     
     func configure(with item: CollectionItem, isSelected: Bool) {
         switch item {
@@ -209,5 +211,6 @@ final class HeaderView: UICollectionReusableView {
         ])
     }
     
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { nil }
 }

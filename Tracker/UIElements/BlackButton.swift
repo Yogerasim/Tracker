@@ -8,9 +8,8 @@ final class BlackButton: UIButton {
         setupUI(title: title)
     }
     
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { nil }
     
     // MARK: - UI Setup
     private func setupUI(title: String) {

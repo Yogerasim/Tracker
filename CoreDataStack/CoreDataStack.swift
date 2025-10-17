@@ -9,7 +9,7 @@ final class CoreDataStack {
         let container = NSPersistentContainer(name: "Tracker")
         container.loadPersistentStores { description, error in
             if let error = error as NSError? {
-                fatalError("❌ Ошибка загрузки Persistent Store: \(error), \(error.userInfo)")
+                print("❌ Ошибка загрузки Persistent Store: \(error), \(error.userInfo)")
             } else {
                 print("✅ Загружен Store: \(description)")
             }
@@ -31,7 +31,7 @@ final class CoreDataStack {
                 print("💾 Сохранено в Core Data")
             } catch {
                 let nserror = error as NSError
-                fatalError("❌ Ошибка сохранения: \(nserror), \(nserror.userInfo)")
+                print("❌ Ошибка сохранения: \(nserror), \(nserror.userInfo)")
             }
         }
     }
