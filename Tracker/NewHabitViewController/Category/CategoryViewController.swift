@@ -72,11 +72,9 @@ final class CategoryViewController: UIViewController {
             tableContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             
-            // Placeholder View
-            placeholderView.topAnchor.constraint(equalTo: tableContainer.topAnchor),
-            placeholderView.leadingAnchor.constraint(equalTo: tableContainer.leadingAnchor),
-            placeholderView.trailingAnchor.constraint(equalTo: tableContainer.trailingAnchor),
-            placeholderView.heightAnchor.constraint(equalToConstant: 200)
+            placeholderView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            placeholderView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+
         ])
         
         let categories = categoryStore.fetchCategories()

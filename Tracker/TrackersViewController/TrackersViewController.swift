@@ -39,7 +39,7 @@ final class TrackersViewController: UIViewController {
         )
         
         setupNavigationBarButtons()
-
+        
         [ui.titleView, ui.searchBar, ui.collectionView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
@@ -145,7 +145,7 @@ final class TrackersViewController: UIViewController {
         navigationItem.leftBarButtonItem = addButtonItem
         navigationItem.rightBarButtonItem = dateButtonItem
         
-        // MARK: - Layout для остальных элементов
+        // MARK: - Layout
         [ui.titleView, ui.searchBar, ui.collectionView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
@@ -160,11 +160,9 @@ final class TrackersViewController: UIViewController {
         ])
         
         NSLayoutConstraint.activate([
-            // Заголовок под navigationBar (используем safeArea)
             ui.titleView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
             ui.titleView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 25),
             
-            // Поиск под заголовком
             ui.searchBar.topAnchor.constraint(equalTo: ui.titleView.bottomAnchor, constant: 2),
             ui.searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             ui.searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
@@ -317,7 +315,7 @@ final class TrackersViewController: UIViewController {
         case "fr":
             df.locale = Locale(identifier: "fr_FR")
             df.dateFormat = "dd/MM/yy"
-        default: // английский
+        default:
             df.locale = Locale(identifier: "en_US")
             df.dateFormat = "MM/dd/yy"
         }
