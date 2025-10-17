@@ -1,38 +1,39 @@
 import UIKit
 import CoreData
+import YandexMobileMetrica
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-    
-    // ✅ доступ к стеку (одиночка)
-    let coreDataStack = CoreDataStack.shared
-    
+
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
     ) -> Bool {
-        
+
+        // 🔹 Инициализация YandexMetrica
+        if let configuration = YMMYandexMetricaConfiguration(apiKey: "53e8c0c7-ca97-44d0-9b89-836ccff6b602") {
+            configuration.logs = true // включаем логи SDK
+            YMMYandexMetrica.activate(with: configuration)
+            print("✅ YandexMetrica activated")
+        } else {
+            print("❌ YandexMetrica configuration failed")
+        }
+
+        // 🔹 Включаем глобальное автозакрытие клавиатуры по тапу
+        UIViewController.enableGlobalKeyboardDismiss()
+
+        // 🔹 Настройка главного окна
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = MainTabBarController()
         window?.makeKeyAndVisible()
-        
-        // 🔄 Проверим, что контейнер поднялся
-        _ = coreDataStack.context
-        
+
+        // 🔹 Тестовый вызов события после задержки
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            AnalyticsService.shared.trackOpen()
+        }
+
         return true
     }
-
-    func applicationWillTerminate(_ application: UIApplication) {
-        // 💾 сохраним изменения перед завершением
-        coreDataStack.saveContext()
-    }
-
-    // MARK: UISceneSession Lifecycle
-    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
-        return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
-    }
-
-    func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) { }
 }

@@ -5,14 +5,19 @@ final class ContainerTableView: UIView {
     private var heightConstraint: NSLayoutConstraint?
 
     let tableView: UITableView = {
-        let table = UITableView(frame: .zero, style: .plain)
-        table.isScrollEnabled = false
-        table.separatorStyle = .none
-        table.backgroundColor = .systemGray6
-        table.translatesAutoresizingMaskIntoConstraints = false
-        table.rowHeight = 75 // фиксированная высота строки
-        return table
-    }()
+            let table = UITableView(frame: .zero, style: .plain)
+            table.isScrollEnabled = false
+            table.separatorStyle = .none
+            
+            // Динамический цвет фона
+            table.backgroundColor = UIColor { traitCollection in
+                traitCollection.userInterfaceStyle == .dark ? UIColor.black : .systemGray6
+            }
+            
+            table.translatesAutoresizingMaskIntoConstraints = false
+            table.rowHeight = 75 // фиксированная высота строки
+            return table
+        }()
 
     init(backgroundColor: UIColor = .systemGray6, cornerRadius: CGFloat = AppLayout.cornerRadius) {
         super.init(frame: .zero)

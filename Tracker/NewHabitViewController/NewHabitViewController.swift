@@ -1,204 +1,87 @@
 import UIKit
+import CoreData
 
-final class NewHabitViewController: UIViewController, UITextFieldDelegate {
-    
-    // MARK: - UI
-    private let scrollView = UIScrollView()
-    private let contentStack = UIStackView()
-    
-    private let modalHeader = ModalHeaderView(title: "Новая привычка")
-    private let nameTextField = AppTextField(placeholder: "Введите название трекера")
-    private let tableContainer = ContainerTableView()
-    private let emojiCollectionVC = SelectableCollectionViewController(items: CollectionData.emojis, headerTitle: "Emoji")
-    private let colorCollectionVC = SelectableCollectionViewController(items: CollectionData.colors, headerTitle: "Цвет")
-    private let bottomButtons = ButonsPanelView()
+final class NewHabitViewController: BaseTrackerCreationViewController {
     
     // MARK: - Callback
     var onHabitCreated: ((Tracker) -> Void)?
     
-    // MARK: - State
-    private var selectedDays: [WeekDay] = []
-    private var selectedEmoji: String?
-    private var selectedColor: UIColor?
-    private var selectedCategory: TrackerCategoryCoreData?
+    // MARK: - Init
+    init() {
+        super.init(title: NSLocalizedString("new_habit.title", comment: "Новая привычка"))
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = AppColors.background
-        
-        setupTable()
-        setupLayout()
-        setupActions()
-        
-        nameTextField.delegate = self
-        print("➕ NewHabitViewController загружен")
-        
-        // Обработка выбора эмоджи
-        emojiCollectionVC.onItemSelected = { [weak self] item in
-            if case .emoji(let emoji) = item {
-                self?.selectedEmoji = emoji
-            }
-        }
-        
-        // Обработка выбора цвета
-        colorCollectionVC.onItemSelected = { [weak self] item in
-            if case .color(let color) = item {
-                self?.selectedColor = color
-            }
-        }
-    }
-    
-    // MARK: - Table setup
-    private func setupTable() {
-        let tableView = tableContainer.tableView
-        tableView.dataSource = self
-        tableView.delegate = self
-        tableView.register(ContainerTableViewCell.self, forCellReuseIdentifier: "cell")
-        tableView.separatorStyle = .none
-        tableView.isScrollEnabled = false
-        tableView.rowHeight = 75
-        tableContainer.updateHeight(forRows: 2)
-    }
-    
-    // MARK: - Layout
-    private func setupLayout() {
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
-        contentStack.translatesAutoresizingMaskIntoConstraints = false
-        contentStack.axis = .vertical
-        contentStack.spacing = AppLayout.padding
-        
-        // Header и кнопки вне scrollView
-        modalHeader.translatesAutoresizingMaskIntoConstraints = false
-        bottomButtons.translatesAutoresizingMaskIntoConstraints = false
-        modalHeader.backgroundColor = AppColors.background
-        bottomButtons.backgroundColor = AppColors.background
-        
-        view.addSubview(modalHeader)
-        view.addSubview(scrollView)
-        view.addSubview(bottomButtons)
-        
-        // ScrollView содержит stackView
-        scrollView.addSubview(contentStack)
-        
-        // Добавляем сабвьюхи
-        [nameTextField, tableContainer, emojiCollectionVC.view, colorCollectionVC.view].forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-            contentStack.addArrangedSubview($0)
-        }
-        
-        // Child VC
-        addChild(emojiCollectionVC)
-        emojiCollectionVC.didMove(toParent: self)
-        
-        addChild(colorCollectionVC)
-        colorCollectionVC.didMove(toParent: self)
-        
-        // Кастомный spacing между коллекциями
-        contentStack.setCustomSpacing(0, after: emojiCollectionVC.view)
-        
-        NSLayoutConstraint.activate([
-            modalHeader.topAnchor.constraint(equalTo: view.topAnchor),
-            modalHeader.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            modalHeader.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            modalHeader.heightAnchor.constraint(equalToConstant: 90),
-            
-            bottomButtons.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            bottomButtons.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            bottomButtons.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            
-            scrollView.topAnchor.constraint(equalTo: modalHeader.bottomAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: bottomButtons.topAnchor),
-            
-            contentStack.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: AppLayout.padding),
-            contentStack.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: UIConstants.horizontalPadding),
-            contentStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -UIConstants.horizontalPadding),
-            contentStack.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -AppLayout.padding),
-            contentStack.widthAnchor.constraint(equalTo: scrollView.widthAnchor, constant: -2*UIConstants.horizontalPadding),
-            
-            nameTextField.heightAnchor.constraint(equalToConstant: 75),
-            tableContainer.heightAnchor.constraint(equalToConstant: 150),
-            emojiCollectionVC.view.heightAnchor.constraint(equalToConstant: 300),
-            colorCollectionVC.view.heightAnchor.constraint(equalToConstant: 200)
-        ])
-    }
-    
-    // MARK: - Actions
-    private func setupActions() {
-        bottomButtons.cancelButton.addTarget(self, action: #selector(cancelTapped), for: .touchUpInside)
         bottomButtons.createButton.addTarget(self, action: #selector(createTapped), for: .touchUpInside)
     }
     
-    @objc private func cancelTapped() {
-        print("✖️ NewHabitViewController: отмена")
-        dismiss(animated: true)
-    }
-    
+    // MARK: - Create Habit
     @objc private func createTapped() {
-        guard let title = nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty else { return }
-        guard let emoji = selectedEmoji else {
-            print("⚠️ Выберите эмодзи")
-            return
-        }
-        guard let color = selectedColor else {
-            print("⚠️ Выберите цвет")
-            return
+        bottomButtons.createButton.isEnabled = false
+        
+        let title = nameTextField.textValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty else { return enableCreateButton() }
+        guard let emoji = selectedEmoji else { return enableCreateButton() }
+        guard let color = selectedColor else { return enableCreateButton() }
+        guard let category = selectedCategory else { return enableCreateButton() }
+        
+        let fetchRequest: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "name == %@ AND category == %@", title, category)
+        
+        if let existing = try? context.fetch(fetchRequest), !existing.isEmpty {
+            print("⚠️ Такой трекер уже существует, создание пропущено")
+            return enableCreateButton()
         }
         
-        let tracker = Tracker(
-            id: UUID(),
-            name: title,
-            color: color.toHexString(),
-            emoji: emoji,
-            schedule: [],
-            trackerCategory: selectedCategory
-        )
+        let tracker = TrackerCoreData(context: context)
+        tracker.id = UUID()
+        tracker.name = title
+        tracker.emoji = emoji
+        tracker.color = color.toHexString()
+        tracker.category = category
         
-        onHabitCreated?(tracker)
-        dismiss(animated: true)
+        if let data = try? JSONEncoder().encode(selectedDays) {
+            tracker.schedule = data as NSData
+            print("💾 Saved schedule: \(selectedDays.map { $0.shortName })")
+        }
+        
+        do {
+            try context.save()
+            print("✅ Трекер успешно сохранён в Core Data")
+            dismiss(animated: true)
+        } catch {
+            print("❌ Ошибка сохранения трекера: \(error.localizedDescription)")
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            self.bottomButtons.createButton.isEnabled = true
+        }
     }
     
-    // MARK: - UITextField
-    func textFieldDidChangeSelection(_ textField: UITextField) {
-        let hasText = !(textField.text?.trimmingCharacters(in: .whitespaces).isEmpty ?? true)
-        bottomButtons.setCreateButton(enabled: hasText)
+    private func enableCreateButton() {
+        bottomButtons.createButton.isEnabled = true
     }
 }
 
-// MARK: - UITableView
-extension NewHabitViewController: UITableViewDataSource, UITableViewDelegate {
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 2 }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell
-        if indexPath.row == 0 {
-            cell.textLabel?.text = selectedCategory?.title ?? "Категория"
-        } else {
-            cell.textLabel?.text = "Расписание"
-        }
-        cell.accessoryType = .disclosureIndicator
-        cell.isLastCell = indexPath.row == tableView.numberOfRows(inSection: indexPath.section) - 1
-        return cell
-    }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+// MARK: - TableView Delegate
+extension NewHabitViewController {
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        
+
         if indexPath.row == 0 {
-            // Переход к CategoryViewController
-            let coreDataStack = CoreDataStack.shared
-            let categoryStore = TrackerCategoryStore(context: coreDataStack.context)
-            let categoryVM = CategoryViewModel(store: categoryStore)
-            let categoryVC = CategoryViewController(store: categoryStore)
-            
-            categoryVM.onCategorySelected = { [weak self] category in
+            let categoryVC = CategoryViewController(store: TrackerCategoryStore(context: context))
+            categoryVC.onCategorySelected = { [weak self] category in
                 self?.selectedCategory = category
                 tableView.reloadRows(at: [indexPath], with: .automatic)
             }
-            
+            if let sheet = categoryVC.sheetPresentationController {
+                sheet.detents = [.large()]
+                sheet.prefersGrabberVisible = true
+                sheet.preferredCornerRadius = 16
+            }
             present(categoryVC, animated: true)
         }
 
@@ -207,24 +90,14 @@ extension NewHabitViewController: UITableViewDataSource, UITableViewDelegate {
             scheduleVC.selectedDays = selectedDays
             scheduleVC.onDone = { [weak self] days in
                 self?.selectedDays = days
+                tableView.reloadRows(at: [indexPath], with: .automatic)
+            }
+            if let sheet = scheduleVC.sheetPresentationController {
+                sheet.detents = [.large()]
+                sheet.prefersGrabberVisible = true
+                sheet.preferredCornerRadius = 16
             }
             present(scheduleVC, animated: true)
         }
-    }
-}
-
-// MARK: - UIColor extension
-extension UIColor {
-    func toHexString() -> String {
-        guard let components = cgColor.components, components.count >= 3 else {
-            return "#000000"
-        }
-        let r = Float(components[0])
-        let g = Float(components[1])
-        let b = Float(components[2])
-        return String(format: "#%02lX%02lX%02lX",
-                      lroundf(r * 255),
-                      lroundf(g * 255),
-                      lroundf(b * 255))
     }
 }

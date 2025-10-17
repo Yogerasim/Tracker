@@ -11,7 +11,6 @@
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="schedule" optional="YES" attributeType="Transformable"/>
-        <attribute name="trackerCategory" optional="YES" attributeType="Transformable"/>
         <relationship name="category" maxCount="1" deletionRule="No Action" destinationEntity="TrackerCategoryCoreData" inverseName="trackers" inverseEntity="TrackerCategoryCoreData"/>
         <relationship name="records" toMany="YES" deletionRule="Cascade" destinationEntity="TrackerRecordCoreData" inverseName="tracker" inverseEntity="TrackerRecordCoreData"/>
     </entity>

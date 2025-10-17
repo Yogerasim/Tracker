@@ -5,7 +5,7 @@ final class ButonsPanelView: UIView {
     // MARK: - UI
     let cancelButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Отменить", for: .normal)
+        button.setTitle(NSLocalizedString("cancel_button", comment: "Отмена"), for: .normal)
         button.setTitleColor(AppColors.errorRed, for: .normal)
         button.layer.borderWidth = 1
         button.layer.borderColor = AppColors.errorRed.cgColor
@@ -17,7 +17,9 @@ final class ButonsPanelView: UIView {
 
     let createButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Создать", for: .normal)
+        button.setTitle(NSLocalizedString("create_button", comment: "Создать"), for: .normal)
+        button.backgroundColor = AppColors.backgroundBlackButton
+        button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = AppLayout.cornerRadius
         button.titleLabel?.font = AppFonts.subheadline
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -39,9 +41,9 @@ final class ButonsPanelView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupLayout()
-        backgroundColor = AppColors.background 
+        backgroundColor = AppColors.background
         createButton.addTarget(self, action: #selector(createTapped), for: .touchUpInside)
-        setCreateButton(enabled: false) 
+        setCreateButton(enabled: false)
     }
     
     @objc private func createTapped() {
@@ -55,8 +57,7 @@ final class ButonsPanelView: UIView {
     // MARK: - Public
     func setCreateButton(enabled: Bool) {
         createButton.isEnabled = enabled
-        createButton.backgroundColor = enabled ? AppColors.backgroundBlackButton : .systemGray3
-        createButton.setTitleColor(AppColors.textPrimary, for: .normal)
+        createButton.alpha = enabled ? 1.0 : 0.5
     }
 
     // MARK: - Layout

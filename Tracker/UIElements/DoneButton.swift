@@ -15,7 +15,7 @@ final class DoneButton: UIButton {
     
     // MARK: - Setup
     private func setupStyle() {
-        setTitle("Готово", for: .normal)
+        setTitle(NSLocalizedString("done_button", comment: "Готово"), for: .normal)
         setTitleColor(AppColors.textPrimary, for: .normal)
         backgroundColor = AppColors.backgroundBlackButton
         titleLabel?.font = AppFonts.body

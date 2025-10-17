@@ -5,7 +5,7 @@ protocol TrackerRecordStoreDelegate: AnyObject {
 }
 
 final class TrackerRecordStore: NSObject {
-    private let viewContext: NSManagedObjectContext
+    let viewContext: NSManagedObjectContext
     private let backgroundContext: NSManagedObjectContext
     private let fetchedResultsController: NSFetchedResultsController<TrackerRecordCoreData>
     weak var delegate: TrackerRecordStoreDelegate?
@@ -35,6 +35,8 @@ final class TrackerRecordStore: NSObject {
             print("❌ Ошибка performFetch: \(error)")
         }
     }
+    
+    
 
     // MARK: - Access
 
@@ -95,11 +97,29 @@ final class TrackerRecordStore: NSObject {
         do {
             if backgroundContext.hasChanges {
                 try backgroundContext.save()
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(name: .trackerRecordsDidChange, object: nil)
+                }
             }
         } catch {
             print("❌ Ошибка сохранения backgroundContext: \(error)")
         }
     }
+    
+    func hasAnyTrackers() -> Bool {
+        viewContext.performAndWait {
+            let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
+            request.fetchLimit = 1
+            do {
+                let count = try viewContext.count(for: request)
+                return count > 0
+            } catch {
+                print("❌ Ошибка при проверке наличия трекеров: \(error)")
+                return false
+            }
+        }
+    }
+    
 }
 
 // MARK: - NSFetchedResultsControllerDelegate
@@ -125,4 +145,20 @@ extension TrackerRecordStore {
             return nil
         }
     }
+    
+    func fetchAllRecords() -> [TrackerRecord] {
+            guard let objects = fetchedResultsController.fetchedObjects else { return [] }
+            return objects.compactMap { rec in
+                guard let tracker = rec.tracker,
+                      let trackerId = tracker.id,
+                      let date = rec.date else { return nil }
+                return TrackerRecord(trackerId: trackerId, date: date)
+            }
+        }
+}
+// MARK: - Notifications
+
+extension Notification.Name {
+    static let trackerRecordsDidChange = Notification.Name("trackerRecordsDidChange")
+    static let trackersDidChange = Notification.Name("trackersDidChange")
 }

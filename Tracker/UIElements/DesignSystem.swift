@@ -1,13 +1,49 @@
 import UIKit
 
 enum AppColors {
-    static let background = UIColor.white
+    
+    // Фон контроллеров
+    static let background = UIColor { traitCollection in
+        traitCollection.userInterfaceStyle == .dark
+        ? AppColors.backgroundBlackButton
+        : .white
+    }
+    
+    static let containerCellDarkBackground = UIColor(red: 65/255, green: 65/255, blue: 65/255, alpha: 0.85)
+    
+    // Фон кнопок с тёмной темой
     static let backgroundBlackButton = UIColor(hex: "#1A1B22")
+    
+    // Основной синий цвет
     static let primaryBlue = UIColor(hex: "#4685FF")
-    static let textPrimary = UIColor.white
-    static let textSecondary = UIColor(hex: "#8E8E93")
+    
+    // Основной текст
+    static let textPrimary = UIColor { traitCollection in
+        traitCollection.userInterfaceStyle == .dark
+        ? .white
+        : .black
+    }
+    
+    // Вторичный текст
+    static let textSecondary = UIColor { traitCollection in
+        traitCollection.userInterfaceStyle == .dark
+        ? UIColor(white: 1.0, alpha: 0.7)
+        : UIColor(hex: "#8E8E93")
+    }
+    
+    // Ошибки
     static let errorRed = UIColor(hex: "#F56B6C")
+    
+    // Серый цвет
     static let gray = UIColor(hex: "#AEAFB4")
+    
+    // Тёмно-синий
+    static let darkBlue = UIColor(hex: "#3772E7")
+    
+    // Градиент
+    static let gradientStart = UIColor(hex: "#FD4C49")
+    static let gradientMiddle = UIColor(hex: "#46E69D")
+    static let gradientEnd = UIColor(hex: "#007BFA")
 }
 
 enum AppFonts {
@@ -17,6 +53,7 @@ enum AppFonts {
     static let bigTitle = AppFonts.bold(34)
     static let bigTitle2 = AppFonts.bold(32)
     static let body = AppFonts.medium(16)
+    static let body2 = AppFonts.medium(12)
     static let caption = AppFonts.regular(14)
     static let caption2 = AppFonts.regular(17)
     static let headline = AppFonts.semibold(17)
@@ -68,5 +105,18 @@ extension UIColor {
         let b = CGFloat(rgb & 0x0000FF) / 255.0
 
         self.init(red: r, green: g, blue: b, alpha: 1.0)
+    }
+}
+
+extension UIColor {
+    func toHexString() -> String {
+        guard let components = cgColor.components, components.count >= 3 else { return "#000000" }
+        let r = Float(components[0])
+        let g = Float(components[1])
+        let b = Float(components[2])
+        return String(format: "#%02lX%02lX%02lX",
+                      lroundf(r * 255),
+                      lroundf(g * 255),
+                      lroundf(b * 255))
     }
 }
