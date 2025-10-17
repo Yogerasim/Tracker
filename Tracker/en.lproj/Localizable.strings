@@ -1,10 +1,10 @@
 /* 
-  Localizable.strings
-  Tracker
-
-  Created by Филипп Герасимов on 01/10/25.
-  
-*/
+ Localizable.strings
+ Tracker
+ 
+ Created by Филипп Герасимов on 01/10/25.
+ 
+ */
 
 //NewCategoryView
 "new_category_title" = "New Category";
