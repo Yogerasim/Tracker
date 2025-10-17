@@ -38,7 +38,7 @@ final class OnboardingPageViewController: UIViewController {
             imageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             
             label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            // смещаем текст вниз
+            
             label.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: 65),
             label.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
             label.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32)

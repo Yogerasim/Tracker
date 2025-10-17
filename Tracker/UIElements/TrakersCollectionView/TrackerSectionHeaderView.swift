@@ -6,7 +6,6 @@ final class TrackerSectionHeaderView: UICollectionReusableView {
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.font = AppFonts.bold
-        // Динамический цвет текста
         label.textColor = UIColor { traitCollection in
             traitCollection.userInterfaceStyle == .dark ? UIColor.white : AppColors.backgroundBlackButton
         }

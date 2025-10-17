@@ -1,11 +1,3 @@
-/*
- Localizable.strings
- Tracker
- 
- Created by Филипп Герасимов on 01/10/25.
- 
- */
-
 //NewCategoryView
 "new_category_title" = "Nouvelle catégorie";
 "new_category_placeholder" = "Entrez le nom de la catégorie";

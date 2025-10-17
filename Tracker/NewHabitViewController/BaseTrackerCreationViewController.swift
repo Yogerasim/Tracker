@@ -147,8 +147,7 @@ class BaseTrackerCreationViewController: UIViewController {
         dismiss(animated: true)
     }
     
-    // 🔹 Методы для переопределения в подклассах
-    func numberOfRowsInTable() -> Int { 2 } // по умолчанию: категория + расписание
+    func numberOfRowsInTable() -> Int { 2 } 
     
     func tableViewCell(for tableView: UITableView, indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell

@@ -18,7 +18,7 @@ final class CategoryViewModel {
     }
     
     func loadCategories() {
-        categories = categoryStore.fetchCategories() // возвращает [TrackerCategoryCoreData]
+        categories = categoryStore.fetchCategories()
     }
     
     func selectCategory(at index: Int) {

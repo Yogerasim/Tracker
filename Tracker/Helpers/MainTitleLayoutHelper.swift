@@ -1,7 +1,6 @@
 import UIKit
 
 enum MainHeaderLayoutHelper {
-    
     /// Универсальная настройка хедера для экранов с кнопками (например, трекеры)
     static func setupTrackerLayout(
         in view: UIView,
@@ -11,13 +10,10 @@ enum MainHeaderLayoutHelper {
         searchBar: UISearchBar,
         collectionView: UICollectionView
     ) {
-        // Добавляем элементы
         [addButton, titleView, dateButton, searchBar, collectionView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
-        
-        // 🔹 Отключаем интерактивность у всех потенциально перекрывающих элементов
         view.subviews.forEach { subview in
             if String(describing: type(of: subview)).contains("MainTitle") {
                 subview.isUserInteractionEnabled = false
@@ -52,20 +48,15 @@ enum MainHeaderLayoutHelper {
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
-        
-        // 🔹 Кнопки всегда поверх всех
         view.bringSubviewToFront(addButton)
         view.bringSubviewToFront(dateButton)
     }
     
-    
-    
-    /// Настройка заголовка для экранов без кнопок (например, статистика)
     static func setupSimpleTitle(in view: UIView, titleView: UIView) {
         view.addSubview(titleView)
         titleView.translatesAutoresizingMaskIntoConstraints = false
         
-        let visualTopOffset: CGFloat = 42 + 2  // совпадает с трекерами
+        let visualTopOffset: CGFloat = 42 + 2
         
         NSLayoutConstraint.activate([
             titleView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: visualTopOffset),

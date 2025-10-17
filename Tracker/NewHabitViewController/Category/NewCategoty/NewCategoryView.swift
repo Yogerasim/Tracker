@@ -29,11 +29,9 @@ final class NewCategoryView: UIView {
     
     // MARK: - Layout
     private func setupLayout() {
-        // Добавляем все элементы в иерархию
         [header, nameTextField, doneButton, placeholderView].forEach { addSubview($0) }
         [header, nameTextField, doneButton, placeholderView].forEach { $0.translatesAutoresizingMaskIntoConstraints = false }
-        
-        // Констрейнты header, текстового поля и кнопки
+
         NSLayoutConstraint.activate([
             header.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
             header.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -51,12 +49,11 @@ final class NewCategoryView: UIView {
             doneButton.heightAnchor.constraint(equalToConstant: 60)
         ])
         
-        // Констрейнты placeholder
         placeholderView.configure(
             imageName: "Star",
             text: NSLocalizedString("new_category_placeholder_text", comment: "")
         )
-        placeholderView.isHidden = true // по умолчанию скрыт
+        placeholderView.isHidden = true
         
         NSLayoutConstraint.activate([
             placeholderView.centerXAnchor.constraint(equalTo: centerXAnchor),
@@ -65,7 +62,6 @@ final class NewCategoryView: UIView {
             placeholderView.bottomAnchor.constraint(lessThanOrEqualTo: doneButton.topAnchor, constant: -20)
         ])
         
-        // Приоритет, чтобы центрирование работало корректно
         placeholderView.setContentHuggingPriority(.required, for: .vertical)
         placeholderView.setContentCompressionResistancePriority(.required, for: .vertical)
     }

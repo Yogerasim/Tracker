@@ -98,20 +98,18 @@ final class StatisticsViewController: UIViewController {
     
     // MARK: - Layout
     private func setupLayout() {
-        // 🔹 Используем MainHeaderLayoutHelper
         view.addSubview(titleView)
         titleView.translatesAutoresizingMaskIntoConstraints = false
-        titleTopConstraint = titleView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 44) // визуальный отступ
+        titleTopConstraint = titleView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 44)
         NSLayoutConstraint.activate([
             titleTopConstraint,
             titleView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 25)
         ])
         
-        // Таблица и плейсхолдер
         view.addSubview(tableView)
         view.addSubview(placeholderView)
         tableViewCenterYConstraint = tableView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-        tableViewHeightConstraint = tableView.heightAnchor.constraint(equalToConstant: 0) // позже обновим
+        tableViewHeightConstraint = tableView.heightAnchor.constraint(equalToConstant: 0)
         NSLayoutConstraint.activate([
             titleView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
             titleView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 25),

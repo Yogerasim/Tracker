@@ -7,10 +7,8 @@ final class AppTextField: UIView, UITextFieldDelegate {
     private let charLimitLabel: UILabel
     private let clearButton: UIButton
     
-    // Максимальное количество символов
     private let maxCharacters: Int
     
-    // Callback при изменении текста
     var onTextChanged: ((String) -> Void)?
     
     // MARK: - Init
@@ -31,7 +29,7 @@ final class AppTextField: UIView, UITextFieldDelegate {
     
     // MARK: - UI Setup
     private func setupUI(placeholder: String) {
-        // Настройка текстового поля
+
         textField.placeholder = placeholder
         textField.backgroundColor = UIColor.systemGray6
         textField.layer.cornerRadius = AppLayout.cornerRadius
@@ -42,7 +40,6 @@ final class AppTextField: UIView, UITextFieldDelegate {
         textField.delegate = self
         textField.addTarget(self, action: #selector(textChanged), for: .editingChanged)
         
-        // Настройка подписи лимита символов
         charLimitLabel.font = AppFonts.regular(17)
         charLimitLabel.textColor = UIColor(hex: "#FD4C49")
         charLimitLabel.textAlignment = .center
@@ -101,7 +98,6 @@ final class AppTextField: UIView, UITextFieldDelegate {
         return updatedText.count <= maxCharacters
     }
     
-    // Удобный геттер для текста
     var textValue: String {
         get { textField.text ?? "" }
         set { textField.text = newValue }
@@ -109,7 +105,7 @@ final class AppTextField: UIView, UITextFieldDelegate {
     
     func setText(_ text: String) {
         textField.text = text
-        textChanged() // обновляем лимит символов и вызываем callback
+        textChanged()
     }
 }
 
@@ -117,8 +113,8 @@ final class AppTextField: UIView, UITextFieldDelegate {
 final class CustomTextField: UITextField {
     override func rightViewRect(forBounds bounds: CGRect) -> CGRect {
         var rect = super.rightViewRect(forBounds: bounds)
-        rect.origin.x -= 10 // сдвиг влево
-        rect.origin.y += 0  // сдвиг вниз
+        rect.origin.x -= 10
+        rect.origin.y += 0
         return rect
     }
 }

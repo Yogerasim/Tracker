@@ -2,7 +2,6 @@ import UIKit
 
 enum AppColors {
     
-    // Фон контроллеров
     static let background = UIColor { traitCollection in
         traitCollection.userInterfaceStyle == .dark
         ? AppColors.backgroundBlackButton
@@ -11,36 +10,28 @@ enum AppColors {
     
     static let containerCellDarkBackground = UIColor(red: 65/255, green: 65/255, blue: 65/255, alpha: 0.85)
     
-    // Фон кнопок с тёмной темой
     static let backgroundBlackButton = UIColor(hex: "#1A1B22")
     
-    // Основной синий цвет
     static let primaryBlue = UIColor(hex: "#4685FF")
     
-    // Основной текст
     static let textPrimary = UIColor { traitCollection in
         traitCollection.userInterfaceStyle == .dark
         ? .white
         : .black
     }
     
-    // Вторичный текст
     static let textSecondary = UIColor { traitCollection in
         traitCollection.userInterfaceStyle == .dark
         ? UIColor(white: 1.0, alpha: 0.7)
         : UIColor(hex: "#8E8E93")
     }
-    
-    // Ошибки
+
     static let errorRed = UIColor(hex: "#F56B6C")
-    
-    // Серый цвет
+
     static let gray = UIColor(hex: "#AEAFB4")
-    
-    // Тёмно-синий
+
     static let darkBlue = UIColor(hex: "#3772E7")
-    
-    // Градиент
+
     static let gradientStart = UIColor(hex: "#FD4C49")
     static let gradientMiddle = UIColor(hex: "#46E69D")
     static let gradientEnd = UIColor(hex: "#007BFA")

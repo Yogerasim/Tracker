@@ -6,8 +6,7 @@ final class CoreDataStack {
     
     // MARK: - Persistent Container
     lazy var persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "Tracker") // имя = .xcdatamodeld
-        
+        let container = NSPersistentContainer(name: "Tracker")
         container.loadPersistentStores { description, error in
             if let error = error as NSError? {
                 fatalError("❌ Ошибка загрузки Persistent Store: \(error), \(error.userInfo)")
@@ -15,7 +14,6 @@ final class CoreDataStack {
                 print("✅ Загружен Store: \(description)")
             }
         }
-        
         return container
     }()
     

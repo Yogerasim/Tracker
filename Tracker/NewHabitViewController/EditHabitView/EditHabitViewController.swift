@@ -20,7 +20,6 @@ final class EditHabitViewController: BaseTrackerCreationViewController {
         self.viewModel = viewModel
         super.init(title: NSLocalizedString("edit_habit.title", comment: "Редактировать привычку"))
         
-        // Инициализация состояния из viewModel
         self.selectedEmoji = viewModel.selectedEmoji
         self.selectedColor = viewModel.selectedColor
         self.selectedCategory = viewModel.selectedCategory
@@ -43,10 +42,11 @@ final class EditHabitViewController: BaseTrackerCreationViewController {
 private extension EditHabitViewController {
     
     func setupDaysCountLabel() {
-        // вставляем daysCountLabel в начало стека
         contentStack.insertArrangedSubview(daysCountLabel, at: 0)
         daysCountLabel.translatesAutoresizingMaskIntoConstraints = false
-        daysCountLabel.heightAnchor.constraint(equalToConstant: 40).isActive = true
+        daysCountLabel.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        
+        daysCountLabel.topAnchor.constraint(equalTo: contentStack.topAnchor, constant: -20).isActive = true
     }
     
     func setupSaveButton() {
@@ -101,14 +101,11 @@ private extension EditHabitViewController {
         guard let color = selectedColor else { return }
         guard let category = selectedCategory else { return }
         
-        // обновляем данные во viewModel
         viewModel.name = title
         viewModel.selectedEmoji = emoji
         viewModel.selectedColor = color
         viewModel.selectedCategory = category
         viewModel.selectedDays = selectedDays
-        
-        // сохраняем через viewModel
         viewModel.saveChanges()
         dismiss(animated: true)
     }

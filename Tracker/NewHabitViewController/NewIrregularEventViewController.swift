@@ -123,7 +123,6 @@ final class NewIrregularEventViewController: BaseTrackerCreationViewController {
             self.selectedCategory = category
             tableView.reloadRows(at: [indexPath], with: .automatic)
             
-            // Обновляем высоту таблицы после выбора категории
             self.tableContainer.updateHeight(forRows: self.numberOfRowsInTable())
             
             self.dismiss(animated: true)

@@ -90,7 +90,6 @@ final class TrackersUI {
     let placeholderView = PlaceholderView()
     
     // MARK: - Calendar
-    // MARK: - Calendar
     lazy var calendarView: UIDatePicker = {
         let dp = UIDatePicker()
         dp.translatesAutoresizingMaskIntoConstraints = false

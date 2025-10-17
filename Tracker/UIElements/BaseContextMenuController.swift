@@ -4,7 +4,7 @@ final class BaseContextMenuController<Cell: UIView>: NSObject, UIContextMenuInte
     
     // MARK: - Properties
     private weak var owner: UIViewController?
-    private weak var container: UIView? // tableView или collectionView
+    private weak var container: UIView?
     private let actionsProvider: (IndexPath) -> [UIAction]
     private let indexPathProvider: (Cell) -> IndexPath?
     

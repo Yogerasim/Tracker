@@ -9,13 +9,12 @@ final class ContainerTableView: UIView {
         table.isScrollEnabled = false
         table.separatorStyle = .none
         
-        // Динамический цвет фона
         table.backgroundColor = UIColor { traitCollection in
             traitCollection.userInterfaceStyle == .dark ? UIColor.black : .systemGray6
         }
         
         table.translatesAutoresizingMaskIntoConstraints = false
-        table.rowHeight = 75 // фиксированная высота строки
+        table.rowHeight = 75 
         return table
     }()
     

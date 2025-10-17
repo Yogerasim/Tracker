@@ -128,11 +128,9 @@ final class SelectableCell: UICollectionViewCell {
         colorView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            // Центрируем эмоджи
             label.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             label.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             
-            // Цветной квадрат 40x40
             colorView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             colorView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             colorView.widthAnchor.constraint(equalToConstant: 40),

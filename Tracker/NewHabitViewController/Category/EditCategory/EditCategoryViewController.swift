@@ -23,7 +23,7 @@ final class EditCategoryViewController: UIViewController {
         super.viewDidLoad()
         setupBindings()
         setupActions()
-        customView.setCategoryName(viewModel.categoryName) // показываем текущее имя
+        customView.setCategoryName(viewModel.categoryName)
     }
     
     private func setupBindings() {

@@ -14,7 +14,6 @@ final class CategorySelector {
         let categoryVC = CategoryViewController(store: categoryStore)
         
         categoryVM.onCategorySelected = { category in
-            // category уже должен быть TrackerCategoryCoreData
             guard let coreDataCategory = category as? TrackerCategoryCoreData else {
                 assertionFailure("Category должен быть CoreData объектом")
                 return

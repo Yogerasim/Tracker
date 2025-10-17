@@ -97,7 +97,6 @@ final class TrackerCategoryStore: NSObject {
     }
     
     func add(_ category: TrackerCategoryCoreData) {
-        // Проверяем, что объект с таким UUID ещё не существует
         let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", category.id! as CVarArg)
         if let results = try? context.fetch(request), results.isEmpty {
@@ -109,16 +108,9 @@ final class TrackerCategoryStore: NSObject {
     }
     
     func moveTracker(_ tracker: Tracker, to categoryTitle: String) {
-        // 1️⃣ Получаем CoreData-объект категории
         guard let categoryCoreData = fetchCategoryByTitle(categoryTitle) else { return }
-        
-        // 2️⃣ Получаем CoreData-объект трекера
         guard let trackerCoreData = fetchTracker(by: tracker.id) else { return }
-        
-        // 3️⃣ Меняем связь
         trackerCoreData.category = categoryCoreData
-        
-        // 4️⃣ Сохраняем
         saveContext()
     }
     
@@ -130,7 +122,7 @@ final class TrackerCategoryStore: NSObject {
         request.predicate = NSPredicate(format: "title == %@", title)
         return try? context.fetch(request).first
     }
-
+    
     private func fetchTracker(by id: UUID) -> TrackerCoreData? {
         let request = TrackerCoreData.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
@@ -149,8 +141,7 @@ final class TrackerCategoryStore: NSObject {
             print(mappingErrorMessage)
             return nil
         }
-        
-        let trackers: [Tracker] = [] // пока заглушка
+        let trackers: [Tracker] = []
         return TrackerCategory(id: id, title: title, trackers: trackers)
     }
     

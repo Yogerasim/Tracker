@@ -9,26 +9,26 @@ final class TrackerRecordStore: NSObject {
     private let backgroundContext: NSManagedObjectContext
     private let fetchedResultsController: NSFetchedResultsController<TrackerRecordCoreData>
     weak var delegate: TrackerRecordStoreDelegate?
-
+    
     init(persistentContainer: NSPersistentContainer) {
         self.viewContext = persistentContainer.viewContext
         self.backgroundContext = persistentContainer.newBackgroundContext()
-
+        
         let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(keyPath: \TrackerRecordCoreData.date, ascending: true)]
-
+        
         self.fetchedResultsController = NSFetchedResultsController(
             fetchRequest: request,
             managedObjectContext: viewContext,
             sectionNameKeyPath: nil,
             cacheName: nil
         )
-
+        
         super.init()
         fetchedResultsController.delegate = self
-
+        
         viewContext.automaticallyMergesChangesFromParent = true
-
+        
         do {
             try fetchedResultsController.performFetch()
         } catch {
@@ -37,9 +37,9 @@ final class TrackerRecordStore: NSObject {
     }
     
     
-
+    
     // MARK: - Access
-
+    
     var completedTrackers: [TrackerRecord] {
         guard let objects = fetchedResultsController.fetchedObjects else { return [] }
         return objects.compactMap { rec in
@@ -49,9 +49,9 @@ final class TrackerRecordStore: NSObject {
             return TrackerRecord(trackerId: trackerId, date: date)
         }
     }
-
+    
     // MARK: - CRUD
-
+    
     func addRecord(for tracker: TrackerCoreData, date: Date) {
         backgroundContext.perform { [weak self] in
             guard let self else { return }
@@ -61,13 +61,13 @@ final class TrackerRecordStore: NSObject {
             self.saveBackgroundContext()
         }
     }
-
+    
     func removeRecord(for tracker: TrackerCoreData, date: Date) {
         backgroundContext.perform { [weak self] in
             guard let self else { return }
             let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
             request.predicate = NSPredicate(format: "tracker == %@ AND date == %@", tracker.objectID, date as CVarArg)
-
+            
             do {
                 let results = try self.backgroundContext.fetch(request)
                 results.forEach { self.backgroundContext.delete($0) }
@@ -77,11 +77,11 @@ final class TrackerRecordStore: NSObject {
             }
         }
     }
-
+    
     func isCompleted(for tracker: TrackerCoreData, date: Date) -> Bool {
         let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
         request.predicate = NSPredicate(format: "tracker == %@ AND date == %@", tracker, date as CVarArg)
-
+        
         do {
             let count = try viewContext.count(for: request)
             return count > 0
@@ -90,9 +90,9 @@ final class TrackerRecordStore: NSObject {
             return false
         }
     }
-
+    
     // MARK: - Save
-
+    
     private func saveBackgroundContext() {
         do {
             if backgroundContext.hasChanges {
@@ -137,7 +137,7 @@ extension TrackerRecordStore {
         let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
         request.fetchLimit = 1
-
+        
         do {
             return try viewContext.fetch(request).first
         } catch {
@@ -147,14 +147,14 @@ extension TrackerRecordStore {
     }
     
     func fetchAllRecords() -> [TrackerRecord] {
-            guard let objects = fetchedResultsController.fetchedObjects else { return [] }
-            return objects.compactMap { rec in
-                guard let tracker = rec.tracker,
-                      let trackerId = tracker.id,
-                      let date = rec.date else { return nil }
-                return TrackerRecord(trackerId: trackerId, date: date)
-            }
+        guard let objects = fetchedResultsController.fetchedObjects else { return [] }
+        return objects.compactMap { rec in
+            guard let tracker = rec.tracker,
+                  let trackerId = tracker.id,
+                  let date = rec.date else { return nil }
+            return TrackerRecord(trackerId: trackerId, date: date)
         }
+    }
 }
 // MARK: - Notifications
 

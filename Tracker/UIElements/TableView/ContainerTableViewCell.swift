@@ -12,7 +12,7 @@ final class ContainerTableViewCell: UITableViewCell {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = UIColor.systemGray4
-        view.layer.zPosition = 1 // separator всегда выше контента галочки
+        view.layer.zPosition = 1
         return view
     }()
     
@@ -68,12 +68,10 @@ final class ContainerTableViewCell: UITableViewCell {
 
 extension ContainerTableViewCell {
     
-    /// Настраивает ячейку с заголовком и опциональной деталью
     func configure(title: String, detail: String?) {
-        // Удаляем предыдущий стек, если есть
+        
         contentView.viewWithTag(101)?.removeFromSuperview()
         
-        // Основной заголовок
         let titleLabel = UILabel()
         titleLabel.text = title
         titleLabel.font = AppFonts.body

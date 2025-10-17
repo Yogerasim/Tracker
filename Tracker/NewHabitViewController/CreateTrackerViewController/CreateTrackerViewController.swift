@@ -53,18 +53,16 @@ final class CreateTrackerViewController: UIViewController {
     // MARK: - Constraints
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            // Заголовок
+
             modalHeader.topAnchor.constraint(equalTo: view.topAnchor),
             modalHeader.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             modalHeader.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             
-            // Кнопка "Привычка"
             habitButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: UIConstants.horizontalPadding),
             habitButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -UIConstants.horizontalPadding),
             habitButton.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -40),
             habitButton.heightAnchor.constraint(equalToConstant: 60),
             
-            // Кнопка "Нерегулярное событие"
             irregularButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: UIConstants.horizontalPadding),
             irregularButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -UIConstants.horizontalPadding),
             irregularButton.topAnchor.constraint(equalTo: habitButton.bottomAnchor, constant: AppLayout.padding),

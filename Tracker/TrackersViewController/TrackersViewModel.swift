@@ -22,7 +22,6 @@ final class TrackersViewModel {
     @Published var searchText: String = "" {
         didSet { filterTrackers() }
     }
-    // Словарь для запоминания исходной категории трекера
     private var originalCategoryMap: [UUID: String] = [:]
     
     // MARK: - Callbacks
@@ -61,7 +60,6 @@ final class TrackersViewModel {
     
     // MARK: - Business Logic
     
-    
     func addTrackerToDefaultCategory(_ tracker: Tracker) {
         // Проверяем, существует ли категория "Мои трекеры"
         if let _ = categories.first(where: { $0.title == defaultCategoryTitle }) {
@@ -81,10 +79,6 @@ final class TrackersViewModel {
         recordStore.addRecord(for: trackerCoreData, date: date)
         reloadTrackers()
     }
-    
-    
-    
-    
     
     
     func isTrackerCompleted(_ tracker: Tracker, on date: Date) -> Bool {
@@ -146,16 +140,12 @@ final class TrackersViewModel {
         
         onTrackersUpdated?()
     }
-    
-    
-    
 }
 
 // MARK: - Pin / Unpin
 extension TrackersViewModel {
     
     func pinTracker(_ tracker: Tracker) {
-        // Находим или создаём категорию "Закрепленные"
         var pinnedCategory = categories.first(where: { $0.title == pinnedCategoryTitle })
         if pinnedCategory == nil {
             pinnedCategory = TrackerCategory(id: UUID(), title: pinnedCategoryTitle, trackers: [])
@@ -164,10 +154,8 @@ extension TrackersViewModel {
             onCategoriesUpdated?()
         }
         
-        // Сохраняем исходную категорию
         originalCategoryMap[tracker.id] = tracker.trackerCategory?.title ?? defaultCategoryTitle
         
-        // Удаляем из текущей категории и добавляем в "Закрепленные"
         categoryStore.moveTracker(tracker, to: pinnedCategoryTitle)
         
         reloadTrackers()
@@ -177,7 +165,6 @@ extension TrackersViewModel {
     func unpinTracker(_ tracker: Tracker) {
         guard let originalTitle = originalCategoryMap[tracker.id] else { return }
         
-        // Перемещаем обратно в исходную категорию
         categoryStore.moveTracker(tracker, to: originalTitle)
         originalCategoryMap.removeValue(forKey: tracker.id)
         
@@ -199,7 +186,6 @@ extension TrackersViewModel {
 // MARK: - Edit / Delete
 extension TrackersViewModel {
     
-    
     func editTracker(_ tracker: Tracker) {
         print("🟢 Edit tracker tapped: \(tracker.name)")
         onEditTracker?(tracker)
@@ -209,7 +195,6 @@ extension TrackersViewModel {
         print("🔴 Request delete tracker: \(tracker.name)")
         trackerStore.delete(tracker)
         
-        // Перезагружаем из store, чтобы state был консистентным
         reloadTrackers()
         onTrackersUpdated?()
         print("✅ Deleted tracker: \(tracker.name). trackers.count = \(trackers.count)")

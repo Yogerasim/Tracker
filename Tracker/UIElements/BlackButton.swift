@@ -16,7 +16,6 @@ final class BlackButton: UIButton {
     private func setupUI(title: String) {
         setTitle(title, for: .normal)
         
-        // Фон кнопки: белый в темной теме, чёрный/цвет кнопки в светлой
         backgroundColor = UIColor { traitCollection in
             traitCollection.userInterfaceStyle == .dark
             ? UIColor.white

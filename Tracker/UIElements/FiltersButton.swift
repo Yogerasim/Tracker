@@ -15,19 +15,17 @@ final class FiltersButton: UIButton {
     
     // MARK: - UI Setup
     private func setupUI() {
-        // Размеры и внешний вид
+
         translatesAutoresizingMaskIntoConstraints = false
         backgroundColor = AppColors.darkBlue
         layer.cornerRadius = 16
         clipsToBounds = true
-        
-        // Размеры кнопки
+
         NSLayoutConstraint.activate([
             widthAnchor.constraint(equalToConstant: 114),
             heightAnchor.constraint(equalToConstant: 50)
         ])
         
-        // Текст
         setTitle(
             NSLocalizedString("filters.button_title", comment: "Фильтры"),
             for: .normal

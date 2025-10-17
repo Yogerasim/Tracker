@@ -28,7 +28,6 @@ final class TrackersViewController: UIViewController {
         
         view.backgroundColor = AppColors.background
         
-        // Регистрация ячеек
         ui.collectionView.register(
             TrackerSectionHeaderView.self,
             forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
@@ -39,16 +38,14 @@ final class TrackersViewController: UIViewController {
             forCellWithReuseIdentifier: TrackerCell.reuseIdentifier
         )
         
-        // Перемещаем кнопки в navigationBar
         setupNavigationBarButtons()
-        
-        // Остальные элементы остаются в view
+
         [ui.titleView, ui.searchBar, ui.collectionView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
         
-        setupLayoutForRest() // layout для titleView, searchBar, collectionView
+        setupLayoutForRest()
         
         ui.collectionView.dataSource = self
         ui.collectionView.delegate = self
@@ -56,7 +53,7 @@ final class TrackersViewController: UIViewController {
         ui.collectionView.contentInset = UIEdgeInsets(
             top: 0,
             left: 0,
-            bottom: view.safeAreaInsets.bottom + 50, // можно изменить 50 на любое число
+            bottom: view.safeAreaInsets.bottom + 50,
             right: 0
         )
         
@@ -118,7 +115,6 @@ final class TrackersViewController: UIViewController {
         let addItem = UIBarButtonItem(customView: ui.addButton)
         navigationItem.leftBarButtonItem = addItem
         
-        // Кнопка даты
         ui.dateButton.translatesAutoresizingMaskIntoConstraints = false
         ui.dateButton.widthAnchor.constraint(equalToConstant: 77).isActive = true
         ui.dateButton.heightAnchor.constraint(equalToConstant: 34).isActive = true
@@ -126,7 +122,6 @@ final class TrackersViewController: UIViewController {
         let dateItem = UIBarButtonItem(customView: ui.dateButton)
         navigationItem.rightBarButtonItem = dateItem
         
-        // Убираем стандартный title, если нужно
         navigationItem.titleView = nil
     }
     
@@ -135,7 +130,6 @@ final class TrackersViewController: UIViewController {
         let addButtonItem = UIBarButtonItem(customView: ui.addButton)
         let dateButtonItem = UIBarButtonItem(customView: ui.dateButton)
         
-        // Принудительно задаём размеры
         ui.addButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             ui.addButton.widthAnchor.constraint(equalToConstant: 42),
@@ -175,7 +169,6 @@ final class TrackersViewController: UIViewController {
             ui.searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             ui.searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             
-            // Коллекция под поиском
             ui.collectionView.topAnchor.constraint(equalTo: ui.searchBar.bottomAnchor, constant: 8),
             ui.collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             ui.collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
@@ -185,7 +178,6 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Placeholder
     private func setupPlaceholder() {
-        // Добавляем на главный view, чтобы центр был по экрану
         view.addSubview(ui.placeholderView)
         
         ui.placeholderView.translatesAutoresizingMaskIntoConstraints = false
@@ -221,7 +213,6 @@ final class TrackersViewController: UIViewController {
                 let tracker = trackersInCategory[indexPath.item]
                 let isPinned = tracker.trackerCategory?.title == self.viewModel.pinnedCategoryTitle
                 
-                // Создаем действия
                 let pinTitle = isPinned
                 ? NSLocalizedString("tracker.action.unpin", comment: "Открепить трекер")
                 : NSLocalizedString("tracker.action.pin", comment: "Закрепить трекер")
@@ -288,7 +279,7 @@ final class TrackersViewController: UIViewController {
         ui.calendarView.locale = locale
         
         var calendar = Calendar(identifier: .gregorian)
-        calendar.firstWeekday = 2 // Понедельник
+        calendar.firstWeekday = 2
         ui.calendarView.calendar = calendar
     }
     
@@ -342,27 +333,21 @@ final class TrackersViewController: UIViewController {
         }
     }
     
-    
     // MARK: - UI Update Debounce
     private var uiUpdateWorkItem: DispatchWorkItem?
     
     private func bindViewModel() {
         
-        // Общая функция для отложенного обновления UI
         func scheduleUIRefresh(reason: String) {
-            // Отменяем предыдущую задачу, если она ещё не выполнена
             uiUpdateWorkItem?.cancel()
-            
             let workItem = DispatchWorkItem { [weak self] in
                 guard let self = self else { return }
                 
-                // Пересчёт visibleCategories прямо перед reloadData
                 self.recalculateVisibleCategories()
                 
                 print("🔁 UI Refresh triggered by: \(reason)")
                 print("🔁 visibleCategories: \(self.visibleCategories.map { $0.title })")
                 
-                // Проверка, что collectionView в иерархии
                 guard self.ui.collectionView.window != nil else {
                     print("⚠️ collectionView не в иерархии, reloadData пропущен")
                     return
@@ -371,19 +356,13 @@ final class TrackersViewController: UIViewController {
                 self.ui.collectionView.reloadData()
                 self.updatePlaceholder()
             }
-            
             uiUpdateWorkItem = workItem
-            // Выполняем с небольшим дебаунсом, чтобы сгладить множественные обновления
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: workItem)
         }
-        
-        // Единый обработчик всех обновлений
         let refreshUI = { [weak self] (reason: String) in
             guard let self = self else { return }
             scheduleUIRefresh(reason: reason)
         }
-        
-        // Подписки на события ViewModel
         viewModel.onTrackersUpdated = { refreshUI("Trackers Updated") }
         viewModel.onCategoriesUpdated = { refreshUI("Categories Updated") }
         viewModel.onDateChanged = { date in
@@ -416,13 +395,10 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - UpdatUI
     func updateUI() {
-        // Пересчёт перед обновлением UI
         recalculateVisibleCategories()
         
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            
-            // Проверка, что collectionView в иерархии
             guard self.ui.collectionView.window != nil else {
                 print("⚠️ collectionView не в иерархии, reloadData пропущен")
                 return
@@ -455,7 +431,7 @@ final class TrackersViewController: UIViewController {
     @objc func calendarDateChanged(_ sender: UIDatePicker) {
         viewModel.currentDate = sender.date
         updateDateText()
-        viewModel.filterByDate() // включает фильтрацию по дате
+        viewModel.filterByDate()
         ui.collectionView.reloadData()
     }
     
@@ -465,11 +441,10 @@ final class TrackersViewController: UIViewController {
         filtersVC.onFilterSelected = { [weak self] index in
             guard let self = self else { return }
             self.viewModel.selectedFilterIndex = index
-            // Если выбрали "Трекеры на сегодня" (index 1)
             if index == 1 {
                 let today = Date()
                 self.viewModel.currentDate = today
-                self.ui.calendarView.date = today  // обновляем UIDatePicker
+                self.ui.calendarView.date = today
                 self.updateDateText()
                 self.viewModel.filterByDate()
             }
