@@ -240,7 +240,7 @@ final class TrackersViewController: UIViewController {
                 self.updatePlaceholder()
             }
             uiUpdateWorkItem = workItem
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: workItem)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: workItem)
         }
 
         let refreshUI: (String) -> Void = { reason in
@@ -339,8 +339,6 @@ final class TrackersViewController: UIViewController {
     @objc func calendarDateChanged(_ sender: UIDatePicker) {
         viewModel.currentDate = sender.date
         updateDateText()
-        viewModel.filterByDate()
-        ui.collectionView.reloadData()
     }
 
     @objc func filtersTapped() {

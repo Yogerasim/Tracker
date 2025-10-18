@@ -67,16 +67,12 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         let tracker = trackersInCategory[indexPath.item]
 
         let cellViewModel = viewModel.makeCellViewModel(for: tracker)
-
-        // Настраиваем ячейку через ViewModel
+        cellViewModel.refreshState()
         cell.configure(with: cellViewModel)
-
-        // Подписываемся на изменения состояния
         cellViewModel.onStateChanged = { [weak collectionView] in
             collectionView?.reloadItems(at: [indexPath])
         }
 
-        // Проверка будущей даты (чтобы отключить кнопку)
         let isFuture = Calendar.current.startOfDay(for: viewModel.currentDate) > Calendar.current.startOfDay(for: Date())
         cell.setCompletionEnabled(!isFuture)
 

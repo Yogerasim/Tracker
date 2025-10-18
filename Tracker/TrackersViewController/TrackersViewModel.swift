@@ -16,7 +16,12 @@ final class TrackersViewModel {
     @Published private(set) var trackers: [Tracker] = []
     @Published private(set) var categories: [TrackerCategory] = []
     @Published var completedTrackers: [TrackerRecord] = []
-    @Published var currentDate: Date = Date()
+    @Published var currentDate: Date = Date() {
+        didSet {
+            reloadTrackers()
+            onDateChanged?(currentDate)
+        }
+    }
     @Published private(set) var filteredTrackers: [Tracker] = []
     @Published var searchText: String = "" {
         didSet { filterTrackers() }
@@ -24,6 +29,7 @@ final class TrackersViewModel {
     
     private var originalCategoryMap: [UUID: String] = [:]
     private var updateWorkItem: DispatchWorkItem?
+    private var reloadWorkItem: DispatchWorkItem?
     
     // MARK: - Callbacks
     var onTrackersUpdated: (() -> Void)?
@@ -59,6 +65,10 @@ final class TrackersViewModel {
         categories = categoryStore.categories
         completedTrackers = recordStore.completedTrackers
         filteredTrackers = trackers
+        trackers.forEach { tracker in
+                let vm = makeCellViewModel(for: tracker)
+                vm.refreshState()
+            }
     }
     
     // MARK: - Business Logic
@@ -83,7 +93,7 @@ final class TrackersViewModel {
         recordStore.addRecord(for: trackerCoreData, date: date)
         DispatchQueue.main.async {
             self.reloadTrackers()
-            completion?() // ✅ вызов опционального completion
+            completion?()
         }
     }
 
@@ -97,7 +107,7 @@ final class TrackersViewModel {
         recordStore.removeRecord(for: trackerCoreData, date: date)
         DispatchQueue.main.async {
             self.reloadTrackers()
-            completion?() // ✅ вызов опционального completion
+            completion?()
         }
     }
     func isTrackerCompleted(_ tracker: Tracker, on date: Date) -> Bool {
@@ -120,16 +130,6 @@ final class TrackersViewModel {
     func filterByDate() {
         isDateFilterEnabled = true
         filterTrackers()
-        onDateChanged?(currentDate)
-    }
-    
-    func reloadWithDebounce() {
-        updateWorkItem?.cancel()
-        let workItem = DispatchWorkItem { [weak self] in
-            self?.filterTrackers()
-        }
-        updateWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: workItem)
     }
     
     private func filterTrackers() {
@@ -155,11 +155,38 @@ final class TrackersViewModel {
         onTrackersUpdated?()
     }
     
-    private func reloadTrackers() {
-        trackers = trackerStore.getTrackers()
-        completedTrackers = recordStore.completedTrackers
-        filterTrackers()
-        NotificationCenter.default.post(name: .trackerRecordsDidChange, object: nil)
+    func reloadTrackers(debounce delay: TimeInterval = 0.3) {
+        reloadWorkItem?.cancel()
+
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+
+            // 🧠 1️⃣ Загружаем данные
+            trackers = trackerStore.getTrackers()
+            completedTrackers = recordStore.completedTrackers
+            
+            print("📦 [TrackersViewModel] reloadTrackers — trackers.count = \(trackers.count), completedTrackers.count = \(completedTrackers.count)")
+
+            // 🧠 2️⃣ Применяем фильтры
+            filterTrackers()
+
+            // 🧠 3️⃣ Обновляем состояния ячеек (лениво, чтобы не перегружать UI)
+            DispatchQueue.global(qos: .userInitiated).async {
+                self.trackers.forEach { tracker in
+                    let vm = self.makeCellViewModel(for: tracker)
+                    vm.refreshState()
+                }
+            }
+
+            // 🧠 4️⃣ Оповещаем UI с задержкой
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .trackerRecordsDidChange, object: nil)
+                self.onTrackersUpdated?()
+            }
+        }
+
+        reloadWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
     }
     
     private func applyFilter() {
@@ -226,7 +253,7 @@ extension TrackersViewModel {
 extension TrackersViewModel: TrackerStoreDelegate {
     func didUpdateTrackers(_ trackers: [Tracker]) {
         self.trackers = trackers
-        reloadWithDebounce()
+        reloadTrackers()
         onTrackersUpdated?()
     }
 }
@@ -242,7 +269,7 @@ extension TrackersViewModel: TrackerRecordStoreDelegate {
     func didUpdateRecords() {
         print("📡 [TrackersViewModel] didUpdateRecords() — refreshing completedTrackers")
         completedTrackers = recordStore.completedTrackers
-        reloadWithDebounce()
+        reloadTrackers(debounce: 0.3)
     }
 }
 

@@ -16,7 +16,12 @@ final class FiltersViewController: UIViewController {
         "Завершенные",
         "Не завершенные"
     ]
-    private var selectedFilterIndex: Int?
+    var selectedFilterIndex: Int? {
+        didSet {
+            guard let index = selectedFilterIndex else { return }
+            UserDefaults.standard.set(index, forKey: "selectedFilterIndex")
+        }
+    }
     
     var onFilterSelected: ((Int) -> Void)?
     
@@ -30,9 +35,12 @@ final class FiltersViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = AppColors.background
-        
         setupLayout()
         setupTableView()
+        if let savedIndex = UserDefaults.standard.value(forKey: "selectedFilterIndex") as? Int {
+            selectedFilterIndex = savedIndex
+            onFilterSelected?(savedIndex)
+        }
     }
     
     // MARK: - Layout
@@ -100,13 +108,13 @@ extension FiltersViewController: UITableViewDataSource, UITableViewDelegate {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as? ContainerTableViewCell else {
             return UITableViewCell()
         }
-
+        
         if filters.indices.contains(indexPath.row) {
             cell.textLabel?.text = filters[indexPath.row]
             cell.isLastCell = indexPath.row == filters.count - 1
             configureCheckmark(for: cell, at: indexPath)
         }
-
+        
         return cell
     }
     
@@ -121,8 +129,8 @@ extension FiltersViewController: UITableViewDataSource, UITableViewDelegate {
         }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                self.onFilterSelected?(indexPath.row)
-                self.dismiss(animated: true)
-            }
+            self.onFilterSelected?(indexPath.row)
+            self.dismiss(animated: true)
+        }
     }
 }
