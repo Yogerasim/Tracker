@@ -111,6 +111,10 @@ final class TrackersViewModel {
         return result
     }
     
+    func makeCellViewModel(for tracker: Tracker) -> TrackerCellViewModel {
+        TrackerCellViewModel(tracker: tracker, recordStore: recordStore, currentDate: currentDate)
+    }
+    
     // MARK: - Filtering
     
     func filterByDate() {

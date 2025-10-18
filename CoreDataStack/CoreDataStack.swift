@@ -12,6 +12,8 @@ final class CoreDataStack {
                 print("❌ Ошибка загрузки Persistent Store: \(error), \(error.userInfo)")
             } else {
                 print("✅ Загружен Store: \(description)")
+                container.viewContext.automaticallyMergesChangesFromParent = true
+                container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
             }
         }
         return container

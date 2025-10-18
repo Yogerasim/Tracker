@@ -75,24 +75,22 @@ final class StatisticsViewController: UIViewController {
         
         tableView.reloadData()
         updateTableHeight()
-        updatePlaceholderVisibility(using: stats)
+        
     }
     
     // MARK: - Placeholder Logic
-    private func updatePlaceholderVisibility(using stats: CalculateStatistics.Statistics) {
-        let hasAnyTrackers = trackerRecordStore.hasAnyTrackers()
+    private func updatePlaceholderVisibility() {
+        // Показываем placeholder только если трекеров нет вообще
         let hasCreatedTrackers = !TrackerStore(context: trackerRecordStore.viewContext).getTrackers().isEmpty
 
-        if !hasAnyTrackers && !hasCreatedTrackers {
-            placeholderView.isHidden = false
-            tableView.isHidden = true
+        placeholderView.isHidden = hasCreatedTrackers
+        tableView.isHidden = !hasCreatedTrackers
+
+        if !hasCreatedTrackers {
             placeholderView.configure(
                 imageName: "NoStatistic",
                 text: NSLocalizedString("statistics.placeholder.empty", comment: "Пустая статистика — нечего анализировать")
             )
-        } else {
-            placeholderView.isHidden = true
-            tableView.isHidden = false
         }
     }
     
