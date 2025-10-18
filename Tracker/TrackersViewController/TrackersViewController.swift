@@ -2,7 +2,7 @@ import UIKit
 import Combine
 
 final class TrackersViewController: UIViewController {
-
+    
     // MARK: - ViewModel
     let viewModel: TrackersViewModel
     let ui = TrackersUI()
@@ -11,7 +11,7 @@ final class TrackersViewController: UIViewController {
     private let placeholderView = PlaceholderView()
     
     var contextMenuController: BaseContextMenuController<TrackerCell>?
-
+    
     // MARK: - Init
     init(viewModel: TrackersViewModel = TrackersViewModel()) {
         self.viewModel = viewModel
@@ -22,12 +22,12 @@ final class TrackersViewController: UIViewController {
         self.viewModel = TrackersViewModel()
         super.init(coder: coder)
     }
-
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = AppColors.background
-
+        
         registerCollectionViewCells()
         setupNavigationBarButtons()
         setupLayoutForRest()
@@ -37,12 +37,12 @@ final class TrackersViewController: UIViewController {
         setupContextMenuController()
         setupSearchBar()
         setupTapGesture()
-
+        
         updateUI()
         updatePlaceholder()
         updateDateText()
     }
-
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         AnalyticsService.shared.trackOpen(screen: "Main")
@@ -52,7 +52,7 @@ final class TrackersViewController: UIViewController {
         super.viewWillDisappear(animated)
         AnalyticsService.shared.trackClose(screen: "Main")
     }
-
+    
     // MARK: - Trait Changes
     private func updateColorsForCurrentTraitCollection() {
         view.backgroundColor = AppColors.background
@@ -65,7 +65,7 @@ final class TrackersViewController: UIViewController {
         ui.calendarContainer.backgroundColor = AppColors.background
         ui.calendarView.backgroundColor = AppColors.background
     }
-
+    
     // MARK: - Setup CollectionView
     private func registerCollectionViewCells() {
         ui.collectionView.register(
@@ -86,7 +86,7 @@ final class TrackersViewController: UIViewController {
             right: 0
         )
     }
-
+    
     // MARK: - Navigation Bar Buttons
     private func setupNavigationBarButtons() {
         ui.addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
@@ -95,7 +95,7 @@ final class TrackersViewController: UIViewController {
         let container = UIView()
         container.addSubview(ui.addButton)
         container.translatesAutoresizingMaskIntoConstraints = false
-
+        
         NSLayoutConstraint.activate([
             ui.addButton.topAnchor.constraint(equalTo: container.topAnchor),
             ui.addButton.bottomAnchor.constraint(equalTo: container.bottomAnchor),
@@ -106,7 +106,7 @@ final class TrackersViewController: UIViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(customView: ui.dateButton)
         navigationItem.titleView = nil
     }
-
+    
     // MARK: - Layout
     private func setupLayoutForRest() {
         ui.filtersButton.addTarget(self, action: #selector(filtersTapped), for: .touchUpInside)
@@ -114,7 +114,7 @@ final class TrackersViewController: UIViewController {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
-
+        
         NSLayoutConstraint.activate([
             ui.titleView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
             ui.titleView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 25),
@@ -134,7 +134,7 @@ final class TrackersViewController: UIViewController {
             ui.filtersButton.heightAnchor.constraint(equalToConstant: 50)
         ])
     }
-
+    
     // MARK: - Placeholder
     private func setupPlaceholder() {
         ui.placeholderView.translatesAutoresizingMaskIntoConstraints = false
@@ -149,13 +149,13 @@ final class TrackersViewController: UIViewController {
         )
         updatePlaceholder()
     }
-
+    
     func updatePlaceholder() {
         let hasTrackers = !viewModel.filteredTrackers.isEmpty
         ui.placeholderView.isHidden = hasTrackers
         ui.collectionView.isHidden = !hasTrackers
         ui.filtersButton.isHidden = !hasTrackers
-
+        
         if !hasTrackers {
             let searchText = ui.searchBar.text ?? ""
             if !searchText.isEmpty {
@@ -171,7 +171,7 @@ final class TrackersViewController: UIViewController {
             }
         }
     }
-
+    
     // MARK: - Calendar
     func setupCalendarContainer() {
         ui.calendarContainer.translatesAutoresizingMaskIntoConstraints = false
@@ -208,11 +208,11 @@ final class TrackersViewController: UIViewController {
         
         ui.calendarView.addTarget(self, action: #selector(calendarDateChanged(_:)), for: .valueChanged)
     }
-
+    
     func updateDateText() {
         let df = DateFormatter()
         let languageCode = Locale.current.language.languageCode?.identifier ?? "en"
-
+        
         switch languageCode {
         case "ru":
             df.locale = Locale(identifier: "ru_RU")
@@ -224,10 +224,10 @@ final class TrackersViewController: UIViewController {
             df.locale = Locale(identifier: "en_US")
             df.dateFormat = "MM/dd/yy"
         }
-
+        
         ui.dateButton.setTitle(df.string(from: viewModel.currentDate), for: .normal)
     }
-
+    
     // MARK: - Bindings
     private func setupBindings() {
         func scheduleUIRefresh(reason: String) {
@@ -242,27 +242,27 @@ final class TrackersViewController: UIViewController {
             uiUpdateWorkItem = workItem
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: workItem)
         }
-
+        
         let refreshUI: (String) -> Void = { reason in
             scheduleUIRefresh(reason: reason)
         }
-
+        
         viewModel.onTrackersUpdated = { refreshUI("Trackers Updated") }
         viewModel.onCategoriesUpdated = { refreshUI("Categories Updated") }
         viewModel.onDateChanged = { _ in refreshUI("Date Changed") }
-
+        
         viewModel.onEditTracker = { [weak self] tracker in
             guard let self else { return }
             guard let trackerCoreData = self.viewModel.trackerStore.fetchTracker(by: tracker.id) else { return }
             self.editTracker(trackerCoreData)
         }
     }
-
+    
     private var uiUpdateWorkItem: DispatchWorkItem?
     
     // MARK: - Visible Categories
     var visibleCategories: [TrackerCategory] = []
-
+    
     private func recalculateVisibleCategories() {
         visibleCategories = viewModel.categories.filter { category in
             viewModel.filteredTrackers.contains { tracker in
@@ -270,7 +270,7 @@ final class TrackersViewController: UIViewController {
             }
         }
     }
-
+    
     func updateUI() {
         recalculateVisibleCategories()
         DispatchQueue.main.async { [weak self] in
@@ -278,7 +278,7 @@ final class TrackersViewController: UIViewController {
             self.ui.collectionView.reloadData()
         }
     }
-
+    
     // MARK: - Context Menu
     private func setupContextMenuController() {
         contextMenuController = BaseContextMenuController(
@@ -290,36 +290,36 @@ final class TrackersViewController: UIViewController {
             actionsProvider: { [weak self] indexPath in
                 guard let self else { return [] }
                 guard self.visibleCategories.indices.contains(indexPath.section) else { return [] }
-
+                
                 let category = self.visibleCategories[indexPath.section]
                 let trackersInCategory = self.viewModel.filteredTrackers.filter {
                     $0.trackerCategory?.title == category.title
                 }
                 guard trackersInCategory.indices.contains(indexPath.item) else { return [] }
-
+                
                 let tracker = trackersInCategory[indexPath.item]
                 let isPinned = tracker.trackerCategory?.title == self.viewModel.pinnedCategoryTitle
-
+                
                 let pinTitle = isPinned
-                    ? NSLocalizedString("tracker.action.unpin", comment: "Открепить трекер")
-                    : NSLocalizedString("tracker.action.pin", comment: "Закрепить трекер")
+                ? NSLocalizedString("tracker.action.unpin", comment: "Открепить трекер")
+                : NSLocalizedString("tracker.action.pin", comment: "Закрепить трекер")
                 let pinAction = UIAction(title: pinTitle, image: UIImage(systemName: isPinned ? "pin.slash" : "pin")) { _ in
                     isPinned ? self.viewModel.unpinTracker(tracker) : self.viewModel.pinTracker(tracker)
                 }
-
+                
                 let editAction = UIAction(title: NSLocalizedString("tracker.action.edit", comment: "Редактировать трекер"), image: UIImage(systemName: "pencil")) { _ in
                     self.viewModel.editTracker(tracker)
                 }
-
+                
                 let deleteAction = UIAction(title: NSLocalizedString("tracker.action.delete", comment: "Удалить трекер"), image: UIImage(systemName: "trash"), attributes: .destructive) { _ in
                     self.deleteTracker(tracker)
                 }
-
+                
                 return [pinAction, editAction, deleteAction]
             }
         )
     }
-
+    
     // MARK: - Actions
     @objc func addButtonTapped() {
         let createVC = CreateTrackerViewController()
@@ -328,19 +328,19 @@ final class TrackersViewController: UIViewController {
         }
         present(createVC, animated: true)
     }
-
+    
     @objc func toggleCalendar() {
         ui.calendarContainer.isHidden.toggle()
         if !ui.calendarContainer.isHidden {
             view.bringSubviewToFront(ui.calendarContainer)
         }
     }
-
+    
     @objc func calendarDateChanged(_ sender: UIDatePicker) {
         viewModel.currentDate = sender.date
         updateDateText()
     }
-
+    
     @objc func filtersTapped() {
         let filtersVC = FiltersViewController()
         filtersVC.onFilterSelected = { [weak self] index in
@@ -358,14 +358,14 @@ final class TrackersViewController: UIViewController {
         filtersVC.modalPresentationStyle = .pageSheet
         present(filtersVC, animated: true)
     }
-
+    
     func editTracker(_ tracker: TrackerCoreData) {
         guard let context = tracker.managedObjectContext else { return }
         guard let editVM = EditHabitViewModel(tracker: tracker, context: context) else { return }
         let editVC = EditHabitViewController(viewModel: editVM)
         present(editVC, animated: true)
     }
-
+    
     func deleteTracker(_ tracker: Tracker) {
         let alert = UIAlertController(title: "Удалить трекер?", message: "Это действие нельзя отменить.", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
@@ -374,13 +374,13 @@ final class TrackersViewController: UIViewController {
         alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
         present(alert, animated: true)
     }
-
+    
     @objc private func handleScreenTap(_ sender: UITapGestureRecognizer) {
         let location = sender.location(in: view)
         if ui.calendarContainer.frame.contains(location) { return }
         if !ui.calendarContainer.isHidden { ui.calendarContainer.isHidden = true }
     }
-
+    
     // MARK: - Search
     private func setupSearchBar() {
         ui.searchBar.delegate = self
@@ -389,7 +389,7 @@ final class TrackersViewController: UIViewController {
         ui.searchBar.searchTextField.textColor = AppColors.textPrimary
         ui.searchBar.searchTextField.tintColor = AppColors.primaryBlue
     }
-
+    
     private func setupTapGesture() {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleScreenTap(_:)))
         tapGesture.cancelsTouchesInView = false

@@ -66,9 +66,9 @@ final class TrackersViewModel {
         completedTrackers = recordStore.completedTrackers
         filteredTrackers = trackers
         trackers.forEach { tracker in
-                let vm = makeCellViewModel(for: tracker)
-                vm.refreshState()
-            }
+            let vm = makeCellViewModel(for: tracker)
+            vm.refreshState()
+        }
     }
     
     // MARK: - Business Logic
@@ -96,7 +96,7 @@ final class TrackersViewModel {
             completion?()
         }
     }
-
+    
     func unmarkTrackerAsCompleted(_ tracker: Tracker, on date: Date, completion: (() -> Void)? = nil) {
         print("🔴 [VM] unmarkTrackerAsCompleted — \(tracker.name) on \(date.formatted())")
         guard let trackerCoreData = recordStore.fetchTracker(by: tracker.id) else {
@@ -138,7 +138,7 @@ final class TrackersViewModel {
         print("🔸 currentDate = \(currentDate.formatted(date: .abbreviated, time: .omitted))")
         print("🔸 searchText = '\(searchText)'")
         print("🔸 total trackers before filter: \(trackers.count)")
-
+        
         let text = searchText.lowercased()
         
         filteredTrackers = trackers.filter { tracker in
@@ -148,7 +148,7 @@ final class TrackersViewModel {
             print("  • \(tracker.name): search=\(matchesSearch), date=\(matchesDate)")
             return matchesSearch && matchesDate
         }
-
+        
         print("✅ Filter result — \(filteredTrackers.count) trackers")
         print("✅ Filtered names: \(filteredTrackers.map { $0.name })\n")
         
@@ -157,34 +157,24 @@ final class TrackersViewModel {
     
     func reloadTrackers(debounce delay: TimeInterval = 0.3) {
         reloadWorkItem?.cancel()
-
+        
         let workItem = DispatchWorkItem { [weak self] in
             guard let self else { return }
-
-            // 🧠 1️⃣ Загружаем данные
             trackers = trackerStore.getTrackers()
             completedTrackers = recordStore.completedTrackers
-            
             print("📦 [TrackersViewModel] reloadTrackers — trackers.count = \(trackers.count), completedTrackers.count = \(completedTrackers.count)")
-
-            // 🧠 2️⃣ Применяем фильтры
             filterTrackers()
-
-            // 🧠 3️⃣ Обновляем состояния ячеек (лениво, чтобы не перегружать UI)
             DispatchQueue.global(qos: .userInitiated).async {
                 self.trackers.forEach { tracker in
                     let vm = self.makeCellViewModel(for: tracker)
                     vm.refreshState()
                 }
             }
-
-            // 🧠 4️⃣ Оповещаем UI с задержкой
             DispatchQueue.main.async {
                 NotificationCenter.default.post(name: .trackerRecordsDidChange, object: nil)
                 self.onTrackersUpdated?()
             }
         }
-
         reloadWorkItem = workItem
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
     }

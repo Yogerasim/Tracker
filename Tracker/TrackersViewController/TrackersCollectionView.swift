@@ -38,7 +38,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     
     func collectionView(_ collectionView: UICollectionView,
                         cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-
+        
         guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: TrackerCell.reuseIdentifier,
             for: indexPath
@@ -46,41 +46,40 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
             print("❌ Failed to dequeue TrackerCell")
             return UICollectionViewCell()
         }
-
+        
         guard visibleCategories.indices.contains(indexPath.section) else {
             print("❌ section index out of range: \(indexPath.section)")
             return cell
         }
-
+        
         let category = visibleCategories[indexPath.section]
-
+        
         let trackersInCategory = viewModel.filteredTrackers.filter { tracker in
             tracker.trackerCategory?.title == category.title ||
             (tracker.trackerCategory == nil && category.title == "Мои трекеры")
         }
-
+        
         guard trackersInCategory.indices.contains(indexPath.item) else {
             print("❌ item index out of range: \(indexPath.item) / \(trackersInCategory.count)")
             return cell
         }
-
+        
         let tracker = trackersInCategory[indexPath.item]
-
+        
         let cellViewModel = viewModel.makeCellViewModel(for: tracker)
         cellViewModel.refreshState()
         cell.configure(with: cellViewModel)
         cellViewModel.onStateChanged = { [weak collectionView] in
             collectionView?.reloadItems(at: [indexPath])
         }
-
+        
         let isFuture = Calendar.current.startOfDay(for: viewModel.currentDate) > Calendar.current.startOfDay(for: Date())
         cell.setCompletionEnabled(!isFuture)
-
-        // Контекстное меню
+        
         if let contextMenuController {
             contextMenuController.addInteraction(to: cell)
         }
-
+        
         return cell
     }
     
@@ -108,12 +107,12 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     func collectionView(_ collectionView: UICollectionView,
                         viewForSupplementaryElementOfKind kind: String,
                         at indexPath: IndexPath) -> UICollectionReusableView {
-
+        
         guard kind == UICollectionView.elementKindSectionHeader else {
             print("⚪️ Unknown supplementary element kind: \(kind)")
             return UICollectionReusableView()
         }
-
+        
         guard visibleCategories.indices.contains(indexPath.section),
               let header = collectionView.dequeueReusableSupplementaryView(
                 ofKind: kind,
@@ -129,7 +128,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
             emptyHeader?.configure(with: "")
             return emptyHeader ?? UICollectionReusableView()
         }
-
+        
         let category = visibleCategories[indexPath.section]
         header.configure(with: category.title)
         return header

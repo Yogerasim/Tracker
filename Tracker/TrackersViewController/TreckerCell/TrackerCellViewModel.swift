@@ -21,14 +21,12 @@ final class TrackerCellViewModel {
         self.recordStore = recordStore
         self.currentDate = currentDate
         
-        // Получаем CoreData объект трекера
         if let trackerCoreData = recordStore.fetchTracker(by: tracker.id) {
             self.isCompleted = recordStore.isCompleted(for: trackerCoreData, date: currentDate)
         } else {
             self.isCompleted = false
         }
         
-        // Количество дней можно подсчитать через все записи
         self.daysCount = recordStore.completedTrackers.filter { $0.trackerId == tracker.id }.count
     }
     
@@ -46,8 +44,6 @@ final class TrackerCellViewModel {
             recordStore.addRecord(for: trackerCoreData, date: currentDate)
             
         }
-        
-        // Notify observers
         NotificationCenter.default.post(name: .trackerRecordsDidChange, object: tracker)
         onStateChanged?()
     }

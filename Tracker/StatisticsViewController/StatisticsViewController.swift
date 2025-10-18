@@ -46,6 +46,7 @@ final class StatisticsViewController: UIViewController {
         setupLayout()
         setupTableView()
         loadStatistics()
+        updatePlaceholderVisibility()
         
         NotificationCenter.default.addObserver(
             self,
@@ -72,20 +73,16 @@ final class StatisticsViewController: UIViewController {
             (stats.completedTrackers, NSLocalizedString("statistics.completed_trackers_label", comment: "Трекеров завершено")),
             (stats.averageTrackersPerDay, NSLocalizedString("statistics.average_label", comment: "Среднее значение"))
         ]
-        
         tableView.reloadData()
         updateTableHeight()
-        
+        updatePlaceholderVisibility()
     }
     
     // MARK: - Placeholder Logic
     private func updatePlaceholderVisibility() {
-        // Показываем placeholder только если трекеров нет вообще
         let hasCreatedTrackers = !TrackerStore(context: trackerRecordStore.viewContext).getTrackers().isEmpty
-
         placeholderView.isHidden = hasCreatedTrackers
         tableView.isHidden = !hasCreatedTrackers
-
         if !hasCreatedTrackers {
             placeholderView.configure(
                 imageName: "NoStatistic",
