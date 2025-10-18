@@ -45,12 +45,12 @@ final class TrackersViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        AnalyticsService.shared.trackOpen(screen: "Main")
+        AnalyticsService.trackOpen(screen: "Main")
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        AnalyticsService.shared.trackClose(screen: "Main")
+        AnalyticsService.trackClose(screen: "Main")
     }
     
     // MARK: - Trait Changes
@@ -309,10 +309,12 @@ final class TrackersViewController: UIViewController {
                 
                 let editAction = UIAction(title: NSLocalizedString("tracker.action.edit", comment: "Редактировать трекер"), image: UIImage(systemName: "pencil")) { _ in
                     self.viewModel.editTracker(tracker)
+                    AnalyticsService.trackClick(item: "edit")
                 }
                 
                 let deleteAction = UIAction(title: NSLocalizedString("tracker.action.delete", comment: "Удалить трекер"), image: UIImage(systemName: "trash"), attributes: .destructive) { _ in
                     self.deleteTracker(tracker)
+                    AnalyticsService.trackClick(item: "delete")
                 }
                 
                 return [pinAction, editAction, deleteAction]
@@ -322,6 +324,7 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Actions
     @objc func addButtonTapped() {
+        AnalyticsService.trackClick(item: "add_track")
         let createVC = CreateTrackerViewController()
         createVC.onTrackerCreated = { [weak self] tracker in
             self?.viewModel.addTrackerToDefaultCategory(tracker)
@@ -342,6 +345,7 @@ final class TrackersViewController: UIViewController {
     }
     
     @objc func filtersTapped() {
+        AnalyticsService.trackClick(item: "filter")
         let filtersVC = FiltersViewController()
         filtersVC.onFilterSelected = { [weak self] index in
             guard let self else { return }

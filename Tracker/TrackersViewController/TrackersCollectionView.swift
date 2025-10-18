@@ -186,5 +186,17 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     }
 }
 
-
+// MARK: - Delegate
+extension TrackersViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let category = visibleCategories[indexPath.section]
+        let trackersInCategory = viewModel.filteredTrackers.filter {
+            $0.trackerCategory?.title == category.title ||
+            ($0.trackerCategory == nil && category.title == "Мои трекеры")
+        }
+        let tracker = trackersInCategory[indexPath.item]
+        print("🟣 Tap on tracker: \(tracker.name)")
+        AnalyticsService.trackClick(item: tracker.name, screen: "Main")
+    }
+}
 
