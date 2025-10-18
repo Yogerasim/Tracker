@@ -81,8 +81,9 @@ final class StatisticsViewController: UIViewController {
     // MARK: - Placeholder Logic
     private func updatePlaceholderVisibility(using stats: CalculateStatistics.Statistics) {
         let hasAnyTrackers = trackerRecordStore.hasAnyTrackers()
-        
-        if !hasAnyTrackers {
+        let hasCreatedTrackers = !TrackerStore(context: trackerRecordStore.viewContext).getTrackers().isEmpty
+
+        if !hasAnyTrackers && !hasCreatedTrackers {
             placeholderView.isHidden = false
             tableView.isHidden = true
             placeholderView.configure(

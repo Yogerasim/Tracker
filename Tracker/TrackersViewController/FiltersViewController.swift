@@ -120,8 +120,9 @@ extension FiltersViewController: UITableViewDataSource, UITableViewDelegate {
             indexPathsToReload.append(IndexPath(row: previous, section: 0))
         }
         
-        tableView.reloadRows(at: indexPathsToReload, with: .none)
-        onFilterSelected?(indexPath.row)
-        dismiss(animated: true)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                self.onFilterSelected?(indexPath.row)
+                self.dismiss(animated: true)
+            }
     }
 }
