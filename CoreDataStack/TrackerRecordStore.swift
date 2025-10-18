@@ -31,6 +31,7 @@ final class TrackerRecordStore: NSObject {
         
         do {
             try fetchedResultsController.performFetch()
+            print("📥 [TrackerRecordStore] Initial fetch — \(fetchedResultsController.fetchedObjects?.count ?? 0) records loaded")
         } catch {
             print("❌ Ошибка performFetch: \(error)")
         }
@@ -53,16 +54,18 @@ final class TrackerRecordStore: NSObject {
     // MARK: - CRUD
     
     func addRecord(for tracker: TrackerCoreData, date: Date) {
+        print("➕ [TrackerRecordStore] addRecord() for tracker: \(tracker.name ?? "nil") | date: \(date)")
         backgroundContext.perform { [weak self] in
             guard let self else { return }
             let record = TrackerRecordCoreData(context: self.backgroundContext)
             record.date = date
             record.tracker = self.backgroundContext.object(with: tracker.objectID) as? TrackerCoreData
-            self.saveBackgroundContext()
+            self.saveBackgroundContext(reason: "removeRecord")
         }
     }
     
     func removeRecord(for tracker: TrackerCoreData, date: Date) {
+        print("➖ [TrackerRecordStore] removeRecord() for tracker: \(tracker.name ?? "nil") | date: \(date)")
         backgroundContext.perform { [weak self] in
             guard let self else { return }
             let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
@@ -70,8 +73,11 @@ final class TrackerRecordStore: NSObject {
             
             do {
                 let results = try self.backgroundContext.fetch(request)
-                results.forEach { self.backgroundContext.delete($0) }
-                self.saveBackgroundContext()
+                print("   🔍 Found \(results.count) records to delete")
+                results.forEach { print("   🗑 Deleting record for tracker: \($0.tracker?.name ?? "nil") | date: \($0.date ?? Date())")
+                    self.backgroundContext.delete($0)
+                }
+                self.saveBackgroundContext(reason: "removeRecord")
             } catch {
                 print("❌ Ошибка removeRecord: \(error)")
             }
@@ -84,6 +90,7 @@ final class TrackerRecordStore: NSObject {
         
         do {
             let count = try viewContext.count(for: request)
+            print("🔎 [TrackerRecordStore] isCompleted() for \(tracker.name ?? "nil") → \(count > 0 ? "✅ YES" : "❌ NO")")
             return count > 0
         } catch {
             print("❌ Ошибка isCompleted: \(error)")
@@ -93,18 +100,22 @@ final class TrackerRecordStore: NSObject {
     
     // MARK: - Save
     
-    private func saveBackgroundContext() {
-        do {
-            if backgroundContext.hasChanges {
-                try backgroundContext.save()
-                DispatchQueue.main.async {
-                    NotificationCenter.default.post(name: .trackerRecordsDidChange, object: nil)
+    private func saveBackgroundContext(reason: String) {
+            do {
+                if backgroundContext.hasChanges {
+                    print("💾 [TrackerRecordStore] Saving backgroundContext (\(reason))...")
+                    try backgroundContext.save()
+                    print("✅ [TrackerRecordStore] backgroundContext saved successfully")
+                    DispatchQueue.main.async {
+                        NotificationCenter.default.post(name: .trackerRecordsDidChange, object: nil)
+                    }
+                } else {
+                    print("ℹ️ [TrackerRecordStore] No changes to save (\(reason))")
                 }
+            } catch {
+                print("❌ Ошибка сохранения backgroundContext (\(reason)): \(error)")
             }
-        } catch {
-            print("❌ Ошибка сохранения backgroundContext: \(error)")
         }
-    }
     
     func hasAnyTrackers() -> Bool {
         viewContext.performAndWait {
@@ -126,6 +137,7 @@ final class TrackerRecordStore: NSObject {
 
 extension TrackerRecordStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        print("📡 [TrackerRecordStore] controllerDidChangeContent() → delegate + NotificationCenter")
         delegate?.didUpdateRecords()
     }
 }
@@ -161,4 +173,22 @@ extension TrackerRecordStore {
 extension Notification.Name {
     static let trackerRecordsDidChange = Notification.Name("trackerRecordsDidChange")
     static let trackersDidChange = Notification.Name("trackersDidChange")
+}
+
+// MARK: - Debug helpers
+
+extension TrackerRecordStore {
+    func debugPrintAllRecords() {
+        print("\n==============================")
+        print("📘 [TrackerRecordStore] All TrackerRecords")
+        print("==============================")
+        guard let objects = fetchedResultsController.fetchedObjects else {
+            print("⚠️ No fetched objects")
+            return
+        }
+        for (i, record) in objects.enumerated() {
+            print("\(i+1). \(record.tracker?.name ?? "nil") — \(record.date ?? Date())")
+        }
+        print("==============================\n")
+    }
 }

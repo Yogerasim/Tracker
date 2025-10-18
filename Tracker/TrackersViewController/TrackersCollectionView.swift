@@ -80,21 +80,14 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
 
             AnalyticsService.shared.trackClick(item: "track", screen: "Main")
 
-            let wasDateFilterEnabled = self.viewModel.isDateFilterEnabled
-            self.viewModel.isDateFilterEnabled = false
-
             if self.viewModel.isTrackerCompleted(tracker, on: self.viewModel.currentDate) {
                 self.viewModel.unmarkTrackerAsCompleted(tracker, on: self.viewModel.currentDate)
             } else {
                 self.viewModel.markTrackerAsCompleted(tracker, on: self.viewModel.currentDate)
             }
-
-            self.viewModel.isDateFilterEnabled = wasDateFilterEnabled
-
-            // Обновляем только конкретный cell
+            
             collectionView.reloadItems(at: [indexPath])
         }
-
         if let contextMenuController {
             contextMenuController.addInteraction(to: cell)
         }

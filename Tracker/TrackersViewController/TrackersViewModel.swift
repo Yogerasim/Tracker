@@ -99,6 +99,12 @@ final class TrackersViewModel {
     }
     
     private func filterTrackers() {
+        print("\n🧩 [filterTrackers] — started")
+        print("🔸 isDateFilterEnabled = \(isDateFilterEnabled)")
+        print("🔸 currentDate = \(currentDate.formatted(date: .abbreviated, time: .omitted))")
+        print("🔸 searchText = '\(searchText)' (lowercased: '\(searchText.lowercased())')")
+        print("🔸 total trackers before filter: \(trackers.count)")
+
         let text = searchText.lowercased()
         
         filteredTrackers = trackers.filter { tracker in
@@ -111,8 +117,18 @@ final class TrackersViewModel {
                 matchesDate = true
             }
             
+            // Подробный лог для каждого трекера
+            print("  • Checking tracker: '\(tracker.name)'")
+            print("    - schedule: \(tracker.schedule)")
+            print("    - matchesSearch: \(matchesSearch)")
+            print("    - matchesDate: \(matchesDate)")
+            print("    - result: \(matchesSearch && matchesDate)")
+            
             return matchesSearch && matchesDate
         }
+
+        print("✅ Filter result — filteredTrackers.count = \(filteredTrackers.count)")
+        print("✅ Filtered trackers: \(filteredTrackers.map { $0.name })\n")
         
         onTrackersUpdated?()
     }

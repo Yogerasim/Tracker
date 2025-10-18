@@ -19,9 +19,12 @@ final class TrackerStore: NSObject {
     }
     
     // MARK: - FRC Setup
+    // MARK: - FRC Setup
     private func setupFetchedResultsController() {
         let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
+        
+        print("⚙️ [TrackerStore] Setting up FRC with request: \(request)")
         
         fetchedResultsController = NSFetchedResultsController(
             fetchRequest: request,
@@ -33,6 +36,13 @@ final class TrackerStore: NSObject {
         
         do {
             try fetchedResultsController.performFetch()
+            let count = fetchedResultsController.fetchedObjects?.count ?? 0
+            print("📥 [TrackerStore] FRC initial fetch — \(count) objects fetched")
+            if let trackers = fetchedResultsController.fetchedObjects {
+                trackers.forEach {
+                    print("   • \($0.name ?? "nil") | category: \($0.category?.title ?? "nil")")
+                }
+            }
             notifyDelegate()
         } catch {
             print("❌ Ошибка FRC fetch: \(error)")
@@ -92,13 +102,17 @@ final class TrackerStore: NSObject {
     
     
     func delete(_ tracker: Tracker) {
+        print("🗑 [TrackerStore] delete() called for tracker: \(tracker.name)")
         let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
         
         do {
             if let cdTracker = try context.fetch(request).first {
+                print("🗑 Deleting object: \(cdTracker.name ?? "nil") from Core Data")
                 context.delete(cdTracker)
                 saveContext()
+            } else {
+                print("⚠️ delete() — tracker not found in Core Data")
             }
         } catch {
             print("❌ Ошибка delete Tracker: \(error)")
@@ -120,16 +134,44 @@ final class TrackerStore: NSObject {
     // MARK: - Private
     private func saveContext() {
         do {
-            if context.hasChanges { try context.save() }
+            if context.hasChanges {
+                print("💾 [TrackerStore] Saving context...")
+                try context.save()
+                print("✅ [TrackerStore] Context saved successfully")
+            } else {
+                print("ℹ️ [TrackerStore] No changes to save")
+            }
         } catch {
             print("❌ Ошибка сохранения контекста: \(error)")
         }
     }
     
+    
     private func notifyDelegate() {
         let trackersList = getTrackers()
-        print("🟢 Notifying delegate, trackers: \(trackersList.map { $0.name })")
+        print("🟢 [TrackerStore] notifyDelegate() called")
+        print("   • trackers count: \(trackersList.count)")
+        if trackersList.isEmpty {
+            print("   ⚠️ [TrackerStore] EMPTY array passed to delegate!")
+            debugFetchContents() // Проверим, есть ли реально данные в Core Data
+        } else {
+            print("   • names: \(trackersList.map { $0.name })")
+        }
         delegate?.didUpdateTrackers(trackersList)
+    }
+    private func debugFetchContents() {
+        print("🔍 [TrackerStore] debugFetchContents() started")
+        let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
+        
+        do {
+            let results = try context.fetch(request)
+            print("   • Raw CoreData objects count: \(results.count)")
+            for (i, item) in results.enumerated() {
+                print("     \(i+1). \(item.name ?? "nil"), category: \(item.category?.title ?? "nil"), schedule: \(String(describing: item.schedule))")
+            }
+        } catch {
+            print("❌ [TrackerStore] debugFetchContents() failed: \(error)")
+        }
     }
 }
 
