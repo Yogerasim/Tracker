@@ -5,7 +5,7 @@ final class AnalyticsService {
     
     private static let defaultScreen = "Main"
     
-    // MARK: - Public Methods
+    static var sendEventOverride: ((String, String, String?) -> Void)?
     
     static func trackOpen(screen: String? = nil) {
         sendEvent(event: "open", screen: screen ?? defaultScreen)
@@ -19,9 +19,12 @@ final class AnalyticsService {
         sendEvent(event: "click", screen: screen ?? defaultScreen, item: item)
     }
     
-    // MARK: - Private
-    
     private static func sendEvent(event: String, screen: String, item: String? = nil) {
+        if let override = sendEventOverride {
+            override(event, screen, item)
+            return
+        }
+        
         var attributes: [String: Any] = [
             "event": event,
             "screen": screen
@@ -29,8 +32,8 @@ final class AnalyticsService {
         if let item {
             attributes["item"] = item
         }
-        print("📊 Analytics event: \(attributes)")
         
+        print("📊 Analytics event: \(attributes)")
         YMMYandexMetrica.reportEvent("user_action", parameters: attributes) { error in
             print("❌ Analytics error: \(error.localizedDescription)")
         }

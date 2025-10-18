@@ -19,16 +19,19 @@ final class TrackersViewControllerSnapshotTests: XCTestCase {
     }
     
     private func prepareForSnapshot() {
-        viewController.loadViewIfNeeded()
-        viewController.view.setNeedsLayout()
-        viewController.view.layoutIfNeeded()
-        viewController.view.frame = CGRect(origin: .zero, size: CGSize(width: 390, height: 844))
-    }
+            viewController.loadViewIfNeeded()
+            viewController.view.setNeedsLayout()
+            viewController.view.layoutIfNeeded()
+            viewController.view.frame = CGRect(origin: .zero, size: CGSize(width: 390, height: 844))
+            viewController.updateUI()
+            viewController.updatePlaceholder()
+            viewController.updateDateText()
+            RunLoop.main.run(until: Date())
+        }
     
     func testTrackersViewControllerLightTheme() {
         viewController.overrideUserInterfaceStyle = .light
         prepareForSnapshot()
-        
         withSnapshotTesting(record: false) {
             assertSnapshot(
                 of: viewController,
@@ -44,7 +47,7 @@ final class TrackersViewControllerSnapshotTests: XCTestCase {
     func testTrackersViewControllerDarkTheme() {
         viewController.overrideUserInterfaceStyle = .dark
         prepareForSnapshot()
-        
+
         withSnapshotTesting(record: false) {
             assertSnapshot(
                 of: viewController,
