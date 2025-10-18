@@ -101,13 +101,14 @@ final class TrackerRecordStore: NSObject {
     // MARK: - Save
     
     private func saveBackgroundContext(reason: String) {
+        backgroundContext.performAndWait {
             do {
                 if backgroundContext.hasChanges {
                     print("💾 [TrackerRecordStore] Saving backgroundContext (\(reason))...")
                     try backgroundContext.save()
                     print("✅ [TrackerRecordStore] backgroundContext saved successfully")
-                    DispatchQueue.main.async {
-                        NotificationCenter.default.post(name: .trackerRecordsDidChange, object: nil)
+                    DispatchQueue.main.async { [weak self] in
+                        self?.delegate?.didUpdateRecords()
                     }
                 } else {
                     print("ℹ️ [TrackerRecordStore] No changes to save (\(reason))")
@@ -116,6 +117,7 @@ final class TrackerRecordStore: NSObject {
                 print("❌ Ошибка сохранения backgroundContext (\(reason)): \(error)")
             }
         }
+    }
     
     func hasAnyTrackers() -> Bool {
         viewContext.performAndWait {
@@ -137,7 +139,7 @@ final class TrackerRecordStore: NSObject {
 
 extension TrackerRecordStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        print("📡 [TrackerRecordStore] controllerDidChangeContent() → delegate + NotificationCenter")
+        print("📡 [TrackerRecordStore] controllerDidChangeContent() → delegate only")
         delegate?.didUpdateRecords()
     }
 }

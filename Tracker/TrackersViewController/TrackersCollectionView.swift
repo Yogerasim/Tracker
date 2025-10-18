@@ -75,18 +75,26 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         cell.setCompletionEnabled(!isFuture)
         
         cell.onToggleCompletion = { [weak self, weak collectionView] in
-            guard let self = self, let collectionView = collectionView else { return }
+            guard let self, let collectionView else { return }
             if isFuture { return }
+            
+            print("🟠 [TrackersVC] onToggleCompletion tapped for tracker: \(tracker.name)")
 
             AnalyticsService.shared.trackClick(item: "track", screen: "Main")
 
             if self.viewModel.isTrackerCompleted(tracker, on: self.viewModel.currentDate) {
-                self.viewModel.unmarkTrackerAsCompleted(tracker, on: self.viewModel.currentDate)
+                print("🟣 [TrackersVC] tracker is currently COMPLETED → unmarking")
+                self.viewModel.unmarkTrackerAsCompleted(tracker, on: self.viewModel.currentDate) {
+                    print("🟢 [TrackersVC] unmarkTracker completed — reloading cell at \(indexPath)")
+                    collectionView.reloadItems(at: [indexPath])
+                }
             } else {
-                self.viewModel.markTrackerAsCompleted(tracker, on: self.viewModel.currentDate)
+                print("🟣 [TrackersVC] tracker is currently NOT completed → marking")
+                self.viewModel.markTrackerAsCompleted(tracker, on: self.viewModel.currentDate) {
+                    print("🟢 [TrackersVC] markTracker completed — reloading cell at \(indexPath)")
+                    collectionView.reloadItems(at: [indexPath])
+                }
             }
-            
-            collectionView.reloadItems(at: [indexPath])
         }
         if let contextMenuController {
             contextMenuController.addInteraction(to: cell)

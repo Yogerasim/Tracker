@@ -76,13 +76,15 @@ final class TrackerCell: UICollectionViewCell {
     
     // MARK: - Actions
     @objc private func toggleTapped() {
+        print("🟡 [TrackerCell] toggleTapped() — before toggle: isCompleted = \(isCompleted)")
         toggleButton.isUserInteractionEnabled = false
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             self.toggleButton.isUserInteractionEnabled = true
         }
         isCompleted.toggle()
+        print("🟡 [TrackerCell] after toggle: isCompleted = \(isCompleted)")
         updateButton()
-        daysCount += isCompleted ? 1 : -1
+        
         updateDayLabel()
         onToggleCompletion?()
     }
