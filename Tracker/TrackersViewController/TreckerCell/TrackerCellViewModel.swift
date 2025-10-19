@@ -60,6 +60,15 @@ final class TrackerCellViewModel {
         }
         onStateChanged?()
     }
+    func refreshStateIfNeeded() {
+        // Обновляем только количество дней, но не isCompleted
+        if recordStore.fetchTracker(by: tracker.id) != nil {
+            self.daysCount = recordStore.completedTrackers.filter { $0.trackerId == tracker.id }.count
+        } else {
+            self.daysCount = 0
+        }
+        onStateChanged?()
+    }
     
     // MARK: - UI Helpers
     func dayLabelText() -> String {

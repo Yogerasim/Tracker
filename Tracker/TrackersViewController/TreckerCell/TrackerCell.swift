@@ -97,6 +97,9 @@ final class TrackerCell: UICollectionViewCell {
         }
     }
     
+    func refreshCellState() {
+        viewModel?.refreshStateIfNeeded()
+    }
     private func updateUI() {
         guard let vm = viewModel else { return }
         dayLabel.text = vm.dayLabelText()

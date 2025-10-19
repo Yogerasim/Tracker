@@ -342,6 +342,12 @@ final class TrackersViewController: UIViewController {
     @objc func calendarDateChanged(_ sender: UIDatePicker) {
         viewModel.currentDate = sender.date
         updateDateText()
+        
+        for trackerVM in viewModel.cellViewModels.values {
+            trackerVM.refreshState()
+        }
+        
+        ui.collectionView.reloadData()
     }
     
     @objc func filtersTapped() {

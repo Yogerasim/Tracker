@@ -30,6 +30,7 @@ final class TrackersViewModel {
     private var originalCategoryMap: [UUID: String] = [:]
     private var updateWorkItem: DispatchWorkItem?
     private var reloadWorkItem: DispatchWorkItem?
+    var cellViewModels: [UUID: TrackerCellViewModel] = [:]
     
     // MARK: - Callbacks
     var onTrackersUpdated: (() -> Void)?
@@ -122,7 +123,12 @@ final class TrackersViewModel {
     }
     
     func makeCellViewModel(for tracker: Tracker) -> TrackerCellViewModel {
-        TrackerCellViewModel(tracker: tracker, recordStore: recordStore, currentDate: currentDate)
+        if let vm = cellViewModels[tracker.id] {
+            return vm
+        }
+        let vm = TrackerCellViewModel(tracker: tracker, recordStore: recordStore, currentDate: currentDate)
+        cellViewModels[tracker.id] = vm
+        return vm
     }
     
     // MARK: - Filtering
