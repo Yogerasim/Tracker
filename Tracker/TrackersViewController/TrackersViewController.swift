@@ -395,10 +395,28 @@ final class TrackersViewController: UIViewController {
         present(filtersVC, animated: true)
     }
     
-    func editTracker(_ tracker: TrackerCoreData) {
-        guard let context = tracker.managedObjectContext else { return }
-        guard let editVM = EditHabitViewModel(tracker: tracker, context: context) else { return }
+    func editTracker(_ trackerCoreData: TrackerCoreData) {
+        guard let context = trackerCoreData.managedObjectContext else { return }
+        guard let editVM = EditHabitViewModel(tracker: trackerCoreData, context: context) else { return }
         let editVC = EditHabitViewController(viewModel: editVM)
+        
+        editVM.onHabitEdited = { [weak self] in
+            guard let self else { return }
+            let updatedTracker = Tracker(
+                id: trackerCoreData.id ?? UUID(),
+                name: trackerCoreData.name ?? "",
+                color: trackerCoreData.color ?? "FFFFFF",
+                emoji: trackerCoreData.emoji ?? "",
+                schedule: (trackerCoreData.schedule as? Data).flatMap {
+                    try? JSONDecoder().decode([WeekDay].self, from: $0)
+                } ?? [],
+                trackerCategory: trackerCoreData.category
+            )
+            
+            self.viewModel.editTracker(updatedTracker)
+            self.ui.collectionView.reloadData()
+        }
+        
         present(editVC, animated: true)
     }
     

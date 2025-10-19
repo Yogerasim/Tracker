@@ -4,13 +4,14 @@ import UIKit
 final class TrackerCellViewModel {
     
     // MARK: - Dependencies
-    private let tracker: Tracker
+    var tracker: Tracker
     private let recordStore: TrackerRecordStore
-    private let currentDate: Date
+    
     
     // MARK: - State
     private(set) var isCompleted: Bool
     private(set) var daysCount: Int
+    var currentDate: Date
     
     // MARK: - Callbacks
     var onStateChanged: (() -> Void)?
@@ -49,25 +50,27 @@ final class TrackerCellViewModel {
     }
     
     func refreshState() {
-        if let trackerCoreData = recordStore.fetchTracker(by: tracker.id) {
-            self.isCompleted = recordStore.isCompleted(for: trackerCoreData, date: currentDate)
-            print("🔄 [TrackerCellViewModel] refreshState — tracker: \(tracker.name), isCompleted = \(self.isCompleted)")
-            self.daysCount = recordStore.completedTrackers.filter { $0.trackerId == tracker.id }.count
-        } else {
-            self.isCompleted = false
-            self.daysCount = 0
-            print("🔄 [TrackerCellViewModel] refreshState — tracker: \(tracker.name), NOT FOUND in CoreData")
+        guard recordStore.fetchTracker(by: tracker.id) != nil else {
+            isCompleted = false
+            daysCount = 0
+            onStateChanged?()
+            return
         }
+        
+        isCompleted = recordStore.completedTrackers.contains(where: { $0.trackerId == tracker.id })
+        daysCount = recordStore.completedTrackers.filter { $0.trackerId == tracker.id }.count
         onStateChanged?()
     }
     func refreshStateIfNeeded() {
-        // Обновляем только количество дней, но не isCompleted
         if recordStore.fetchTracker(by: tracker.id) != nil {
             self.daysCount = recordStore.completedTrackers.filter { $0.trackerId == tracker.id }.count
         } else {
             self.daysCount = 0
         }
         onStateChanged?()
+    }
+    func isTrackerCompletedEver(_ trackerId: UUID) -> Bool {
+        recordStore.completedTrackers.contains { $0.trackerId == trackerId }
     }
     
     // MARK: - UI Helpers
@@ -80,6 +83,10 @@ final class TrackerCellViewModel {
     
     func buttonSymbol() -> String {
         isCompleted ? "checkmark" : "plus"
+    }
+    func updateCurrentDate(_ date: Date) {
+        self.currentDate = date
+        refreshState()
     }
     
     func trackerEmoji() -> String { tracker.emoji }

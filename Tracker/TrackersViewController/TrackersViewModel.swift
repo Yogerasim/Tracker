@@ -7,6 +7,7 @@ final class TrackersViewModel {
     private let categoryStore: TrackerCategoryStore
     private let recordStore: TrackerRecordStore
     let trackerStore: TrackerStore
+    var cellViewModels: [UUID: TrackerCellViewModel] = [:]
     
     // MARK: - Constants
     let pinnedCategoryTitle = NSLocalizedString("trackers.pinned_category", comment: "Закрепленные")
@@ -30,7 +31,6 @@ final class TrackersViewModel {
     private var originalCategoryMap: [UUID: String] = [:]
     private var updateWorkItem: DispatchWorkItem?
     private var reloadWorkItem: DispatchWorkItem?
-    var cellViewModels: [UUID: TrackerCellViewModel] = [:]
     
     // MARK: - Callbacks
     var onTrackersUpdated: (() -> Void)?
@@ -75,14 +75,17 @@ final class TrackersViewModel {
     // MARK: - Business Logic
     
     func addTrackerToDefaultCategory(_ tracker: Tracker) {
-        if trackers.contains(where: { $0.id == tracker.id }) {
-            print("⚠️ Tracker '\(tracker.name)' уже существует, добавление пропущено")
-            return
-        }
+        guard !trackers.contains(where: { $0.id == tracker.id }) else { return }
+        
         trackerStore.add(tracker)
-        if categories.contains(where: { $0.title == defaultCategoryTitle }) {
+        
+        if let _ = categories.first(where: { $0.title == defaultCategoryTitle }) {
             categoryStore.moveTracker(tracker, to: defaultCategoryTitle)
         }
+        self.trackers.forEach { tracker in
+            _ = self.makeCellViewModel(for: tracker)
+        }
+        
         reloadTrackers()
     }
     
@@ -125,12 +128,14 @@ final class TrackersViewModel {
     }
     
     func makeCellViewModel(for tracker: Tracker) -> TrackerCellViewModel {
-        if let vm = cellViewModels[tracker.id] {
-            return vm
+        if let existingVM = cellViewModels[tracker.id] {
+            existingVM.updateCurrentDate(currentDate)
+            return existingVM
+        } else {
+            let newVM = TrackerCellViewModel(tracker: tracker, recordStore: recordStore, currentDate: currentDate)
+            cellViewModels[tracker.id] = newVM
+            return newVM
         }
-        let vm = TrackerCellViewModel(tracker: tracker, recordStore: recordStore, currentDate: currentDate)
-        cellViewModels[tracker.id] = vm
-        return vm
     }
     
     // MARK: - Filtering
@@ -168,21 +173,19 @@ final class TrackersViewModel {
         
         let workItem = DispatchWorkItem { [weak self] in
             guard let self else { return }
-            trackers = trackerStore.getTrackers()
-            completedTrackers = recordStore.completedTrackers
-            print("📦 [TrackersViewModel] reloadTrackers — trackers.count = \(trackers.count), completedTrackers.count = \(completedTrackers.count)")
-            filterTrackers()
-            DispatchQueue.global(qos: .userInitiated).async {
-                self.trackers.forEach { tracker in
-                    let vm = self.makeCellViewModel(for: tracker)
-                    vm.refreshState()
-                }
+            self.trackers = self.trackerStore.getTrackers()
+            self.completedTrackers = self.recordStore.completedTrackers
+            print("📦 reloadTrackers — trackers.count = \(self.trackers.count)")
+            self.trackers.forEach { tracker in
+                _ = self.makeCellViewModel(for: tracker)
             }
+            self.filterTrackers()
             DispatchQueue.main.async {
                 NotificationCenter.default.post(name: .trackerRecordsDidChange, object: nil)
                 self.onTrackersUpdated?()
             }
         }
+        
         reloadWorkItem = workItem
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
     }
@@ -234,6 +237,11 @@ extension TrackersViewModel {
 extension TrackersViewModel {
     func editTracker(_ tracker: Tracker) {
         print("🟢 Edit tracker tapped: \(tracker.name)")
+        if let vm = cellViewModels[tracker.id] {
+            vm.tracker = tracker
+            vm.refreshState()
+        }
+        
         onEditTracker?(tracker)
     }
     
