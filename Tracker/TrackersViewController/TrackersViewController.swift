@@ -90,7 +90,6 @@ final class TrackersViewController: UIViewController {
     // MARK: - Navigation Bar Buttons
     private func setupNavigationBarButtons() {
         ui.addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
-        ui.dateButton.addTarget(self, action: #selector(toggleCalendar), for: .touchUpInside)
         
         let container = UIView()
         container.addSubview(ui.addButton)
@@ -103,14 +102,14 @@ final class TrackersViewController: UIViewController {
             ui.addButton.trailingAnchor.constraint(equalTo: container.trailingAnchor)
         ])
         navigationItem.leftBarButtonItem = UIBarButtonItem(customView: container)
-        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: ui.dateButton)
-        navigationItem.titleView = nil
     }
-    
+
     // MARK: - Layout
     private func setupLayoutForRest() {
         ui.filtersButton.addTarget(self, action: #selector(filtersTapped), for: .touchUpInside)
-        [ui.titleView, ui.searchBar, ui.collectionView, ui.filtersButton].forEach {
+        ui.dateButton.addTarget(self, action: #selector(toggleCalendar), for: .touchUpInside)
+
+        [ui.titleView, ui.dateButton, ui.searchBar, ui.collectionView, ui.filtersButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
@@ -118,16 +117,17 @@ final class TrackersViewController: UIViewController {
         NSLayoutConstraint.activate([
             ui.titleView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
             ui.titleView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 25),
-            
+            ui.dateButton.centerYAnchor.constraint(equalTo: ui.titleView.centerYAnchor),
+            ui.dateButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -25),
+            ui.dateButton.widthAnchor.constraint(equalToConstant: 77),
+            ui.dateButton.heightAnchor.constraint(equalToConstant: 34),
             ui.searchBar.topAnchor.constraint(equalTo: ui.titleView.bottomAnchor, constant: 2),
             ui.searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             ui.searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            
             ui.collectionView.topAnchor.constraint(equalTo: ui.searchBar.bottomAnchor, constant: 8),
             ui.collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             ui.collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             ui.collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
             ui.filtersButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             ui.filtersButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             ui.filtersButton.widthAnchor.constraint(equalToConstant: 114),

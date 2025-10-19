@@ -32,10 +32,19 @@ final class TrackersUI {
         button.translatesAutoresizingMaskIntoConstraints = false
         button.widthAnchor.constraint(equalToConstant: 77).isActive = true
         button.heightAnchor.constraint(equalToConstant: 34).isActive = true
-        button.backgroundColor = AppColors.textSecondary.withAlphaComponent(0.1)
         button.layer.cornerRadius = 12
         button.titleLabel?.font = AppFonts.caption2
-        button.setTitleColor(AppColors.textPrimary, for: .normal)
+        button.backgroundColor = UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark
+            ? AppColors.textPrimary
+            : AppColors.textSecondary.withAlphaComponent(0.1)
+        }
+        button.setTitleColor(UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark
+            ? AppColors.backgroundBlackButton
+            : AppColors.textPrimary
+        }, for: .normal)
+
         return button
     }()
     
@@ -115,7 +124,6 @@ final class TrackersUI {
             calendarView.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -8),
             calendarView.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -8)
         ])
-        
         return container
     }()
 }
