@@ -102,12 +102,18 @@ final class TrackerCell: UICollectionViewCell {
     }
     private func updateUI() {
         guard let vm = viewModel else { return }
-        dayLabel.text = vm.dayLabelText()
-        let symbolName = vm.buttonSymbol()
-        let config = UIImage.SymbolConfiguration(pointSize: 11, weight: .bold)
-        toggleButton.setImage(UIImage(systemName: symbolName, withConfiguration: config), for: .normal)
-        toggleButton.tintColor = .white
-        toggleButton.setTitle(nil, for: .normal)
+        
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            
+            self.dayLabel.text = vm.dayLabelText()
+            
+            let symbolName = vm.buttonSymbol()
+            let config = UIImage.SymbolConfiguration(pointSize: 11, weight: .bold)
+            self.toggleButton.setImage(UIImage(systemName: symbolName, withConfiguration: config), for: .normal)
+            self.toggleButton.tintColor = .white
+            self.toggleButton.setTitle(nil, for: .normal)
+        }
     }
     
     // MARK: - Layout
