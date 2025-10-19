@@ -10,7 +10,6 @@ final class TrackersViewController: UIViewController {
     private let titleView = MainTitleLabelView(title: NSLocalizedString("trackers.title", comment: "Заголовок главного экрана трекеров"))
     private let placeholderView = PlaceholderView()
     private let loadingIndicator = UIActivityIndicatorView(style: .large)
-    
     var contextMenuController: BaseContextMenuController<TrackerCell>?
     
     // MARK: - Init
@@ -337,7 +336,10 @@ final class TrackersViewController: UIViewController {
     @objc func addButtonTapped() {
         AnalyticsService.trackClick(item: "add_track")
         let createVC = CreateTrackerViewController()
+        var callbackCalled = false
         createVC.onTrackerCreated = { [weak self] tracker in
+            guard !callbackCalled else { return }
+            callbackCalled = true
             self?.viewModel.addTrackerToDefaultCategory(tracker)
         }
         present(createVC, animated: true)

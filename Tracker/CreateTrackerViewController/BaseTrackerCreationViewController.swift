@@ -31,9 +31,6 @@ class BaseTrackerCreationViewController: UIViewController {
     var selectedColor: UIColor?
     var selectedCategory: TrackerCategoryCoreData?
     
-    // MARK: - Callbacks
-    var onTrackerCreated: ((TrackerCoreData) -> Void)?
-    
     // MARK: - Init
     init(title: String) {
         self.modalHeader = ModalHeaderView(title: title)
@@ -54,7 +51,7 @@ class BaseTrackerCreationViewController: UIViewController {
         setupTextField()
     }
     
-    // MARK: - Setup
+    // MARK: - UI Setup
     private func setupTextField() {
         nameTextField.onTextChanged = { [weak self] text in
             let hasText = !text.trimmingCharacters(in: .whitespaces).isEmpty
@@ -64,14 +61,10 @@ class BaseTrackerCreationViewController: UIViewController {
     
     private func setupSelectionCallbacks() {
         emojiCollectionVC.onItemSelected = { [weak self] item in
-            if case .emoji(let emoji) = item {
-                self?.selectedEmoji = emoji
-            }
+            if case .emoji(let emoji) = item { self?.selectedEmoji = emoji }
         }
         colorCollectionVC.onItemSelected = { [weak self] item in
-            if case .color(let color) = item {
-                self?.selectedColor = color
-            }
+            if case .color(let color) = item { self?.selectedColor = color }
         }
     }
     
@@ -83,7 +76,6 @@ class BaseTrackerCreationViewController: UIViewController {
         tableView.separatorStyle = .none
         tableView.isScrollEnabled = false
         tableView.rowHeight = 75
-        tableContainer.updateHeight(forRows: 2)
     }
     
     private func setupLayout() {
@@ -148,44 +140,29 @@ class BaseTrackerCreationViewController: UIViewController {
         dismiss(animated: true)
     }
     
-    func numberOfRowsInTable() -> Int { 2 } 
+    func numberOfRowsInTable() -> Int { 2 }
     
     func tableViewCell(for tableView: UITableView, indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as? ContainerTableViewCell else {
-            return UITableViewCell()
-        }
-
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell
         if indexPath.row == 0 {
-            cell.configure(
-                title: NSLocalizedString("new_habit.category", comment: ""),
-                detail: selectedCategory?.title ?? ""
-            )
+            cell.configure(title: NSLocalizedString("new_habit.category", comment: ""), detail: selectedCategory?.title ?? "")
         } else {
             let detailText = selectedDays.isEmpty ? nil : selectedDays.descriptionText
-            cell.configure(
-                title: NSLocalizedString("new_habit.schedule", comment: ""),
-                detail: detailText
-            )
+            cell.configure(title: NSLocalizedString("new_habit.schedule", comment: ""), detail: detailText)
         }
         cell.isLastCell = indexPath.row == numberOfRowsInTable() - 1
         return cell
     }
     
-    func didSelectRow(at indexPath: IndexPath, tableView: UITableView) {
-        tableView.deselectRow(at: indexPath, animated: true)
-    }
+    func didSelectRow(at indexPath: IndexPath, tableView: UITableView) { }
 }
 
 // MARK: - UITableView
 extension BaseTrackerCreationViewController: UITableViewDataSource, UITableViewDelegate {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        numberOfRowsInTable()
-    }
-    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { numberOfRowsInTable() }
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         tableViewCell(for: tableView, indexPath: indexPath)
     }
-    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         didSelectRow(at: indexPath, tableView: tableView)
     }

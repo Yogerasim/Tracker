@@ -75,11 +75,13 @@ final class TrackersViewModel {
     // MARK: - Business Logic
     
     func addTrackerToDefaultCategory(_ tracker: Tracker) {
-        if let _ = categories.first(where: { $0.title == defaultCategoryTitle }) {
-            trackerStore.add(tracker)
+        if trackers.contains(where: { $0.id == tracker.id }) {
+            print("⚠️ Tracker '\(tracker.name)' уже существует, добавление пропущено")
+            return
+        }
+        trackerStore.add(tracker)
+        if categories.contains(where: { $0.title == defaultCategoryTitle }) {
             categoryStore.moveTracker(tracker, to: defaultCategoryTitle)
-        } else {
-            trackerStore.add(tracker)
         }
         reloadTrackers()
     }
