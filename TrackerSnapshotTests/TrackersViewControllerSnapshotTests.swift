@@ -4,59 +4,55 @@ import SnapshotTesting
 
 final class TrackersViewControllerSnapshotTests: XCTestCase {
     
-    var viewController: TrackersViewController!
+    var tabBarController: MainTabBarController!
+    var trackersViewController: TrackersViewController!
     
     override func setUp() {
         super.setUp()
         UIView.setAnimationsEnabled(false)
-        viewController = TrackersViewController()
+        
+        tabBarController = MainTabBarController()
+        let navController = tabBarController.viewControllers?.first as? UINavigationController
+        trackersViewController = navController?.viewControllers.first as? TrackersViewController
     }
     
     override func tearDown() {
         UIView.setAnimationsEnabled(true)
-        viewController = nil
+        tabBarController = nil
+        trackersViewController = nil
         super.tearDown()
     }
     
     private func prepareForSnapshot() {
-            viewController.loadViewIfNeeded()
-            viewController.view.setNeedsLayout()
-            viewController.view.layoutIfNeeded()
-            viewController.view.frame = CGRect(origin: .zero, size: CGSize(width: 390, height: 844))
-            viewController.updateUI()
-            viewController.updatePlaceholder()
-            viewController.updateDateText()
-            RunLoop.main.run(until: Date())
-        }
+        tabBarController.loadViewIfNeeded()
+        trackersViewController.loadViewIfNeeded()
+        trackersViewController.view.setNeedsLayout()
+        trackersViewController.view.layoutIfNeeded()
+        
+        tabBarController.view.frame = CGRect(origin: .zero, size: CGSize(width: 390, height: 844))
+        trackersViewController.updateUI()
+        trackersViewController.updatePlaceholder()
+        trackersViewController.updateDateText()
+        RunLoop.main.run(until: Date())
+    }
     
     func testTrackersViewControllerLightTheme() {
-        viewController.overrideUserInterfaceStyle = .light
+        tabBarController.overrideUserInterfaceStyle = .light
         prepareForSnapshot()
-        withSnapshotTesting(record: false) {
-            assertSnapshot(
-                of: viewController,
-                as: .image(
-                    on: .iPhone13Pro,
-                    traits: .init(userInterfaceStyle: .light)
-                ),
-                named: "TrackersViewController_Light"
-            )
-        }
+        assertSnapshot(
+            of: tabBarController,
+            as: .image(on: .iPhone13Pro, traits: .init(userInterfaceStyle: .light)),
+            named: "TrackersViewController_Light"
+        )
     }
     
     func testTrackersViewControllerDarkTheme() {
-        viewController.overrideUserInterfaceStyle = .dark
+        tabBarController.overrideUserInterfaceStyle = .dark
         prepareForSnapshot()
-
-        withSnapshotTesting(record: false) {
-            assertSnapshot(
-                of: viewController,
-                as: .image(
-                    on: .iPhone13Pro,
-                    traits: .init(userInterfaceStyle: .dark)
-                ),
-                named: "TrackersViewController_Dark"
-            )
-        }
+        assertSnapshot(
+            of: tabBarController,
+            as: .image(on: .iPhone13Pro, traits: .init(userInterfaceStyle: .dark)),
+            named: "TrackersViewController_Dark"
+        )
     }
 }
