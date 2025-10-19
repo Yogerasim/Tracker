@@ -9,6 +9,7 @@ final class TrackersViewController: UIViewController {
     
     private let titleView = MainTitleLabelView(title: NSLocalizedString("trackers.title", comment: "Заголовок главного экрана трекеров"))
     private let placeholderView = PlaceholderView()
+    private let loadingIndicator = UIActivityIndicatorView(style: .large)
     
     var contextMenuController: BaseContextMenuController<TrackerCell>?
     
@@ -37,6 +38,7 @@ final class TrackersViewController: UIViewController {
         setupContextMenuController()
         setupSearchBar()
         setupTapGesture()
+        setupLoadingIndicator()
         
         updateUI()
         updatePlaceholder()
@@ -103,12 +105,12 @@ final class TrackersViewController: UIViewController {
         ])
         navigationItem.leftBarButtonItem = UIBarButtonItem(customView: container)
     }
-
+    
     // MARK: - Layout
     private func setupLayoutForRest() {
         ui.filtersButton.addTarget(self, action: #selector(filtersTapped), for: .touchUpInside)
         ui.dateButton.addTarget(self, action: #selector(toggleCalendar), for: .touchUpInside)
-
+        
         [ui.titleView, ui.dateButton, ui.searchBar, ui.collectionView, ui.filtersButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
@@ -278,6 +280,15 @@ final class TrackersViewController: UIViewController {
             self.ui.collectionView.reloadData()
         }
     }
+    private func setupLoadingIndicator() {
+        loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(loadingIndicator)
+        NSLayoutConstraint.activate([
+            loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+    }
+    
     
     // MARK: - Context Menu
     private func setupContextMenuController() {
@@ -340,22 +351,30 @@ final class TrackersViewController: UIViewController {
     }
     
     @objc func calendarDateChanged(_ sender: UIDatePicker) {
+        ui.calendarContainer.isHidden = true
+        showLoading()
         viewModel.currentDate = sender.date
         updateDateText()
-        
-        for trackerVM in viewModel.cellViewModels.values {
-            trackerVM.refreshState()
+        DispatchQueue.global().async {
+            for trackerVM in self.viewModel.cellViewModels.values {
+                trackerVM.refreshState()
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                self.ui.collectionView.reloadData()
+                self.hideLoading()
+            }
         }
-        
-        ui.collectionView.reloadData()
     }
     
     @objc func filtersTapped() {
         AnalyticsService.trackClick(item: "filter")
         let filtersVC = FiltersViewController()
+        
         filtersVC.onFilterSelected = { [weak self] index in
             guard let self else { return }
             self.viewModel.selectedFilterIndex = index
+            self.showLoading()
+            
             if index == 1 {
                 let today = Date()
                 self.viewModel.currentDate = today
@@ -363,8 +382,13 @@ final class TrackersViewController: UIViewController {
                 self.updateDateText()
                 self.viewModel.filterByDate()
             }
-            self.ui.collectionView.reloadData()
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                self.ui.collectionView.reloadData()
+                self.hideLoading()
+            }
         }
+        
         filtersVC.modalPresentationStyle = .pageSheet
         present(filtersVC, animated: true)
     }
@@ -411,6 +435,22 @@ final class TrackersViewController: UIViewController {
 extension TrackersViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         viewModel.searchText = searchText
+        updatePlaceholder()
+    }
+}
+// MARK: - Loading Helpers
+extension TrackersViewController {
+    private func showLoading() {
+        ui.collectionView.isHidden = true
+        ui.placeholderView.isHidden = true
+        ui.filtersButton.isHidden = true
+        loadingIndicator.startAnimating()
+    }
+    
+    private func hideLoading() {
+        loadingIndicator.stopAnimating()
+        ui.collectionView.isHidden = false
+        ui.filtersButton.isHidden = false
         updatePlaceholder()
     }
 }

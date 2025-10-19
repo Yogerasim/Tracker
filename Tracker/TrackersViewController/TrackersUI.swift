@@ -15,8 +15,8 @@ final class TrackersUI {
         button.widthAnchor.constraint(equalToConstant: 20).isActive = true
         button.heightAnchor.constraint(equalToConstant: 20).isActive = true
         if let image = UIImage(resource: .plus)?.withRenderingMode(.alwaysTemplate) {
-                button.setImage(image, for: .normal)
-            }
+            button.setImage(image, for: .normal)
+        }
         button.tintColor = UIColor { traitCollection in
             traitCollection.userInterfaceStyle == .dark
             ? AppColors.textPrimary
@@ -44,7 +44,7 @@ final class TrackersUI {
             ? AppColors.backgroundBlackButton
             : AppColors.textPrimary
         }, for: .normal)
-
+        
         return button
     }()
     
