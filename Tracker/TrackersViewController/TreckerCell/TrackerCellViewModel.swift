@@ -7,7 +7,6 @@ final class TrackerCellViewModel {
     var tracker: Tracker
     private let recordStore: TrackerRecordStore
     
-    
     // MARK: - State
     private(set) var isCompleted: Bool
     private(set) var daysCount: Int
@@ -33,20 +32,50 @@ final class TrackerCellViewModel {
     
     // MARK: - Actions
     func toggleCompletion() {
-        guard let trackerCoreData = recordStore.fetchTracker(by: tracker.id) else { return }
+        print("🧩 toggleCompletion for \(tracker.name), id: \(tracker.id)")
+
+        // Получаем TrackerCoreData из viewContext через recordStore
+        guard let trackerCoreData = recordStore.fetchTracker(by: tracker.id) else {
+            print("❌ Tracker not found in CoreData")
+            return
+        }
+        
+        let dayStart = Calendar.current.startOfDay(for: currentDate)
         
         if isCompleted {
+            // Удаляем запись
+            if let record = trackerCoreData.records?.first(where: { ($0 as? TrackerRecordCoreData)?.date == dayStart }) as? TrackerRecordCoreData {
+                recordStore.viewContext.delete(record)
+                print("🗑 Removed record for \(tracker.name) | \(dayStart)")
+            } else {
+                print("⚠️ No record found to delete for \(tracker.name) | \(dayStart)")
+            }
             isCompleted = false
             daysCount -= 1
-            recordStore.removeRecord(for: trackerCoreData, date: currentDate)
         } else {
+            // Добавляем запись
+            let record = TrackerRecordCoreData(context: recordStore.viewContext)
+            record.tracker = trackerCoreData
+            record.date = dayStart
+            print("➕ Added record for \(tracker.name) | \(dayStart)")
+            
             isCompleted = true
             daysCount += 1
-            recordStore.addRecord(for: trackerCoreData, date: currentDate)
-            
         }
-        NotificationCenter.default.post(name: .trackerRecordsDidChange, object: tracker)
+        
+        // Сохраняем viewContext сразу
+        do {
+            if recordStore.viewContext.hasChanges {
+                try recordStore.viewContext.save()
+                print("💾 viewContext saved successfully")
+            }
+        } catch {
+            print("❌ Failed to save viewContext: \(error)")
+        }
+        
+        // UI и уведомления
         onStateChanged?()
+        NotificationCenter.default.post(name: .trackerRecordsDidChange, object: tracker)
     }
     
     func refreshState() {
@@ -61,6 +90,7 @@ final class TrackerCellViewModel {
         daysCount = recordStore.completedTrackers.filter { $0.trackerId == tracker.id }.count
         onStateChanged?()
     }
+    
     func refreshStateIfNeeded() {
         if recordStore.fetchTracker(by: tracker.id) != nil {
             self.daysCount = recordStore.completedTrackers.filter { $0.trackerId == tracker.id }.count
@@ -69,6 +99,7 @@ final class TrackerCellViewModel {
         }
         onStateChanged?()
     }
+    
     func isTrackerCompletedEver(_ trackerId: UUID) -> Bool {
         recordStore.completedTrackers.contains { $0.trackerId == trackerId }
     }
@@ -84,6 +115,7 @@ final class TrackerCellViewModel {
     func buttonSymbol() -> String {
         isCompleted ? "checkmark" : "plus"
     }
+    
     func updateCurrentDate(_ date: Date) {
         self.currentDate = date
         refreshState()

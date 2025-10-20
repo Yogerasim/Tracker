@@ -182,7 +182,12 @@ extension TrackerRecordStore: NSFetchedResultsControllerDelegate {
 extension TrackerRecordStore {
     func fetchTracker(by id: UUID) -> TrackerCoreData? {
         let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        
+        // Пробуем сначала как UUID, если не найдено — как String (для старых трекеров)
+        let uuidPredicate = NSPredicate(format: "id == %@", id as CVarArg)
+        let stringPredicate = NSPredicate(format: "id == %@", id.uuidString)
+        
+        request.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: [uuidPredicate, stringPredicate])
         request.fetchLimit = 1
         
         do {
