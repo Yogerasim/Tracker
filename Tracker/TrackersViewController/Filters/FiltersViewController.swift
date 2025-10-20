@@ -1,4 +1,5 @@
 import UIKit
+import Combine
 
 final class FiltersViewController: UIViewController {
     
@@ -16,12 +17,9 @@ final class FiltersViewController: UIViewController {
         "Завершенные",
         "Не завершенные"
     ]
-    var selectedFilterIndex: Int? {
-        didSet {
-            guard let index = selectedFilterIndex else { return }
-            UserDefaults.standard.set(index, forKey: "selectedFilterIndex")
-        }
-    }
+    
+    private let viewModel: FiltersViewModel
+    private var cancellables = Set<AnyCancellable>()
     
     var onFilterSelected: ((Int) -> Void)?
     
@@ -31,16 +29,40 @@ final class FiltersViewController: UIViewController {
         static let rowHeight: CGFloat = 75
     }
     
+    // MARK: - Init
+    init(viewModel: FiltersViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = AppColors.background
         setupLayout()
         setupTableView()
+        bindViewModel()
+        
+        // Восстанавливаем выбранный фильтр
         if let savedIndex = UserDefaults.standard.value(forKey: "selectedFilterIndex") as? Int {
-            selectedFilterIndex = savedIndex
-            onFilterSelected?(savedIndex)
+            viewModel.selectFilter(index: savedIndex)
+        } else {
+            viewModel.selectFilter(index: 0)
         }
+    }
+    
+    // MARK: - Binding
+    private func bindViewModel() {
+        viewModel.$selectedFilterIndex
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] index in
+                guard let self else { return }
+                UserDefaults.standard.set(index, forKey: "selectedFilterIndex")
+                self.tableContainer.tableView.reloadData()
+            }
+            .store(in: &cancellables)
     }
     
     // MARK: - Layout
@@ -78,13 +100,8 @@ final class FiltersViewController: UIViewController {
     }
     
     // MARK: - Helpers
-    private func updateHeight(forRows count: Int) {
-        tableHeightConstraint?.constant = CGFloat(count) * Constants.rowHeight
-        view.layoutIfNeeded()
-    }
-    
     private func configureCheckmark(for cell: UITableViewCell, at indexPath: IndexPath) {
-        if indexPath.row == selectedFilterIndex {
+        if indexPath.row == viewModel.selectedFilterIndex {
             let checkmark = UIImageView(image: UIImage(named: Constants.checkmarkImageName))
             checkmark.contentMode = .scaleAspectFit
             let container = UIView(frame: CGRect(x: 0, y: 0, width: 24, height: Int(Constants.rowHeight) - 1))
@@ -120,14 +137,18 @@ extension FiltersViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let previousIndex = selectedFilterIndex
-        selectedFilterIndex = indexPath.row
         
+        let previousIndex = viewModel.selectedFilterIndex
+        viewModel.selectFilter(index: indexPath.row)
+        
+        // Reload previous + current cell
         var indexPathsToReload: [IndexPath] = [indexPath]
-        if let previous = previousIndex, previous != indexPath.row {
-            indexPathsToReload.append(IndexPath(row: previous, section: 0))
+        if previousIndex != indexPath.row {
+            indexPathsToReload.append(IndexPath(row: previousIndex, section: 0))
         }
+        tableView.reloadRows(at: indexPathsToReload, with: .automatic)
         
+        // Callback наружу
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             self.onFilterSelected?(indexPath.row)
             self.dismiss(animated: true)

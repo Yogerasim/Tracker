@@ -231,32 +231,51 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Bindings
     private func setupBindings() {
-        func scheduleUIRefresh(reason: String) {
+        // Общий метод для перезагрузки UI с debounce
+        func scheduleUIRefresh() {
             uiUpdateWorkItem?.cancel()
             let workItem = DispatchWorkItem { [weak self] in
                 guard let self else { return }
                 self.recalculateVisibleCategories()
                 guard self.ui.collectionView.window != nil else { return }
                 self.ui.collectionView.reloadData()
-                self.updatePlaceholder()
+                self.updatePlaceholder() // Обновляем плейсхолдер после reload
             }
             uiUpdateWorkItem = workItem
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: workItem)
         }
-        
-        let refreshUI: (String) -> Void = { reason in
-            scheduleUIRefresh(reason: reason)
+        viewModel.onTrackersUpdated = { [weak self] in
+            self?.scheduleUIRefresh()
         }
-        
-        viewModel.onTrackersUpdated = { refreshUI("Trackers Updated") }
-        viewModel.onCategoriesUpdated = { refreshUI("Categories Updated") }
-        viewModel.onDateChanged = { _ in refreshUI("Date Changed") }
-        
+        viewModel.onCategoriesUpdated = { [weak self] in
+            self?.scheduleUIRefresh()
+        }
+        viewModel.onDateChanged = { [weak self] _ in
+            self?.scheduleUIRefresh()
+        }
+
+        // Подписка на редактирование трекера
         viewModel.onEditTracker = { [weak self] tracker in
             guard let self else { return }
             guard let trackerCoreData = self.viewModel.trackerStore.fetchTracker(by: tracker.id) else { return }
             self.editTracker(trackerCoreData)
+            // После редактирования сразу обновляем placeholder и collectionView
+            self.recalculateVisibleCategories()
+            self.ui.collectionView.reloadData()
+            self.updatePlaceholder()
         }
+    }
+    private func scheduleUIRefresh() {
+        uiUpdateWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.recalculateVisibleCategories()
+            guard self.ui.collectionView.window != nil else { return }
+            self.ui.collectionView.reloadData()
+            self.updatePlaceholder()
+        }
+        uiUpdateWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: workItem)
     }
     
     private var uiUpdateWorkItem: DispatchWorkItem?
@@ -370,9 +389,27 @@ final class TrackersViewController: UIViewController {
     
     @objc func filtersTapped() {
         AnalyticsService.trackClick(item: "filter")
-        let filtersVC = FiltersViewController()
         
-        filtersVC.onFilterSelected = { [weak self] index in
+        // Создаём ViewModel для фильтров, передавая провайдеры из TrackersViewController
+        let filtersVM = FiltersViewModel(
+            trackersProvider: { [weak self] in
+                self?.viewModel.filteredTrackers ?? []
+            },
+            currentDateProvider: { [weak self] in
+                self?.viewModel.currentDate ?? Date()
+            },
+            isCompletedProvider: { [weak self] tracker, date in
+                guard let self else { return false }
+                // проверяем, выполнен ли трекер на заданную дату
+                return self.viewModel.isTrackerCompleted(tracker, on: date)
+            }
+        )
+        
+        // Инициализируем FiltersViewController с ViewModel
+        let filtersVC = FiltersViewController(viewModel: filtersVM)
+        
+        // Передаём callback
+        filtersVC.onFilterSelected = { [weak self] (index: Int) in
             guard let self else { return }
             self.viewModel.selectedFilterIndex = index
             self.showLoading()
@@ -391,8 +428,8 @@ final class TrackersViewController: UIViewController {
             }
         }
         
-        filtersVC.modalPresentationStyle = .pageSheet
-        present(filtersVC, animated: true)
+        // Показываем модально через расширение
+        presentFullScreenSheet(filtersVC)
     }
     
     func editTracker(_ trackerCoreData: TrackerCoreData) {

@@ -154,12 +154,23 @@ final class TrackersViewModel {
         
         let text = searchText.lowercased()
         
-        filteredTrackers = trackers.filter { tracker in
-            let matchesSearch = text.isEmpty || tracker.name.lowercased().contains(text)
-            let matchesDate = !isDateFilterEnabled || tracker.schedule.contains(currentDate.weekDay)
-            
-            print("  • \(tracker.name): search=\(matchesSearch), date=\(matchesDate)")
-            return matchesSearch && matchesDate
+        // Всегда применяем поиск
+        let searchFiltered = trackers.filter { tracker in
+            text.isEmpty || tracker.name.lowercased().contains(text)
+        }
+        
+        // Далее применяем фильтры по selectedFilterIndex
+        switch selectedFilterIndex {
+        case 0:
+            filteredTrackers = searchFiltered
+        case 1:
+            filteredTrackers = searchFiltered.filter { $0.schedule.contains(currentDate.weekDay) }
+        case 2:
+            filteredTrackers = searchFiltered.filter { isTrackerCompleted($0, on: currentDate) }
+        case 3:
+            filteredTrackers = searchFiltered.filter { !isTrackerCompleted($0, on: currentDate) }
+        default:
+            filteredTrackers = searchFiltered
         }
         
         print("✅ Filter result — \(filteredTrackers.count) trackers")
