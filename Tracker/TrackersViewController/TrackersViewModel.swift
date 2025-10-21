@@ -6,6 +6,7 @@ final class TrackersViewModel {
     // MARK: - Stores
     private let categoryStore: TrackerCategoryStore
     private let recordStore: TrackerRecordStore
+    private let dateFilter: TrackersDateFilter
     let trackerStore: TrackerStore
     var cellViewModels: [UUID: TrackerCellViewModel] = [:]
     
@@ -53,6 +54,7 @@ final class TrackersViewModel {
         self.categoryStore = TrackerCategoryStore(context: container.viewContext)
         self.recordStore = TrackerRecordStore(persistentContainer: container)
         self.trackerStore = TrackerStore(context: container.viewContext)
+        self.dateFilter = TrackersDateFilter(recordStore: recordStore)
         
         self.trackerStore.delegate = self
         self.categoryStore.delegate = self
@@ -146,36 +148,15 @@ final class TrackersViewModel {
     }
     
     private func filterTrackers() {
-        print("\n🧩 [filterTrackers] — started")
-        print("🔸 isDateFilterEnabled = \(isDateFilterEnabled)")
-        print("🔸 currentDate = \(currentDate.formatted(date: .abbreviated, time: .omitted))")
-        print("🔸 searchText = '\(searchText)'")
-        print("🔸 total trackers before filter: \(trackers.count)")
-        
-        let text = searchText.lowercased()
-        
-        // Всегда применяем поиск
-        let searchFiltered = trackers.filter { tracker in
-            text.isEmpty || tracker.name.lowercased().contains(text)
+        filteredTrackers = dateFilter.filterTrackers(
+            trackers,
+            selectedFilterIndex: selectedFilterIndex,
+            currentDate: currentDate,
+            searchText: searchText
+        ) { [weak self] tracker, date in
+            guard let self else { return false }
+            return self.isTrackerCompleted(tracker, on: date)
         }
-        
-        // Далее применяем фильтры по selectedFilterIndex
-        switch selectedFilterIndex {
-        case 0:
-            filteredTrackers = searchFiltered
-        case 1:
-            filteredTrackers = searchFiltered.filter { $0.schedule.contains(currentDate.weekDay) }
-        case 2:
-            filteredTrackers = searchFiltered.filter { isTrackerCompleted($0, on: currentDate) }
-        case 3:
-            filteredTrackers = searchFiltered.filter { !isTrackerCompleted($0, on: currentDate) }
-        default:
-            filteredTrackers = searchFiltered
-        }
-        
-        print("✅ Filter result — \(filteredTrackers.count) trackers")
-        print("✅ Filtered names: \(filteredTrackers.map { $0.name })\n")
-        
         onTrackersUpdated?()
     }
     
