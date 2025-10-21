@@ -42,10 +42,16 @@ final class StatisticsViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        print("📊 [StatsVC] viewDidLoad called")
+        
         view.backgroundColor = AppColors.background
         setupLayout()
         setupTableView()
+        
+        print("📊 [StatsVC] before loadStatistics()")
         loadStatistics()
+        print("📊 [StatsVC] after loadStatistics(), items.count = \(items.count)")
+        
         updatePlaceholderVisibility()
         
         NotificationCenter.default.addObserver(
@@ -61,9 +67,15 @@ final class StatisticsViewController: UIViewController {
             object: nil
         )
     }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        print("📊 [StatsVC] viewWillAppear — refreshing stats")
+        loadStatistics()
+    }
     
     // MARK: - Load Data
     private func loadStatistics() {
+        print("📊 [StatsVC] loadStatistics() called")
         let calculator = CalculateStatistics(trackerRecordStore: trackerRecordStore)
         let stats = calculator.calculateStatistics()
         
@@ -73,6 +85,8 @@ final class StatisticsViewController: UIViewController {
             (stats.completedTrackers, NSLocalizedString("statistics.completed_trackers_label", comment: "Трекеров завершено")),
             (stats.averageTrackersPerDay, NSLocalizedString("statistics.average_label", comment: "Среднее значение"))
         ]
+        print("📊 [StatsVC] stats = \(stats)")
+        
         tableView.reloadData()
         updateTableHeight()
         updatePlaceholderVisibility()
@@ -80,14 +94,26 @@ final class StatisticsViewController: UIViewController {
     
     // MARK: - Placeholder Logic
     private func updatePlaceholderVisibility() {
-        let hasCreatedTrackers = !TrackerStore(context: trackerRecordStore.viewContext).getTrackers().isEmpty
+        print("📊 [StatsVC] updatePlaceholderVisibility() called")
+        
+        let trackerStore = TrackerStore(context: trackerRecordStore.viewContext)
+        let trackers = trackerStore.getTrackers()
+        print("📊 [StatsVC] getTrackers count = \(trackers.count)")
+        
+        let hasCreatedTrackers = !trackers.isEmpty
+        print("📊 [StatsVC] hasCreatedTrackers = \(hasCreatedTrackers)")
+        
         placeholderView.isHidden = hasCreatedTrackers
         tableView.isHidden = !hasCreatedTrackers
+        
         if !hasCreatedTrackers {
+            print("📊 [StatsVC] showing placeholder (нет трекеров)")
             placeholderView.configure(
                 imageName: "NoStatistic",
                 text: NSLocalizedString("statistics.placeholder.empty", comment: "Пустая статистика — нечего анализировать")
             )
+        } else {
+            print("📊 [StatsVC] showing tableView (есть трекеры)")
         }
     }
     
@@ -125,6 +151,7 @@ final class StatisticsViewController: UIViewController {
     
     private func updateTableHeight() {
         let totalHeight = CGFloat(items.count * 90 + (items.count - 1) * 16)
+        print("📊 [StatsVC] updateTableHeight() totalHeight = \(totalHeight)")
         tableViewHeightConstraint.constant = totalHeight
     }
     
@@ -135,7 +162,7 @@ final class StatisticsViewController: UIViewController {
     }
     
     @objc private func handleTrackerRecordsDidChange() {
-        print("📊 StatisticsViewController received notification — reloading stats")
+        print("📊 [StatsVC] received .trackerRecordsDidChange — reloading stats")
         loadStatistics()
     }
     

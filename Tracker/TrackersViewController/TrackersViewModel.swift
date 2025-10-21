@@ -66,16 +66,27 @@ final class TrackersViewModel {
         loadData()
     }
     
-    private func loadData() {
+    func loadData() {
+        print("📦 [TrackersVM] loadData() called")
+
+        // Загружаем данные из стора
         trackers = trackerStore.getTrackers()
-        categories = categoryStore.categories
         completedTrackers = recordStore.completedTrackers
-        filteredTrackers = trackers
-        
-        trackers.forEach { tracker in
-            let vm = makeCellViewModel(for: tracker)
-            vm.refreshState()
+        categories = categoryStore.categories
+
+        print("📊 trackers.count = \(trackers.count), completed = \(completedTrackers.count)")
+
+        // 🩵 Если фильтр ещё не выбран — заполняем все трекеры, чтобы таблица не была пустой
+        if filteredTrackers.isEmpty {
+            filteredTrackers = trackers
+            print("🩵 [TrackersVM] filteredTrackers заполнен базовыми трекерами (\(filteredTrackers.count))")
         }
+
+        // Применяем фильтр (если выбран)
+        applyFilter()
+
+        // Уведомляем UI
+        onTrackersUpdated?()
     }
     
     // MARK: - External Update Methods
@@ -182,6 +193,10 @@ final class TrackersViewModel {
             self.trackers = self.trackerStore.getTrackers()
             self.completedTrackers = self.recordStore.completedTrackers
             print("📦 reloadTrackers — trackers.count = \(self.trackers.count)")
+            if self.filteredTrackers.isEmpty && !self.trackers.isEmpty {
+                print("🩵 [TrackersVM] forcing filteredTrackers = trackers for zero state")
+                self.filteredTrackers = self.trackers
+            }
             self.applyFilter()
             DispatchQueue.main.async {
                 self.onTrackersUpdated?()
