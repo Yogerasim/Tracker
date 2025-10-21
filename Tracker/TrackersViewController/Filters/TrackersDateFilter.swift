@@ -18,13 +18,9 @@ final class TrackersDateFilter {
     ) -> [Tracker] {
         
         let text = searchText.lowercased()
-        
-        // Поиск
         let searchFiltered = trackers.filter {
             text.isEmpty || $0.name.lowercased().contains(text)
         }
-        
-        // Основные фильтры
         switch selectedFilterIndex {
         case 0:
             return searchFiltered

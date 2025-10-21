@@ -10,16 +10,34 @@ final class TrackersViewController: UIViewController {
     private let titleView = MainTitleLabelView(title: NSLocalizedString("trackers.title", comment: "Заголовок главного экрана трекеров"))
     private let placeholderView = PlaceholderView()
     private let loadingIndicator = UIActivityIndicatorView(style: .large)
+    private let filtersViewModel: FiltersViewModel
     var contextMenuController: BaseContextMenuController<TrackerCell>?
     
     // MARK: - Init
     init(viewModel: TrackersViewModel = TrackersViewModel()) {
         self.viewModel = viewModel
+        
+        self.filtersViewModel = FiltersViewModel(
+            trackersProvider: { viewModel.trackers },
+            currentDateProvider: { viewModel.currentDate },
+            isCompletedProvider: { tracker, date in
+                viewModel.isTrackerCompleted(tracker, on: date)
+            }
+        )
+        
         super.init(nibName: nil, bundle: nil)
     }
     
     required init?(coder: NSCoder) {
-        self.viewModel = TrackersViewModel()
+        let viewModel = TrackersViewModel()
+        self.viewModel = viewModel
+        self.filtersViewModel = FiltersViewModel(
+            trackersProvider: { viewModel.trackers },
+            currentDateProvider: { viewModel.currentDate },
+            isCompletedProvider: { tracker, date in
+                viewModel.isTrackerCompleted(tracker, on: date)
+            }
+        )
         super.init(coder: coder)
     }
     
@@ -27,7 +45,8 @@ final class TrackersViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = AppColors.background
-        
+        viewModel.reloadTrackers()
+        filtersViewModel.selectFilter(index: 0)
         registerCollectionViewCells()
         setupNavigationBarButtons()
         setupLayoutForRest()
@@ -38,7 +57,6 @@ final class TrackersViewController: UIViewController {
         setupSearchBar()
         setupTapGesture()
         setupLoadingIndicator()
-        
         updateUI()
         updatePlaceholder()
         updateDateText()
@@ -231,7 +249,6 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Bindings
     private func setupBindings() {
-        // Общий метод для перезагрузки UI с debounce
         func scheduleUIRefresh() {
             uiUpdateWorkItem?.cancel()
             let workItem = DispatchWorkItem { [weak self] in
@@ -239,7 +256,7 @@ final class TrackersViewController: UIViewController {
                 self.recalculateVisibleCategories()
                 guard self.ui.collectionView.window != nil else { return }
                 self.ui.collectionView.reloadData()
-                self.updatePlaceholder() // Обновляем плейсхолдер после reload
+                self.updatePlaceholder()
             }
             uiUpdateWorkItem = workItem
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: workItem)
@@ -253,16 +270,19 @@ final class TrackersViewController: UIViewController {
         viewModel.onDateChanged = { [weak self] _ in
             self?.scheduleUIRefresh()
         }
-
-        // Подписка на редактирование трекера
         viewModel.onEditTracker = { [weak self] tracker in
             guard let self else { return }
             guard let trackerCoreData = self.viewModel.trackerStore.fetchTracker(by: tracker.id) else { return }
             self.editTracker(trackerCoreData)
-            // После редактирования сразу обновляем placeholder и collectionView
             self.recalculateVisibleCategories()
             self.ui.collectionView.reloadData()
             self.updatePlaceholder()
+        }
+        filtersViewModel.onFilteredTrackersUpdated = { [weak self] in
+            guard let self else { return }
+            self.viewModel.updateFilteredTrackers(self.filtersViewModel.filteredTrackers)
+            self.updatePlaceholder()
+            self.ui.collectionView.reloadData()
         }
     }
     private func scheduleUIRefresh() {
@@ -374,61 +394,40 @@ final class TrackersViewController: UIViewController {
     @objc func calendarDateChanged(_ sender: UIDatePicker) {
         ui.calendarContainer.isHidden = true
         showLoading()
+        
+        // 1️⃣ Устанавливаем новую дату во ViewModel
         viewModel.currentDate = sender.date
+        
+        // 2️⃣ Фильтруем по дате
+        viewModel.filterByDate(sender.date)
+        
+        // 3️⃣ Обновляем текст кнопки даты
         updateDateText()
-        DispatchQueue.global().async {
-            for trackerVM in self.viewModel.cellViewModels.values {
-                trackerVM.refreshState()
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                self.ui.collectionView.reloadData()
-                self.hideLoading()
-            }
+        
+        // 4️⃣ Перерисовываем UI один раз после фильтрации
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            self.ui.collectionView.reloadData()
+            self.updatePlaceholder()
+            self.hideLoading()
         }
     }
     
-    @objc func filtersTapped() {
+    @objc private func filtersTapped() {
         AnalyticsService.trackClick(item: "filter")
-        
-        // Создаём ViewModel для фильтров, передавая провайдеры из TrackersViewController
-        let filtersVM = FiltersViewModel(
-            trackersProvider: { [weak self] in
-                self?.viewModel.filteredTrackers ?? []
-            },
-            currentDateProvider: { [weak self] in
-                self?.viewModel.currentDate ?? Date()
-            },
-            isCompletedProvider: { [weak self] tracker, date in
-                guard let self else { return false }
-                // проверяем, выполнен ли трекер на заданную дату
-                return self.viewModel.isTrackerCompleted(tracker, on: date)
-            }
-        )
-        
-        // Инициализируем FiltersViewController с ViewModel
-        let filtersVC = FiltersViewController(viewModel: filtersVM)
-        
-        // Передаём callback
-        filtersVC.onFilterSelected = { [weak self] (index: Int) in
+        let filtersVC = FiltersViewController(viewModel: filtersViewModel)
+
+        filtersVC.onFilterSelected = { [weak self] index in
             guard let self else { return }
-            self.viewModel.selectedFilterIndex = index
+            self.filtersViewModel.selectFilter(index: index)
+            
             self.showLoading()
-            
-            if index == 1 {
-                let today = Date()
-                self.viewModel.currentDate = today
-                self.ui.calendarView.date = today
-                self.updateDateText()
-                self.viewModel.filterByDate()
-            }
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                 self.ui.collectionView.reloadData()
+                self.updatePlaceholder()
                 self.hideLoading()
             }
         }
-        
-        // Показываем модально через расширение
+
         presentFullScreenSheet(filtersVC)
     }
     

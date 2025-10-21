@@ -18,12 +18,14 @@ final class TrackersViewModel {
     @Published private(set) var trackers: [Tracker] = []
     @Published private(set) var categories: [TrackerCategory] = []
     @Published var completedTrackers: [TrackerRecord] = []
+    
     @Published var currentDate: Date = Date() {
         didSet {
             reloadTrackers()
             onDateChanged?(currentDate)
         }
     }
+    
     @Published private(set) var filteredTrackers: [Tracker] = []
     @Published var searchText: String = "" {
         didSet { filterTrackers() }
@@ -39,6 +41,7 @@ final class TrackersViewModel {
     var onDateChanged: ((Date) -> Void)?
     var onEditTracker: ((Tracker) -> Void)?
     
+    // MARK: - Computed
     var nonEmptyCategories: [TrackerCategory] {
         categories.filter { !$0.trackers.isEmpty }
     }
@@ -68,10 +71,17 @@ final class TrackersViewModel {
         categories = categoryStore.categories
         completedTrackers = recordStore.completedTrackers
         filteredTrackers = trackers
+        
         trackers.forEach { tracker in
             let vm = makeCellViewModel(for: tracker)
             vm.refreshState()
         }
+    }
+    
+    // MARK: - External Update Methods
+    func updateFilteredTrackers(_ trackers: [Tracker]) {
+        self.filteredTrackers = trackers
+        onTrackersUpdated?()
     }
     
     // MARK: - Business Logic
@@ -142,9 +152,10 @@ final class TrackersViewModel {
     
     // MARK: - Filtering
     
-    func filterByDate() {
-        isDateFilterEnabled = true
-        filterTrackers()
+    func filterByDate(_ date: Date) {
+        currentDate = date
+        selectedFilterIndex = 1 // день недели
+        applyFilter()            // теперь все фильтры проходят через applyFilter
     }
     
     private func filterTrackers() {
@@ -155,29 +166,26 @@ final class TrackersViewModel {
             searchText: searchText
         ) { [weak self] tracker, date in
             guard let self else { return false }
-            return self.isTrackerCompleted(tracker, on: date)
+            let completed = self.isTrackerCompleted(tracker, on: date)
+            print("🔎 [filterTrackers] \(tracker.name) — completed on \(date.formatted()): \(completed)")
+            return completed
         }
+        print("🔎 [filterTrackers] filteredTrackers.count = \(filteredTrackers.count)")
         onTrackersUpdated?()
     }
     
     func reloadTrackers(debounce delay: TimeInterval = 0.3) {
         reloadWorkItem?.cancel()
-        
         let workItem = DispatchWorkItem { [weak self] in
             guard let self else { return }
             self.trackers = self.trackerStore.getTrackers()
             self.completedTrackers = self.recordStore.completedTrackers
             print("📦 reloadTrackers — trackers.count = \(self.trackers.count)")
-            self.trackers.forEach { tracker in
-                _ = self.makeCellViewModel(for: tracker)
-            }
-            self.filterTrackers()
+            self.applyFilter() // применяем текущий selectedFilterIndex
             DispatchQueue.main.async {
-                NotificationCenter.default.post(name: .trackerRecordsDidChange, object: nil)
                 self.onTrackersUpdated?()
             }
         }
-        
         reloadWorkItem = workItem
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
     }
@@ -187,14 +195,15 @@ final class TrackersViewModel {
         case 0:
             filteredTrackers = trackers
         case 1:
-            filteredTrackers = trackers.filter { $0.schedule.contains(currentDate.weekDay) }
-        case 2:
-            filteredTrackers = trackers.filter { isTrackerCompleted($0, on: currentDate) }
-        case 3:
-            filteredTrackers = trackers.filter { !isTrackerCompleted($0, on: currentDate) }
+            filteredTrackers = trackers.filter { tracker in
+                let passes = tracker.schedule.contains(currentDate.weekDay)
+                print("📌 [applyFilter] \(tracker.name) — passes schedule filter: \(passes)")
+                return passes
+            }
         default:
             filteredTrackers = trackers
         }
+        print("📌 [applyFilter] filteredTrackers.count = \(filteredTrackers.count)")
         onTrackersUpdated?()
     }
 }
