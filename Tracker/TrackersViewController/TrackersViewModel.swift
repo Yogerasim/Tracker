@@ -80,6 +80,7 @@ final class TrackersViewModel {
     
     // MARK: - External Update Methods
     func updateFilteredTrackers(_ trackers: [Tracker]) {
+        print("🟤 [TrackersVM] updateFilteredTrackers — count = \(trackers.count)")
         self.filteredTrackers = trackers
         onTrackersUpdated?()
     }
@@ -181,7 +182,7 @@ final class TrackersViewModel {
             self.trackers = self.trackerStore.getTrackers()
             self.completedTrackers = self.recordStore.completedTrackers
             print("📦 reloadTrackers — trackers.count = \(self.trackers.count)")
-            self.applyFilter() // применяем текущий selectedFilterIndex
+            self.applyFilter()
             DispatchQueue.main.async {
                 self.onTrackersUpdated?()
             }

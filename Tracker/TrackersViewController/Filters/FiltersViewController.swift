@@ -141,6 +141,8 @@ extension FiltersViewController: UITableViewDataSource, UITableViewDelegate {
         let previousIndex = viewModel.selectedFilterIndex
         viewModel.selectFilter(index: indexPath.row)
         
+        print("🟢 [FiltersVC] Selected filter index: \(indexPath.row)")
+        
         // Reload previous + current cell
         var indexPathsToReload: [IndexPath] = [indexPath]
         if previousIndex != indexPath.row {
@@ -150,6 +152,7 @@ extension FiltersViewController: UITableViewDataSource, UITableViewDelegate {
         
         // Callback наружу
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            print("🟠 [TrackersVC] Filter selected index = \(indexPath.row)")
             self.onFilterSelected?(indexPath.row)
             self.dismiss(animated: true)
         }

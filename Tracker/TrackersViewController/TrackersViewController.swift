@@ -280,7 +280,10 @@ final class TrackersViewController: UIViewController {
         }
         filtersViewModel.onFilteredTrackersUpdated = { [weak self] in
             guard let self else { return }
+            print("🟣 [TrackersVC] filtersViewModel.filteredTrackers.count = \(self.filtersViewModel.filteredTrackers.count)")
+            
             self.viewModel.updateFilteredTrackers(self.filtersViewModel.filteredTrackers)
+            print("🧭 reload after filter — filteredTrackers.count =", self.viewModel.filteredTrackers.count)
             self.updatePlaceholder()
             self.ui.collectionView.reloadData()
         }
@@ -291,6 +294,7 @@ final class TrackersViewController: UIViewController {
             guard let self else { return }
             self.recalculateVisibleCategories()
             guard self.ui.collectionView.window != nil else { return }
+            print("📲 reloadData triggered in TrackersVC — filtered =", self.filtersViewModel.filteredTrackers.count)
             self.ui.collectionView.reloadData()
             self.updatePlaceholder()
         }
@@ -325,6 +329,25 @@ final class TrackersViewController: UIViewController {
             loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
+    }
+    func showTodayTrackers() {
+        let today = Date()
+        print("📆 [TrackersVC] showTodayTrackers() → setting date to \(today.formatted())")
+
+        // Обновляем календарь визуально
+        ui.calendarView.setDate(today, animated: true)
+        
+        // Передаём дату во viewModel
+        viewModel.currentDate = today
+        
+        // Перезапускаем фильтрацию
+        filtersViewModel.selectFilter(index: filtersViewModel.selectedFilterIndex)
+        
+        // Обновляем отображаемый текст с датой (если есть кнопка с датой)
+        updateDateText()
+        
+        // Обновляем коллекцию
+        ui.collectionView.reloadData()
     }
     
     
@@ -415,11 +438,22 @@ final class TrackersViewController: UIViewController {
     @objc private func filtersTapped() {
         AnalyticsService.trackClick(item: "filter")
         let filtersVC = FiltersViewController(viewModel: filtersViewModel)
-
+        
         filtersVC.onFilterSelected = { [weak self] index in
             guard let self else { return }
-            self.filtersViewModel.selectFilter(index: index)
             
+            print("🟠 [TrackersVC] Filter selected index = \(index)")
+            
+            // ✅ Если выбран фильтр "Трекеры на сегодня"
+            if index == 1 {
+                print("📆 [TrackersVC] Applying 'Today' filter — syncing calendar to current date")
+                self.showTodayTrackers()
+            } else {
+                // Для остальных фильтров — обычное обновление
+                self.filtersViewModel.selectFilter(index: index)
+            }
+            
+            // 🔄 Обновляем UI с лёгкой задержкой
             self.showLoading()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                 self.ui.collectionView.reloadData()
@@ -427,7 +461,7 @@ final class TrackersViewController: UIViewController {
                 self.hideLoading()
             }
         }
-
+        
         presentFullScreenSheet(filtersVC)
     }
     

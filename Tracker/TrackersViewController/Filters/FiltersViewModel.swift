@@ -27,8 +27,11 @@ final class FiltersViewModel {
     
     // MARK: - Filtering
     private func applyFilter() {
+        print("🔵 [FiltersVM] applyFilter called — selectedFilterIndex = \(selectedFilterIndex)")
+        
         let allTrackers = trackersProvider()
         let currentDate = currentDateProvider()
+        print("🔵 [FiltersVM] allTrackers.count = \(allTrackers.count)")
         
         switch selectedFilterIndex {
         case 0: // Все трекеры
@@ -43,6 +46,7 @@ final class FiltersViewModel {
             filteredTrackers = allTrackers
         }
         
+        print("🔵 [FiltersVM] filteredTrackers.count = \(filteredTrackers.count)")
         onFilteredTrackersUpdated?()
     }
     

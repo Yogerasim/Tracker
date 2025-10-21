@@ -102,6 +102,7 @@ final class TrackerCell: UICollectionViewCell {
     }
     private func updateUI() {
         guard let vm = viewModel else { return }
+        print("🟩 [TrackerCell] updateUI() called for \(vm.tracker.name), isCompleted = \(vm.isCompleted), daysCount = \(vm.daysCount)")
         
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }

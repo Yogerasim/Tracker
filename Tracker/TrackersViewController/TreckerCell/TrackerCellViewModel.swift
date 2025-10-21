@@ -32,6 +32,7 @@ final class TrackerCellViewModel {
     
     // MARK: - Actions
     func toggleCompletion() {
+        print("🧩 [TrackerCellVM] toggleCompletion START for \(tracker.name), isCompleted before = \(isCompleted)")
         print("🧩 toggleCompletion for \(tracker.name), id: \(tracker.id)")
 
         // Получаем TrackerCoreData из viewContext через recordStore
@@ -72,7 +73,7 @@ final class TrackerCellViewModel {
         } catch {
             print("❌ Failed to save viewContext: \(error)")
         }
-        
+        print("🧩 [TrackerCellVM] toggleCompletion END for \(tracker.name), isCompleted after = \(isCompleted)")
         // UI и уведомления
         onStateChanged?()
         NotificationCenter.default.post(name: .trackerRecordsDidChange, object: tracker)

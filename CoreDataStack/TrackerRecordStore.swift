@@ -70,6 +70,7 @@ final class TrackerRecordStore: NSObject {
                     let record = TrackerRecordCoreData(context: self.backgroundContext)
                     record.date = dayStart
                     record.tracker = self.backgroundContext.object(with: tracker.objectID) as? TrackerCoreData
+                    print("💾 [Record Added] \(tracker.name ?? "nil") — saved date = \(record.date ?? Date())")
                     print("   🟢 Record created for tracker: \(tracker.name ?? "nil") | date: \(dayStart)")
                 } else {
                     print("   ⚠️ Record already exists for tracker: \(tracker.name ?? "nil") | date: \(dayStart)")
@@ -109,6 +110,8 @@ final class TrackerRecordStore: NSObject {
     }
     
     func isCompleted(for tracker: TrackerCoreData, date: Date) -> Bool {
+        print("🧩 [TrackerRecordStore] isCompleted() called for \(tracker.name ?? "nil") — \(date.formatted(date: .numeric, time: .omitted))")
+
         let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
         
         // Берём начало и конец дня
@@ -122,6 +125,12 @@ final class TrackerRecordStore: NSObject {
         request.predicate = NSPredicate(format: "tracker == %@ AND date >= %@ AND date < %@", tracker, startOfDay as NSDate, endOfDay as NSDate)
         
         do {
+            print("""
+            🧮 [isCompleted] checking tracker = \(tracker.name ?? "nil")
+            startOfDay = \(startOfDay)
+            endOfDay = \(endOfDay)
+            predicate = \(String(describing: request.predicate))
+            """)
             let count = try viewContext.count(for: request)
             print("🔎 [TrackerRecordStore] isCompleted() for \(tracker.name ?? "nil") → \(count > 0 ? "✅ YES" : "❌ NO")")
             return count > 0
