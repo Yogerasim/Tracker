@@ -38,7 +38,15 @@ final class TrackerCategoryStore: NSObject {
     // MARK: - Public API
     var categories: [TrackerCategory] {
         guard let objects = fetchedResultsController.fetchedObjects else { return [] }
-        return objects.compactMap { toCategory(from: $0) }
+        var result = objects.compactMap { toCategory(from: $0) }
+        let pinnedTitle = NSLocalizedString("trackers.pinned_category", comment: "Название категории закрепленных трекеров")
+        result.sort {
+            if $0.title == pinnedTitle { return true }
+            if $1.title == pinnedTitle { return false }
+            return $0.title.localizedCompare($1.title) == .orderedAscending
+        }
+        
+        return result
     }
     
     func add(_ category: TrackerCategory) {
