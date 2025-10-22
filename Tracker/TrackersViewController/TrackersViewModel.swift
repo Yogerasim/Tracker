@@ -147,6 +147,7 @@ final class TrackersViewModel {
         } else {
             result = false
         }
+        print("📘 [VM] isTrackerCompleted called for '\(tracker.name)' on date = \(date) (startOfDay = \(Calendar.current.startOfDay(for: date)))")
         print("📘 [VM] isTrackerCompleted(\(tracker.name)) = \(result)")
         return result
     }

@@ -33,48 +33,18 @@ final class TrackerCellViewModel {
     // MARK: - Actions
     func toggleCompletion() {
         print("🧩 [TrackerCellVM] toggleCompletion START for \(tracker.name), isCompleted before = \(isCompleted)")
-        print("🧩 toggleCompletion for \(tracker.name), id: \(tracker.id)")
 
-        // Получаем TrackerCoreData из viewContext через recordStore
-        guard let trackerCoreData = recordStore.fetchTracker(by: tracker.id) else {
-            print("❌ Tracker not found in CoreData")
-            return
-        }
-        
-        let dayStart = Calendar.current.startOfDay(for: currentDate)
-        
         if isCompleted {
-            // Удаляем запись
-            if let record = trackerCoreData.records?.first(where: { ($0 as? TrackerRecordCoreData)?.date == dayStart }) as? TrackerRecordCoreData {
-                recordStore.viewContext.delete(record)
-                print("🗑 Removed record for \(tracker.name) | \(dayStart)")
-            } else {
-                print("⚠️ No record found to delete for \(tracker.name) | \(dayStart)")
-            }
+            recordStore.deleteRecord(for: tracker.id, date: currentDate)
             isCompleted = false
             daysCount -= 1
         } else {
-            // Добавляем запись
-            let record = TrackerRecordCoreData(context: recordStore.viewContext)
-            record.tracker = trackerCoreData
-            record.date = dayStart
-            print("➕ Added record for \(tracker.name) | \(dayStart)")
-            
+            recordStore.addRecord(for: tracker.id, date: currentDate)
             isCompleted = true
             daysCount += 1
         }
-        
-        // Сохраняем viewContext сразу
-        do {
-            if recordStore.viewContext.hasChanges {
-                try recordStore.viewContext.save()
-                print("💾 viewContext saved successfully")
-            }
-        } catch {
-            print("❌ Failed to save viewContext: \(error)")
-        }
+
         print("🧩 [TrackerCellVM] toggleCompletion END for \(tracker.name), isCompleted after = \(isCompleted)")
-        // UI и уведомления
         onStateChanged?()
         NotificationCenter.default.post(name: .trackerRecordsDidChange, object: tracker)
     }

@@ -21,21 +21,38 @@ final class TrackersDateFilter {
         let searchFiltered = trackers.filter {
             text.isEmpty || $0.name.lowercased().contains(text)
         }
+        
+        print("🟣 [DateFilter] searchFiltered.count = \(searchFiltered.count), currentDate = \(currentDate)")
+        
         switch selectedFilterIndex {
         case 0:
+            // Все трекеры
             return searchFiltered
+            
         case 1:
+            // На сегодня
             return searchFiltered.filter {
-                $0.schedule.contains(currentDate.weekDay)
+                let passes = $0.schedule.contains(currentDate.weekDay)
+                print("   ◼️ [DateFilter] \($0.name) schedule passes: \(passes)")
+                return passes
             }
+            
         case 2:
+            // Завершенные
             return searchFiltered.filter {
-                completionChecker($0, currentDate)
+                let completed = completionChecker($0, currentDate)
+                print("   ✅ [DateFilter] \($0.name) completed on \(currentDate): \(completed)")
+                return completed
             }
+            
         case 3:
+            // Незавершенные
             return searchFiltered.filter {
-                !completionChecker($0, currentDate)
+                let completed = completionChecker($0, currentDate)
+                print("   ❌ [DateFilter] \($0.name) completed on \(currentDate): \(completed) → include = \(!completed)")
+                return !completed
             }
+            
         default:
             return searchFiltered
         }

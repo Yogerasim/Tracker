@@ -96,7 +96,7 @@ final class StatisticsViewController: UIViewController {
     private func updatePlaceholderVisibility() {
         print("📊 [StatsVC] updatePlaceholderVisibility() called")
         
-        let trackerStore = TrackerStore(context: trackerRecordStore.viewContext)
+        let trackerStore = TrackerStore(context: trackerRecordStore.context)
         let trackers = trackerStore.getTrackers()
         print("📊 [StatsVC] getTrackers count = \(trackers.count)")
         

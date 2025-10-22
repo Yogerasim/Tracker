@@ -43,7 +43,7 @@ final class CalculateStatistics {
         let days = Set(records.map { Calendar.current.startOfDay(for: $0.date) }).count
         let average = days > 0 ? totalCompleted / days : 0
         
-        let allTrackersCount = fetchAllTrackersCount()
+        let allTrackersCount = trackerRecordStore.fetchAllTrackersCount()
         var idealDaysCount = 0
         let recordsByDay = Dictionary(grouping: records) { Calendar.current.startOfDay(for: $0.date) }
         for (_, dailyRecords) in recordsByDay {
@@ -58,15 +58,5 @@ final class CalculateStatistics {
             completedTrackers: totalCompleted,
             averageTrackersPerDay: average
         )
-    }
-    
-    private func fetchAllTrackersCount() -> Int {
-        let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
-        do {
-            return try trackerRecordStore.viewContext.count(for: request)
-        } catch {
-            print("❌ Ошибка подсчета всех трекеров: \(error)")
-            return 0
-        }
     }
 }

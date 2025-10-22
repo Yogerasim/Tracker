@@ -5,14 +5,13 @@ protocol TrackerRecordStoreDelegate: AnyObject {
 }
 
 final class TrackerRecordStore: NSObject {
-    let viewContext: NSManagedObjectContext
-    private let backgroundContext: NSManagedObjectContext
+    private let viewContext: NSManagedObjectContext
     private let fetchedResultsController: NSFetchedResultsController<TrackerRecordCoreData>
     weak var delegate: TrackerRecordStoreDelegate?
+    var context: NSManagedObjectContext { viewContext }
     
     init(persistentContainer: NSPersistentContainer) {
         self.viewContext = persistentContainer.viewContext
-        self.backgroundContext = persistentContainer.newBackgroundContext()
         
         let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(keyPath: \TrackerRecordCoreData.date, ascending: true)]
@@ -27,7 +26,7 @@ final class TrackerRecordStore: NSObject {
         super.init()
         fetchedResultsController.delegate = self
         
-        viewContext.automaticallyMergesChangesFromParent = true
+        viewContext.automaticallyMergesChangesFromParent = false
         
         do {
             try fetchedResultsController.performFetch()
@@ -36,8 +35,6 @@ final class TrackerRecordStore: NSObject {
             print("❌ Ошибка performFetch: \(error)")
         }
     }
-    
-    
     
     // MARK: - Access
     
@@ -56,26 +53,28 @@ final class TrackerRecordStore: NSObject {
     func addRecord(for tracker: TrackerCoreData, date: Date) {
         let dayStart = Calendar.current.startOfDay(for: date)
         print("➕ [TrackerRecordStore] addRecord() START for tracker: \(tracker.name ?? "nil") | date: \(dayStart)")
-
-        backgroundContext.perform { [weak self] in
+        
+        viewContext.perform { [weak self] in
             guard let self else { return }
-
-            // Проверяем, есть ли уже запись на этот день
+            
             let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
-            request.predicate = NSPredicate(format: "tracker == %@ AND date >= %@ AND date < %@", tracker, dayStart as CVarArg, Calendar.current.date(byAdding: .day, value: 1, to: dayStart)! as CVarArg)
-
+            request.predicate = NSPredicate(
+                format: "tracker == %@ AND date >= %@ AND date < %@",
+                tracker, dayStart as CVarArg,
+                Calendar.current.date(byAdding: .day, value: 1, to: dayStart)! as CVarArg
+            )
+            
             do {
-                let existingRecords = try self.backgroundContext.fetch(request)
+                let existingRecords = try self.viewContext.fetch(request)
                 if existingRecords.isEmpty {
-                    let record = TrackerRecordCoreData(context: self.backgroundContext)
+                    let record = TrackerRecordCoreData(context: self.viewContext)
                     record.date = dayStart
-                    record.tracker = self.backgroundContext.object(with: tracker.objectID) as? TrackerCoreData
+                    record.tracker = tracker
                     print("💾 [Record Added] \(tracker.name ?? "nil") — saved date = \(record.date ?? Date())")
-                    print("   🟢 Record created for tracker: \(tracker.name ?? "nil") | date: \(dayStart)")
                 } else {
-                    print("   ⚠️ Record already exists for tracker: \(tracker.name ?? "nil") | date: \(dayStart)")
+                    print("⚠️ Record already exists for tracker: \(tracker.name ?? "nil")")
                 }
-                self.saveBackgroundContext(reason: "addRecord")
+                self.saveContext(reason: "addRecord")
             } catch {
                 print("❌ addRecord fetch error: \(error)")
             }
@@ -85,24 +84,26 @@ final class TrackerRecordStore: NSObject {
     func removeRecord(for tracker: TrackerCoreData, date: Date) {
         let dayStart = Calendar.current.startOfDay(for: date)
         print("➖ [TrackerRecordStore] removeRecord() START for tracker: \(tracker.name ?? "nil") | date: \(dayStart)")
-
-        backgroundContext.perform { [weak self] in
+        
+        viewContext.perform { [weak self] in
             guard let self else { return }
-
+            
             let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
-            request.predicate = NSPredicate(format: "tracker == %@ AND date >= %@ AND date < %@", tracker, dayStart as CVarArg, Calendar.current.date(byAdding: .day, value: 1, to: dayStart)! as CVarArg)
-
+            request.predicate = NSPredicate(
+                format: "tracker == %@ AND date >= %@ AND date < %@",
+                tracker, dayStart as CVarArg,
+                Calendar.current.date(byAdding: .day, value: 1, to: dayStart)! as CVarArg
+            )
+            
             do {
-                let results = try self.backgroundContext.fetch(request)
+                let results = try self.viewContext.fetch(request)
                 if results.isEmpty {
-                    print("   ⚠️ No records found to delete for tracker: \(tracker.name ?? "nil") | date: \(dayStart)")
+                    print("⚠️ No records found to delete for tracker: \(tracker.name ?? "nil")")
                 } else {
-                    results.forEach {
-                        print("   🗑 Deleting record for tracker: \($0.tracker?.name ?? "nil") | date: \($0.date ?? Date())")
-                        self.backgroundContext.delete($0)
-                    }
-                    self.saveBackgroundContext(reason: "removeRecord")
+                    results.forEach { self.viewContext.delete($0) }
+                    print("🗑 Deleted record for \(tracker.name ?? "nil") | \(dayStart)")
                 }
+                self.saveContext(reason: "removeRecord")
             } catch {
                 print("❌ removeRecord fetch error: \(error)")
             }
@@ -110,29 +111,17 @@ final class TrackerRecordStore: NSObject {
     }
     
     func isCompleted(for tracker: TrackerCoreData, date: Date) -> Bool {
-        print("🧩 [TrackerRecordStore] isCompleted() called for \(tracker.name ?? "nil") — \(date.formatted(date: .numeric, time: .omitted))")
-
+        let startOfDay = Calendar.current.startOfDay(for: date)
+        guard let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay) else { return false }
+        
         let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
-        
-        // Берём начало и конец дня
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: date)
-        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
-            return false
-        }
-        
-        // NSPredicate проверяет, что дата записи лежит в пределах дня
-        request.predicate = NSPredicate(format: "tracker == %@ AND date >= %@ AND date < %@", tracker, startOfDay as NSDate, endOfDay as NSDate)
+        request.predicate = NSPredicate(
+            format: "tracker == %@ AND date >= %@ AND date < %@",
+            tracker, startOfDay as NSDate, endOfDay as NSDate
+        )
         
         do {
-            print("""
-            🧮 [isCompleted] checking tracker = \(tracker.name ?? "nil")
-            startOfDay = \(startOfDay)
-            endOfDay = \(endOfDay)
-            predicate = \(String(describing: request.predicate))
-            """)
             let count = try viewContext.count(for: request)
-            print("🔎 [TrackerRecordStore] isCompleted() for \(tracker.name ?? "nil") → \(count > 0 ? "✅ YES" : "❌ NO")")
             return count > 0
         } catch {
             print("❌ Ошибка isCompleted: \(error)")
@@ -142,69 +131,43 @@ final class TrackerRecordStore: NSObject {
     
     // MARK: - Save
     
-    private func saveBackgroundContext(reason: String) {
-        backgroundContext.performAndWait {
-            print("💾 [TrackerRecordStore] saveBackgroundContext START (\(reason))")
+    private func saveContext(reason: String) {
+        viewContext.perform { [weak self] in
+            guard let self else { return }
             do {
-                if backgroundContext.hasChanges {
-                    try backgroundContext.save()
-                    print("✅ [TrackerRecordStore] backgroundContext saved successfully (\(reason))")
-                    DispatchQueue.main.async { [weak self] in
-                        self?.delegate?.didUpdateRecords()
+                if self.viewContext.hasChanges {
+                    try self.viewContext.save()
+                    DispatchQueue.main.async {
+                        self.delegate?.didUpdateRecords()
                     }
-                } else {
-                    print("ℹ️ [TrackerRecordStore] No changes to save (\(reason))")
+                    print("✅ [TrackerRecordStore] Context saved (\(reason))")
                 }
             } catch {
-                print("❌ Ошибка сохранения backgroundContext (\(reason)): \(error)")
+                print("❌ Ошибка сохранения (\(reason)): \(error)")
             }
         }
     }
-    
-    func hasAnyTrackers() -> Bool {
-        viewContext.performAndWait {
-            let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
-            request.fetchLimit = 1
-            do {
-                let count = try viewContext.count(for: request)
-                return count > 0
-            } catch {
-                print("❌ Ошибка при проверке наличия трекеров: \(error)")
-                return false
-            }
-        }
-    }
-    
 }
 
 // MARK: - NSFetchedResultsControllerDelegate
 
 extension TrackerRecordStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        print("📡 [TrackerRecordStore] controllerDidChangeContent() → delegate only")
+        print("📡 [TrackerRecordStore] controllerDidChangeContent()")
         delegate?.didUpdateRecords()
     }
 }
 
-// MARK: - Extra
+// MARK: - Helpers
 
 extension TrackerRecordStore {
     func fetchTracker(by id: UUID) -> TrackerCoreData? {
         let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
-        
-        // Пробуем сначала как UUID, если не найдено — как String (для старых трекеров)
-        let uuidPredicate = NSPredicate(format: "id == %@", id as CVarArg)
-        let stringPredicate = NSPredicate(format: "id == %@", id.uuidString)
-        
-        request.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: [uuidPredicate, stringPredicate])
+        request.predicate = NSPredicate(
+            format: "id == %@ OR id == %@", id as CVarArg, id.uuidString
+        )
         request.fetchLimit = 1
-        
-        do {
-            return try viewContext.fetch(request).first
-        } catch {
-            print("❌ Ошибка fetchTracker(by:): \(error)")
-            return nil
-        }
+        return try? viewContext.fetch(request).first
     }
     
     func fetchAllRecords() -> [TrackerRecord] {
@@ -216,28 +179,59 @@ extension TrackerRecordStore {
             return TrackerRecord(trackerId: trackerId, date: date)
         }
     }
+    
+    func hasAnyTrackers() -> Bool {
+        let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
+        request.fetchLimit = 1
+        let count = (try? viewContext.count(for: request)) ?? 0
+        return count > 0
+    }
+    func fetchAllTrackersCount() -> Int {
+        let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
+        request.includesSubentities = false
+        do {
+            return try viewContext.count(for: request)
+        } catch {
+            print("❌ Ошибка подсчета трекеров: \(error)")
+            return 0
+        }
+    }
 }
-// MARK: - Notifications
-
-extension Notification.Name {
-    static let trackerRecordsDidChange = Notification.Name("trackerRecordsDidChange")
-    static let trackersDidChange = Notification.Name("trackersDidChange")
-}
-
-// MARK: - Debug helpers
-
+// MARK: - Public Record Operations
 extension TrackerRecordStore {
-    func debugPrintAllRecords() {
-        print("\n==============================")
-        print("📘 [TrackerRecordStore] All TrackerRecords")
-        print("==============================")
-        guard let objects = fetchedResultsController.fetchedObjects else {
-            print("⚠️ No fetched objects")
+    
+    func addRecord(for trackerID: UUID, date: Date) {
+        guard let tracker = fetchTracker(by: trackerID) else {
+            print("❌ [RecordStore] Tracker not found for ID \(trackerID)")
             return
         }
-        for (i, record) in objects.enumerated() {
-            print("\(i+1). \(record.tracker?.name ?? "nil") — \(record.date ?? Date())")
+        let record = TrackerRecordCoreData(context: viewContext)
+        record.tracker = tracker
+        record.date = Calendar.current.startOfDay(for: date)
+        
+        saveContext()
+    }
+    
+    func deleteRecord(for trackerID: UUID, date: Date) {
+        let dayStart = Calendar.current.startOfDay(for: date)
+        guard let tracker = fetchTracker(by: trackerID),
+              let record = tracker.records?.first(where: {
+                  ($0 as? TrackerRecordCoreData)?.date == dayStart
+              }) as? TrackerRecordCoreData else {
+            print("⚠️ [RecordStore] No record found to delete for \(trackerID)")
+            return
         }
-        print("==============================\n")
+        viewContext.delete(record)
+        saveContext()
+    }
+    
+    func saveContext() {
+        guard viewContext.hasChanges else { return }
+        do {
+            try viewContext.save()
+            print("💾 [RecordStore] Context saved successfully")
+        } catch {
+            print("❌ [RecordStore] Failed to save context: \(error)")
+        }
     }
 }
