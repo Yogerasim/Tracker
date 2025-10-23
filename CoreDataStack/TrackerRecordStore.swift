@@ -51,8 +51,10 @@ final class TrackerRecordStore: NSObject {
     // MARK: - CRUD
     
     func addRecord(for tracker: TrackerCoreData, date: Date) {
-        let dayStart = Calendar.current.startOfDay(for: date)
-        print("➕ [TrackerRecordStore] addRecord() START for tracker: \(tracker.name ?? "nil") | date: \(dayStart)")
+        let dayStart = date.startOfDayUTC()
+        let dayEnd = date.endOfDayUTC()
+        
+        print("➕ [TrackerRecordStore] addRecord() for \(tracker.name ?? "nil") | dayStartUTC=\(dayStart) | endOfDayUTC=\(dayEnd)")
         
         viewContext.perform { [weak self] in
             guard let self else { return }
@@ -60,8 +62,7 @@ final class TrackerRecordStore: NSObject {
             let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
             request.predicate = NSPredicate(
                 format: "tracker == %@ AND date >= %@ AND date < %@",
-                tracker, dayStart as CVarArg,
-                Calendar.current.date(byAdding: .day, value: 1, to: dayStart)! as CVarArg
+                tracker, dayStart as CVarArg, dayEnd as CVarArg
             )
             
             do {
@@ -72,7 +73,7 @@ final class TrackerRecordStore: NSObject {
                     record.tracker = tracker
                     print("💾 [Record Added] \(tracker.name ?? "nil") — saved date = \(record.date ?? Date())")
                 } else {
-                    print("⚠️ Record already exists for tracker: \(tracker.name ?? "nil")")
+                    print("⚠️ Record already exists for \(tracker.name ?? "nil")")
                 }
                 self.saveContext(reason: "addRecord")
             } catch {
@@ -82,8 +83,10 @@ final class TrackerRecordStore: NSObject {
     }
 
     func removeRecord(for tracker: TrackerCoreData, date: Date) {
-        let dayStart = Calendar.current.startOfDay(for: date)
-        print("➖ [TrackerRecordStore] removeRecord() START for tracker: \(tracker.name ?? "nil") | date: \(dayStart)")
+        let dayStart = date.startOfDayUTC()
+        let dayEnd = date.endOfDayUTC()
+        
+        print("➖ [TrackerRecordStore] removeRecord() for \(tracker.name ?? "nil") | dayStartUTC=\(dayStart) | endOfDayUTC=\(dayEnd)")
         
         viewContext.perform { [weak self] in
             guard let self else { return }
@@ -91,8 +94,7 @@ final class TrackerRecordStore: NSObject {
             let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
             request.predicate = NSPredicate(
                 format: "tracker == %@ AND date >= %@ AND date < %@",
-                tracker, dayStart as CVarArg,
-                Calendar.current.date(byAdding: .day, value: 1, to: dayStart)! as CVarArg
+                tracker, dayStart as CVarArg, dayEnd as CVarArg
             )
             
             do {
@@ -111,17 +113,20 @@ final class TrackerRecordStore: NSObject {
     }
     
     func isCompleted(for tracker: TrackerCoreData, date: Date) -> Bool {
-        let startOfDay = Calendar.current.startOfDay(for: date)
-        guard let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay) else { return false }
+        let dayStart = date.startOfDayUTC()
+        let dayEnd = date.endOfDayUTC()
+        
+        print("🔍 Checking isCompleted for \(tracker.name ?? "nil") | dayStartUTC=\(dayStart) | dayEndUTC=\(dayEnd) | TZ=\(TimeZone.current.identifier)")
         
         let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
         request.predicate = NSPredicate(
             format: "tracker == %@ AND date >= %@ AND date < %@",
-            tracker, startOfDay as NSDate, endOfDay as NSDate
+            tracker, dayStart as NSDate, dayEnd as NSDate
         )
         
         do {
             let count = try viewContext.count(for: request)
+            print("📊 isCompleted result for \(tracker.name ?? "nil"): \(count > 0 ? "✅ YES" : "❌ NO") (found \(count) records)")
             return count > 0
         } catch {
             print("❌ Ошибка isCompleted: \(error)")
@@ -161,7 +166,7 @@ extension TrackerRecordStore: NSFetchedResultsControllerDelegate {
 // MARK: - Helpers
 
 extension TrackerRecordStore {
-    func fetchTracker(by id: UUID) -> TrackerCoreData? {
+    func fetchTrackerInViewContext(by id: UUID) -> TrackerCoreData? {
         let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         request.predicate = NSPredicate(
             format: "id == %@ OR id == %@", id as CVarArg, id.uuidString
@@ -186,6 +191,7 @@ extension TrackerRecordStore {
         let count = (try? viewContext.count(for: request)) ?? 0
         return count > 0
     }
+    
     func fetchAllTrackersCount() -> Int {
         let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         request.includesSubentities = false
@@ -197,24 +203,26 @@ extension TrackerRecordStore {
         }
     }
 }
+
 // MARK: - Public Record Operations
 extension TrackerRecordStore {
-    
     func addRecord(for trackerID: UUID, date: Date) {
-        guard let tracker = fetchTracker(by: trackerID) else {
+        guard let tracker = fetchTrackerInViewContext(by: trackerID) else {
             print("❌ [RecordStore] Tracker not found for ID \(trackerID)")
             return
         }
+        let dayStart = date.startOfDayUTC()
         let record = TrackerRecordCoreData(context: viewContext)
         record.tracker = tracker
-        record.date = Calendar.current.startOfDay(for: date)
+        record.date = dayStart
         
-        saveContext()
+        print("💾 [RecordStore] Added by ID \(trackerID) at dayStartUTC=\(dayStart)")
+        self.saveContext(reason: "addRecord")
     }
     
     func deleteRecord(for trackerID: UUID, date: Date) {
-        let dayStart = Calendar.current.startOfDay(for: date)
-        guard let tracker = fetchTracker(by: trackerID),
+        let dayStart = date.startOfDayUTC()
+        guard let tracker = fetchTrackerInViewContext(by: trackerID),
               let record = tracker.records?.first(where: {
                   ($0 as? TrackerRecordCoreData)?.date == dayStart
               }) as? TrackerRecordCoreData else {
@@ -222,16 +230,6 @@ extension TrackerRecordStore {
             return
         }
         viewContext.delete(record)
-        saveContext()
-    }
-    
-    func saveContext() {
-        guard viewContext.hasChanges else { return }
-        do {
-            try viewContext.save()
-            print("💾 [RecordStore] Context saved successfully")
-        } catch {
-            print("❌ [RecordStore] Failed to save context: \(error)")
-        }
+        self.saveContext(reason: "deleteRecord")
     }
 }

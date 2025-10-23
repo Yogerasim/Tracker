@@ -24,14 +24,19 @@ final class CalculateStatistics {
         }
         
         // MARK: - Best Period
-        var bestStreak = records.isEmpty ? 0 : 1
+        var bestStreak = 1
         var currentStreak = 1
+        
         for i in 1..<records.count {
-            let prev = Calendar.current.startOfDay(for: records[i - 1].date)
-            let curr = Calendar.current.startOfDay(for: records[i].date)
-            if Calendar.current.dateComponents([.day], from: prev, to: curr).day == 1 {
+            let prev = records[i - 1].date.startOfDayUTC()
+            let curr = records[i].date.startOfDayUTC()
+            
+            let dayDiff = Calendar(identifier: .gregorian)
+                .dateComponents([.day], from: prev, to: curr).day ?? 0
+            
+            if dayDiff == 1 {
                 currentStreak += 1
-            } else if Calendar.current.isDate(prev, inSameDayAs: curr) {
+            } else if dayDiff == 0 {
                 continue
             } else {
                 currentStreak = 1
@@ -40,12 +45,13 @@ final class CalculateStatistics {
         }
         
         let totalCompleted = records.count
-        let days = Set(records.map { Calendar.current.startOfDay(for: $0.date) }).count
+        let days = Set(records.map { $0.date.startOfDayUTC() }).count
         let average = days > 0 ? totalCompleted / days : 0
         
         let allTrackersCount = trackerRecordStore.fetchAllTrackersCount()
         var idealDaysCount = 0
-        let recordsByDay = Dictionary(grouping: records) { Calendar.current.startOfDay(for: $0.date) }
+        
+        let recordsByDay = Dictionary(grouping: records) { $0.date.startOfDayUTC() }
         for (_, dailyRecords) in recordsByDay {
             if dailyRecords.count == allTrackersCount {
                 idealDaysCount += 1

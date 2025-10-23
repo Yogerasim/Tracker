@@ -70,7 +70,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         cell.configure(with: cellViewModel)
         
         
-        let isFuture = Calendar.current.startOfDay(for: viewModel.currentDate) > Calendar.current.startOfDay(for: Date())
+        let isFuture = viewModel.currentDate.startOfDayUTC() > Date().startOfDayUTC()
         cell.setCompletionEnabled(!isFuture)
         
         if let contextMenuController {

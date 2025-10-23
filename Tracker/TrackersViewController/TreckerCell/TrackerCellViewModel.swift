@@ -21,7 +21,7 @@ final class TrackerCellViewModel {
         self.recordStore = recordStore
         self.currentDate = currentDate
         
-        if let trackerCoreData = recordStore.fetchTracker(by: tracker.id) {
+        if let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) {
             self.isCompleted = recordStore.isCompleted(for: trackerCoreData, date: currentDate)
         } else {
             self.isCompleted = false
@@ -50,7 +50,7 @@ final class TrackerCellViewModel {
     }
     
     func refreshState() {
-        guard recordStore.fetchTracker(by: tracker.id) != nil else {
+        guard recordStore.fetchTrackerInViewContext(by: tracker.id) != nil else {
             isCompleted = false
             daysCount = 0
             onStateChanged?()
@@ -63,7 +63,7 @@ final class TrackerCellViewModel {
     }
     
     func refreshStateIfNeeded() {
-        if recordStore.fetchTracker(by: tracker.id) != nil {
+        if recordStore.fetchTrackerInViewContext(by: tracker.id) != nil {
             self.daysCount = recordStore.completedTrackers.filter { $0.trackerId == tracker.id }.count
         } else {
             self.daysCount = 0

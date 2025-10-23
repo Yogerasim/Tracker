@@ -115,7 +115,7 @@ final class TrackersViewModel {
     
     func markTrackerAsCompleted(_ tracker: Tracker, on date: Date, completion: (() -> Void)? = nil) {
         print("🟢 [VM] markTrackerAsCompleted — \(tracker.name) on \(date.formatted())")
-        guard let trackerCoreData = recordStore.fetchTracker(by: tracker.id) else {
+        guard let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) else {
             print("⚠️ [VM] fetchTracker FAILED for id \(tracker.id)")
             return
         }
@@ -129,7 +129,7 @@ final class TrackersViewModel {
     
     func unmarkTrackerAsCompleted(_ tracker: Tracker, on date: Date, completion: (() -> Void)? = nil) {
         print("🔴 [VM] unmarkTrackerAsCompleted — \(tracker.name) on \(date.formatted())")
-        guard let trackerCoreData = recordStore.fetchTracker(by: tracker.id) else {
+        guard let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) else {
             print("⚠️ [VM] fetchTracker FAILED for id \(tracker.id)")
             return
         }
@@ -141,14 +141,14 @@ final class TrackersViewModel {
         }
     }
     func isTrackerCompleted(_ tracker: Tracker, on date: Date) -> Bool {
+        let normalized = normalizedDate(date)
         let result: Bool
-        if let trackerCoreData = recordStore.fetchTracker(by: tracker.id) {
-            result = recordStore.isCompleted(for: trackerCoreData, date: date)
+        if let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) {
+            result = recordStore.isCompleted(for: trackerCoreData, date: normalized)
         } else {
             result = false
         }
-        print("📘 [VM] isTrackerCompleted called for '\(tracker.name)' on date = \(date) (startOfDay = \(Calendar.current.startOfDay(for: date)))")
-        print("📘 [VM] isTrackerCompleted(\(tracker.name)) = \(result)")
+        print("📘 [VM] isTrackerCompleted(\(tracker.name)) = \(result) for UTC date \(normalized)")
         return result
     }
     
@@ -166,21 +166,22 @@ final class TrackersViewModel {
     // MARK: - Filtering
     
     func filterByDate(_ date: Date) {
-        currentDate = date
+        currentDate = normalizedDate(date)
         selectedFilterIndex = 1 // день недели
         applyFilter()            // теперь все фильтры проходят через applyFilter
     }
     
     private func filterTrackers() {
+        let normalized = normalizedDate(currentDate)
         filteredTrackers = dateFilter.filterTrackers(
             trackers,
             selectedFilterIndex: selectedFilterIndex,
-            currentDate: currentDate,
+            currentDate: normalized,
             searchText: searchText
         ) { [weak self] tracker, date in
             guard let self else { return false }
-            let completed = self.isTrackerCompleted(tracker, on: date)
-            print("🔎 [filterTrackers] \(tracker.name) — completed on \(date.formatted()): \(completed)")
+            let completed = self.isTrackerCompleted(tracker, on: normalized)
+            print("🔎 [filterTrackers] \(tracker.name) — completed on UTC \(normalized): \(completed)")
             return completed
         }
         print("🔎 [filterTrackers] filteredTrackers.count = \(filteredTrackers.count)")
@@ -222,6 +223,30 @@ final class TrackersViewModel {
         }
         print("📌 [applyFilter] filteredTrackers.count = \(filteredTrackers.count)")
         onTrackersUpdated?()
+    }
+    private func normalizedDate(_ date: Date) -> Date {
+        date.startOfDayUTC()
+    }
+    // MARK: - Centralized Filtering
+    private func updateFilteredData(reason: String) {
+        print("⚙️ [TrackersVM] updateFilteredData (reason: \(reason))")
+
+        let normalized = normalizedDate(currentDate)
+
+        filteredTrackers = dateFilter.filterTrackers(
+            trackers,
+            selectedFilterIndex: selectedFilterIndex,
+            currentDate: normalized,
+            searchText: searchText
+        ) { [weak self] tracker, date in
+            guard let self else { return false }
+            return self.isTrackerCompleted(tracker, on: date)
+        }
+
+        print("🔎 [TrackersVM] filteredTrackers.count = \(filteredTrackers.count)")
+        DispatchQueue.main.async {
+            self.onTrackersUpdated?()
+        }
     }
 }
 
@@ -277,8 +302,7 @@ extension TrackersViewModel {
 extension TrackersViewModel: TrackerStoreDelegate {
     func didUpdateTrackers(_ trackers: [Tracker]) {
         self.trackers = trackers
-        reloadTrackers()
-        onTrackersUpdated?()
+        applyFilter()
     }
 }
 
@@ -291,9 +315,8 @@ extension TrackersViewModel: TrackerCategoryStoreDelegate {
 
 extension TrackersViewModel: TrackerRecordStoreDelegate {
     func didUpdateRecords() {
-        print("📡 [TrackersViewModel] didUpdateRecords() — refreshing completedTrackers")
         completedTrackers = recordStore.completedTrackers
-        reloadTrackers(debounce: 0.3)
+        applyFilter() // вместо reloadTrackers
     }
 }
 
