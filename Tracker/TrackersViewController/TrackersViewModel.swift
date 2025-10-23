@@ -21,7 +21,7 @@ final class TrackersViewModel {
     
     @Published var currentDate: Date = Date() {
         didSet {
-            reloadTrackers()
+            updateFilteredData(reason: "dateChanged")
             onDateChanged?(currentDate)
         }
     }
@@ -47,7 +47,7 @@ final class TrackersViewModel {
     }
     
     var selectedFilterIndex: Int = 0 {
-        didSet { applyFilter() }
+        didSet { updateFilteredData(reason: "filterChanged") }
     }
     
     var isDateFilterEnabled: Bool = false
@@ -188,24 +188,13 @@ final class TrackersViewModel {
         onTrackersUpdated?()
     }
     
-    func reloadTrackers(debounce delay: TimeInterval = 0.3) {
-        reloadWorkItem?.cancel()
-        let workItem = DispatchWorkItem { [weak self] in
-            guard let self else { return }
-            self.trackers = self.trackerStore.getTrackers()
-            self.completedTrackers = self.recordStore.completedTrackers
-            print("📦 reloadTrackers — trackers.count = \(self.trackers.count)")
-            if self.filteredTrackers.isEmpty && !self.trackers.isEmpty {
-                print("🩵 [TrackersVM] forcing filteredTrackers = trackers for zero state")
-                self.filteredTrackers = self.trackers
-            }
-            self.applyFilter()
-            DispatchQueue.main.async {
-                self.onTrackersUpdated?()
-            }
-        }
-        reloadWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
+    func reloadTrackers() {
+        trackers = trackerStore.getTrackers()
+        completedTrackers = recordStore.completedTrackers
+
+        print("📦 [TrackersVM] reloadTrackers() — trackers.count = \(trackers.count), completed = \(completedTrackers.count)")
+
+        updateFilteredData(reason: "manualReload")
     }
     
     private func applyFilter() {
@@ -302,7 +291,7 @@ extension TrackersViewModel {
 extension TrackersViewModel: TrackerStoreDelegate {
     func didUpdateTrackers(_ trackers: [Tracker]) {
         self.trackers = trackers
-        applyFilter()
+        updateFilteredData(reason: "trackerStore")
     }
 }
 
@@ -316,7 +305,7 @@ extension TrackersViewModel: TrackerCategoryStoreDelegate {
 extension TrackersViewModel: TrackerRecordStoreDelegate {
     func didUpdateRecords() {
         completedTrackers = recordStore.completedTrackers
-        applyFilter() // вместо reloadTrackers
+        updateFilteredData(reason: "recordStore")
     }
 }
 

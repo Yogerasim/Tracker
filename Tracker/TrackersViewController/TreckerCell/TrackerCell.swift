@@ -84,16 +84,21 @@ final class TrackerCell: UICollectionViewCell {
     
     func configure(with viewModel: TrackerCellViewModel) {
         self.viewModel = viewModel
-        
+
         emojiLabel.text = viewModel.trackerEmoji()
         titleLabel.text = viewModel.trackerTitle()
         cardView.backgroundColor = viewModel.trackerColor()
         toggleButton.backgroundColor = viewModel.trackerColor()
-        
+
         updateUI()
-        
+
         viewModel.onStateChanged = { [weak self] in
-            self?.updateUI()
+            guard let self else { return }
+            DispatchQueue.main.async {
+                // 💡 защита от reuse
+                guard self.viewModel === viewModel else { return }
+                self.updateUI()
+            }
         }
     }
     

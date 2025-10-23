@@ -44,8 +44,6 @@ final class FiltersViewController: UIViewController {
         setupLayout()
         setupTableView()
         bindViewModel()
-        
-        // Восстанавливаем выбранный фильтр
         if let savedIndex = UserDefaults.standard.value(forKey: "selectedFilterIndex") as? Int {
             viewModel.selectFilter(index: savedIndex)
         } else {
