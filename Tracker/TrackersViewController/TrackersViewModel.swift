@@ -1,4 +1,3 @@
-import Foundation
 import CoreData
 
 final class TrackersViewModel {
@@ -19,9 +18,7 @@ final class TrackersViewModel {
     @Published var completedTrackers: [TrackerRecord] = []
     
     @Published var currentDate: Date = Date() {
-        didSet {
-            onDateChanged?(currentDate)
-        }
+        didSet { onDateChanged?(currentDate) }
     }
     
     private var originalCategoryMap: [UUID: String] = [:]
@@ -34,17 +31,32 @@ final class TrackersViewModel {
     var onDateChanged: ((Date) -> Void)?
     var onEditTracker: ((Tracker) -> Void)?
     
-    // MARK: - Init
+    // MARK: - Основной инициализатор (для приложения)
     init(container: NSPersistentContainer = CoreDataStack.shared.persistentContainer) {
         self.categoryStore = TrackerCategoryStore(context: container.viewContext)
-        self.recordStore = TrackerRecordStore(persistentContainer: container)
         self.trackerStore = TrackerStore(context: container.viewContext)
+        self.recordStore = TrackerRecordStore(persistentContainer: container)
         
         self.trackerStore.delegate = self
         self.categoryStore.delegate = self
         self.recordStore.delegate = self
         
         loadData()
+    }
+    
+    // MARK: - Тестовый инициализатор (для Snapshot и Unit тестов)
+    init(
+        categoryStore: TrackerCategoryStore,
+        trackerStore: TrackerStore,
+        recordStore: TrackerRecordStore
+    ) {
+        self.categoryStore = categoryStore
+        self.trackerStore = trackerStore
+        self.recordStore = recordStore
+        
+        self.trackerStore.delegate = self
+        self.categoryStore.delegate = self
+        self.recordStore.delegate = self
     }
     
     // MARK: - Data Loading

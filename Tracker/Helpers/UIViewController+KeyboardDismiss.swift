@@ -16,7 +16,7 @@ private final class KeyboardDismissGestureDelegate: NSObject, UIGestureRecognize
         }
         return true
     }
-
+    
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
     }
@@ -44,9 +44,9 @@ extension UIViewController {
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboardFromTap(_:)))
         tap.cancelsTouchesInView = false
         tap.delegate = KeyboardDismissGestureDelegate.shared
-
+        
         view.addGestureRecognizer(tap)
-
+        
         objc_setAssociatedObject(self, &AssociatedKeys.keyboardDismissAdded, true, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
     }
     

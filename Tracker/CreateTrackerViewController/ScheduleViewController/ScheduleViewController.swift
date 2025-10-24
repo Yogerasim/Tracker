@@ -90,19 +90,19 @@ extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as? ContainerTableViewCell else {
             return UITableViewCell()
         }
-
+        
         if daysOfWeek.indices.contains(indexPath.row) {
             let item = daysOfWeek[indexPath.row]
             cell.textLabel?.text = NSLocalizedString(item.titleKey, comment: "")
             cell.isLastCell = indexPath.row == daysOfWeek.count - 1
-
+            
             let toggle = UISwitch()
             toggle.tag = indexPath.row
             toggle.isOn = selectedDays.contains(item.day)
             toggle.addTarget(self, action: #selector(toggleChanged(_:)), for: .valueChanged)
             cell.accessoryView = toggle
         }
-
+        
         return cell
     }
     

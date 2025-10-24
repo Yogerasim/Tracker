@@ -238,4 +238,15 @@ extension TrackerStore {
         print("==============================\n")
     }
 }
-
+extension TrackerStore {
+    func deleteAll() {
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "TrackerCoreData")
+        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+        do {
+            try context.execute(deleteRequest)
+            try context.save()
+        } catch {
+            print("⚠️ [TrackerStore] Failed to delete all trackers: \(error)")
+        }
+    }
+}

@@ -233,3 +233,15 @@ extension TrackerRecordStore {
         self.saveContext(reason: "deleteRecord")
     }
 }
+extension TrackerRecordStore {
+    func deleteAll() {
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "TrackerRecordCoreData")
+        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+        do {
+            try context.execute(deleteRequest)
+            try context.save()
+        } catch {
+            print("⚠️ [TrackerRecordStore] Failed to delete all records: \(error)")
+        }
+    }
+}

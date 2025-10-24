@@ -12,7 +12,7 @@ final class CategorySelector {
         let categoryStore = TrackerCategoryStore(context: coreDataStack.context)
         let categoryVC = CategoryViewController(store: categoryStore)
         let categoryVM = CategoryViewModel<TrackerCategoryCoreData>(store: categoryStore)
-
+        
         categoryVM.onCategorySelected = { category in
             tableView.reloadRows(at: [indexPath], with: .automatic)
             onCategorySelected(category)

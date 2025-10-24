@@ -60,9 +60,7 @@ final class TrackersViewController: UIViewController {
         setupTapGesture()
         setupLoadingIndicator()
         updateColorsForCurrentTraitCollection()
-        
         viewModel.loadData()
-        // восстановим фильтр, если он был сохранён
         if let savedIndex = UserDefaults.standard.value(forKey: "selectedFilterIndex") as? Int {
             filtersViewModel.selectFilter(index: savedIndex)
         } else {
@@ -208,6 +206,29 @@ final class TrackersViewController: UIViewController {
             self.ui.collectionView.reloadData()
         }
         present(editVC, animated: true)
+    }
+    
+    func confirmDeleteTracker(_ tracker: Tracker) {
+        let alert = UIAlertController(
+            title: NSLocalizedString("tracker.action.delete_alert_title", comment: "Delete tracker title"),
+            message: NSLocalizedString("tracker.action.delete_alert_message", comment: "Delete tracker message"),
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(
+            title: NSLocalizedString("tracker.action.delete", comment: "Delete tracker button"),
+            style: .destructive
+        ) { [weak self] _ in
+            self?.viewModel.deleteTracker(tracker)
+            AnalyticsService.trackClick(item: "delete")
+        })
+        
+        alert.addAction(UIAlertAction(
+            title: NSLocalizedString("tracker.action.cancel", comment: "Cancel button"),
+            style: .cancel
+        ))
+        
+        present(alert, animated: true)
     }
     
     // MARK: - Calendar
@@ -380,8 +401,9 @@ final class TrackersViewController: UIViewController {
                     AnalyticsService.trackClick(item: "edit")
                 }
                 
-                let deleteAction = UIAction(title: NSLocalizedString("tracker.action.delete", comment: "Удалить трекер"), image: UIImage(systemName: "trash"), attributes: .destructive) { _ in
-                    self.viewModel.deleteTracker(tracker)
+                let deleteAction = UIAction(title: NSLocalizedString("tracker.action.delete", comment: "Удалить трекер"), image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
+                    guard let self = self else { return }
+                    self.confirmDeleteTracker(tracker)
                     AnalyticsService.trackClick(item: "delete")
                 }
                 
@@ -393,7 +415,7 @@ final class TrackersViewController: UIViewController {
     // MARK: - Helpers for categories
     var visibleCategories: [TrackerCategory] = []
     
-    private func recalculateVisibleCategories() {
+    func recalculateVisibleCategories() {
         visibleCategories = viewModel.categories.filter { category in
             filtersViewModel.filteredTrackers.contains { tracker in
                 (tracker.trackerCategory?.title ?? "Мои трекеры") == category.title
@@ -410,3 +432,10 @@ extension TrackersViewController: UISearchBarDelegate {
     }
 }
 
+extension TrackersViewController {
+    func updateUI() {
+        scheduleUIRefresh()
+        updatePlaceholder()
+        updateDateText()
+    }
+}
