@@ -7,12 +7,12 @@ final class FiltersViewModel {
     @Published var selectedFilterIndex: Int = 0 { didSet { applyFilter() } }
     @Published var selectedDate: Date = Date() { didSet { applyFilter() } }
     var searchText: String = "" { didSet { applyFilter() } }
-
+    
     private let trackersProvider: () -> [Tracker]
     private let isCompletedProvider: (Tracker, Date) -> Bool
     private let dateFilter: TrackersDateFilter
     var onFilteredTrackersUpdated: (() -> Void)?
-
+    
     init(trackersProvider: @escaping () -> [Tracker],
          isCompletedProvider: @escaping (Tracker, Date) -> Bool,
          dateFilter: TrackersDateFilter) {
@@ -20,7 +20,7 @@ final class FiltersViewModel {
         self.isCompletedProvider = isCompletedProvider
         self.dateFilter = dateFilter
     }
-
+    
     func applyFilter(for date: Date? = nil) {
         let trackers = trackersProvider()
         let currentDate = date ?? selectedDate
@@ -33,7 +33,7 @@ final class FiltersViewModel {
         )
         onFilteredTrackersUpdated?()
     }
-
+    
     func selectFilter(index: Int) {
         selectedFilterIndex = index
     }

@@ -2,11 +2,11 @@ import Foundation
 
 final class TrackersDateFilter {
     private let calendar: Calendar
-
+    
     init(calendar: Calendar = .current) {
         self.calendar = calendar
     }
-
+    
     func filterTrackers(
         _ trackers: [Tracker],
         selectedFilterIndex: Int,
@@ -23,10 +23,9 @@ final class TrackersDateFilter {
         
         switch selectedFilterIndex {
         case 1:
-            // На выбранный день
             let weekdayInt = Calendar.current.component(.weekday, from: normalized)
             guard let weekday = WeekDay(rawValue: weekdayInt) else { return [] }
-
+            
             return searchFiltered.filter {
                 $0.schedule.contains(weekday)
             }

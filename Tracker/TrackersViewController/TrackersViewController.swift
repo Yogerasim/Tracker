@@ -2,23 +2,21 @@ import UIKit
 import Combine
 
 final class TrackersViewController: UIViewController {
-
+    
     // MARK: - ViewModel
     let viewModel: TrackersViewModel
     let ui = TrackersUI()
-
+    
     private let placeholderView = PlaceholderView()
     private let loadingIndicator = UIActivityIndicatorView(style: .large)
     let filtersViewModel: FiltersViewModel
     var contextMenuController: BaseContextMenuController<TrackerCell>?
-
+    
     // MARK: - Init
     init(viewModel: TrackersViewModel = TrackersViewModel()) {
         self.viewModel = viewModel
-
-        // создаём dateFilter на основе recordStore из viewModel
         let dateFilter = TrackersDateFilter()
-
+        
         self.filtersViewModel = FiltersViewModel(
             trackersProvider: { viewModel.trackers },
             isCompletedProvider: { tracker, date in
@@ -26,10 +24,10 @@ final class TrackersViewController: UIViewController {
             },
             dateFilter: dateFilter
         )
-
+        
         super.init(nibName: nil, bundle: nil)
     }
-
+    
     required init?(coder: NSCoder) {
         let viewModel = TrackersViewModel()
         self.viewModel = viewModel
@@ -44,24 +42,25 @@ final class TrackersViewController: UIViewController {
         )
         super.init(coder: coder)
     }
-
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = AppColors.background
-
+        
         registerCollectionViewCells()
         setupNavigationBarButtons()
         setupLayout()
         setupPlaceholder()
         setupCalendarContainer()
         setupBindings()
+        updateDateText()
         setupContextMenuController()
         setupSearchBar()
         setupTapGesture()
         setupLoadingIndicator()
         updateColorsForCurrentTraitCollection()
-
+        
         viewModel.loadData()
         // восстановим фильтр, если он был сохранён
         if let savedIndex = UserDefaults.standard.value(forKey: "selectedFilterIndex") as? Int {
@@ -70,17 +69,17 @@ final class TrackersViewController: UIViewController {
             filtersViewModel.selectFilter(index: 0)
         }
     }
-
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         AnalyticsService.trackOpen(screen: "Main")
     }
-
+    
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         AnalyticsService.trackClose(screen: "Main")
     }
-
+    
     // MARK: - UI Setup
     private func updateColorsForCurrentTraitCollection() {
         view.backgroundColor = AppColors.background
@@ -91,7 +90,7 @@ final class TrackersViewController: UIViewController {
         ui.dateButton.setTitleColor(AppColors.textPrimary, for: .normal)
         ui.calendarContainer.backgroundColor = AppColors.background
     }
-
+    
     private func registerCollectionViewCells() {
         ui.collectionView.register(
             TrackerSectionHeaderView.self,
@@ -105,18 +104,27 @@ final class TrackersViewController: UIViewController {
         ui.collectionView.dataSource = self
         ui.collectionView.delegate = self
     }
-
+    
     private func setupNavigationBarButtons() {
         ui.addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
-        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: ui.addButton)
+        let container = UIView()
+        container.addSubview(ui.addButton)
+        ui.addButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            ui.addButton.topAnchor.constraint(equalTo: container.topAnchor),
+            ui.addButton.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            ui.addButton.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 10),
+            ui.addButton.trailingAnchor.constraint(equalTo: container.trailingAnchor)
+        ])
+        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: container)
     }
-
+    
     private func setupLayout() {
         [ui.titleView, ui.dateButton, ui.searchBar, ui.collectionView, ui.filtersButton].forEach {
             view.addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
-
+        
         NSLayoutConstraint.activate([
             ui.titleView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
             ui.titleView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 25),
@@ -134,11 +142,11 @@ final class TrackersViewController: UIViewController {
             ui.filtersButton.widthAnchor.constraint(equalToConstant: 114),
             ui.filtersButton.heightAnchor.constraint(equalToConstant: 50)
         ])
-
+        
         ui.filtersButton.addTarget(self, action: #selector(filtersTapped), for: .touchUpInside)
         ui.dateButton.addTarget(self, action: #selector(toggleCalendar), for: .touchUpInside)
     }
-
+    
     // MARK: - Placeholder
     private func setupPlaceholder() {
         view.addSubview(ui.placeholderView)
@@ -153,15 +161,55 @@ final class TrackersViewController: UIViewController {
         )
         updatePlaceholder()
     }
-
+    
     func updatePlaceholder() {
-        // теперь полагаемся на filtersViewModel.filteredTrackers
         let hasTrackers = !filtersViewModel.filteredTrackers.isEmpty
         ui.placeholderView.isHidden = hasTrackers
         ui.collectionView.isHidden = !hasTrackers
         ui.filtersButton.isHidden = !hasTrackers
     }
-
+    func updateDateText() {
+        let df = DateFormatter()
+        let languageCode = Locale.current.language.languageCode?.identifier ?? "en"
+        
+        switch languageCode {
+        case "ru":
+            df.locale = Locale(identifier: "ru_RU")
+            df.dateFormat = "dd.MM.yy"
+        case "fr":
+            df.locale = Locale(identifier: "fr_FR")
+            df.dateFormat = "dd/MM/yy"
+        default:
+            df.locale = Locale(identifier: "en_US")
+            df.dateFormat = "MM/dd/yy"
+        }
+        
+        ui.dateButton.setTitle(df.string(from: viewModel.currentDate), for: .normal)
+    }
+    
+    func editTracker(_ trackerCoreData: TrackerCoreData) {
+        guard let context = trackerCoreData.managedObjectContext else { return }
+        guard let editVM = EditHabitViewModel(tracker: trackerCoreData, context: context) else { return }
+        let editVC = EditHabitViewController(viewModel: editVM)
+        
+        editVM.onHabitEdited = { [weak self] in
+            guard let self else { return }
+            let updatedTracker = Tracker(
+                id: trackerCoreData.id ?? UUID(),
+                name: trackerCoreData.name ?? "",
+                color: trackerCoreData.color ?? "FFFFFF",
+                emoji: trackerCoreData.emoji ?? "",
+                schedule: (trackerCoreData.schedule as? Data).flatMap {
+                    try? JSONDecoder().decode([WeekDay].self, from: $0)
+                } ?? [],
+                trackerCategory: trackerCoreData.category
+            )
+            self.viewModel.editTracker(updatedTracker)
+            self.ui.collectionView.reloadData()
+        }
+        present(editVC, animated: true)
+    }
+    
     // MARK: - Calendar
     private func setupCalendarContainer() {
         view.addSubview(ui.calendarContainer)
@@ -172,16 +220,29 @@ final class TrackersViewController: UIViewController {
             ui.calendarContainer.widthAnchor.constraint(equalToConstant: 350),
             ui.calendarContainer.heightAnchor.constraint(equalToConstant: 320)
         ])
-
+        let languageCode = Locale.current.language.languageCode?.identifier ?? "en"
+        let localeIdentifier: String
+        
+        switch languageCode {
+        case "ru": localeIdentifier = "ru_RU"
+        case "fr": localeIdentifier = "fr_FR"
+        default: localeIdentifier = "en_GB"
+        }
+        
+        let locale = Locale(identifier: localeIdentifier)
+        ui.calendarView.locale = locale
+        
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.firstWeekday = 2
+        ui.calendarView.calendar = calendar
+        
         ui.calendarView.addTarget(self, action: #selector(calendarDateChanged(_:)), for: .valueChanged)
     }
-
+    
     // MARK: - Bindings
     private func setupBindings() {
-        // Когда изменились данные (треки/категории/дата) — попросим FiltersViewModel пересчитать текущий фильтр
         viewModel.onTrackersUpdated = { [weak self] in
             guard let self else { return }
-            // пересчитать фильтр (повторно применить текущий индекс — чтобы filtersViewModel.filteredTrackers обновился)
             self.filtersViewModel.selectFilter(index: self.filtersViewModel.selectedFilterIndex)
             self.scheduleUIRefresh()
         }
@@ -191,20 +252,17 @@ final class TrackersViewController: UIViewController {
         }
         viewModel.onDateChanged = { [weak self] _ in
             guard let self else { return }
-            // пересчёт производится внутри filtersViewModel; просто переприменяем текущий фильтр
             self.filtersViewModel.selectFilter(index: self.filtersViewModel.selectedFilterIndex)
             self.scheduleUIRefresh()
         }
-
-        // Когда filtersViewModel обновил filteredTrackers — перерисуем UI
         filtersViewModel.onFilteredTrackersUpdated = { [weak self] in
             guard let self else { return }
             self.scheduleUIRefresh()
         }
     }
-
+    
     private var uiUpdateWorkItem: DispatchWorkItem?
-
+    
     private func scheduleUIRefresh() {
         uiUpdateWorkItem?.cancel()
         let work = DispatchWorkItem { [weak self] in
@@ -216,7 +274,7 @@ final class TrackersViewController: UIViewController {
         uiUpdateWorkItem = work
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: work)
     }
-
+    
     // MARK: - Actions
     @objc private func addButtonTapped() {
         let createVC = CreateTrackerViewController()
@@ -225,20 +283,20 @@ final class TrackersViewController: UIViewController {
         }
         present(createVC, animated: true)
     }
-
+    
     @objc private func toggleCalendar() {
         ui.calendarContainer.isHidden.toggle()
         if !ui.calendarContainer.isHidden {
             view.bringSubviewToFront(ui.calendarContainer)
         }
     }
-
+    
     @objc private func calendarDateChanged(_ sender: UIDatePicker) {
         ui.calendarContainer.isHidden = true
         viewModel.currentDate = sender.date
         filtersViewModel.applyFilter(for: sender.date)
     }
-
+    
     @objc private func filtersTapped() {
         let filtersVC = FiltersViewController(viewModel: filtersViewModel)
         filtersVC.onFilterSelected = { [weak self] index in
@@ -251,21 +309,20 @@ final class TrackersViewController: UIViewController {
         }
         presentFullScreenSheet(filtersVC)
     }
-
+    
     func showTodayTrackers() {
         let today = Date()
         ui.calendarView.setDate(today, animated: true)
         viewModel.currentDate = today
-        // применим текущий фильтр (FiltersVM возьмёт viewModel.trackers и currentDate)
         filtersViewModel.selectFilter(index: filtersViewModel.selectedFilterIndex)
         ui.collectionView.reloadData()
     }
-
+    
     // MARK: - Search
     private func setupSearchBar() {
         ui.searchBar.delegate = self
     }
-
+    
     // MARK: - Loading
     private func setupLoadingIndicator() {
         view.addSubview(loadingIndicator)
@@ -275,21 +332,21 @@ final class TrackersViewController: UIViewController {
             loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
     }
-
+    
     // MARK: - Gesture
     private func setupTapGesture() {
         let tap = UITapGestureRecognizer(target: self, action: #selector(handleScreenTap(_:)))
         tap.cancelsTouchesInView = false
         view.addGestureRecognizer(tap)
     }
-
+    
     @objc private func handleScreenTap(_ sender: UITapGestureRecognizer) {
         if !ui.calendarContainer.isHidden {
             ui.calendarContainer.isHidden = true
         }
     }
-
-    // MARK: - Context Menu (ре-используем логику, аналогичную той, что у тебя была)
+    
+    // MARK: - Context Menu
     private func setupContextMenuController() {
         contextMenuController = BaseContextMenuController(
             owner: self,
@@ -300,45 +357,44 @@ final class TrackersViewController: UIViewController {
             actionsProvider: { [weak self] indexPath in
                 guard let self else { return [] }
                 guard self.visibleCategories.indices.contains(indexPath.section) else { return [] }
-
                 let category = self.visibleCategories[indexPath.section]
-                // берем отфильтрованные трекеры из FiltersViewModel
                 let trackersInCategory = self.filtersViewModel.filteredTrackers.filter {
                     $0.trackerCategory?.title == category.title
                 }
                 guard trackersInCategory.indices.contains(indexPath.item) else { return [] }
-
+                
                 let tracker = trackersInCategory[indexPath.item]
                 let isPinned = tracker.trackerCategory?.title == self.viewModel.pinnedCategoryTitle
-
+                
                 let pinTitle = isPinned
-                    ? NSLocalizedString("tracker.action.unpin", comment: "Открепить трекер")
-                    : NSLocalizedString("tracker.action.pin", comment: "Закрепить трекер")
+                ? NSLocalizedString("tracker.action.unpin", comment: "Открепить трекер")
+                : NSLocalizedString("tracker.action.pin", comment: "Закрепить трекер")
                 let pinAction = UIAction(title: pinTitle, image: UIImage(systemName: isPinned ? "pin.slash" : "pin")) { _ in
                     isPinned ? self.viewModel.unpinTracker(tracker) : self.viewModel.pinTracker(tracker)
                 }
-
-                let editAction = UIAction(title: NSLocalizedString("tracker.action.edit", comment: "Редактировать трекер"), image: UIImage(systemName: "pencil")) { _ in
-                    self.viewModel.editTracker(tracker)
+                
+                let editAction = UIAction(title: NSLocalizedString("tracker.action.edit", comment: "Редактировать трекер"), image: UIImage(systemName: "pencil")) { [weak self] _ in
+                    guard let self = self else { return }
+                    guard let trackerCoreData = self.viewModel.trackerStore.fetchTracker(by: tracker.id) else { return }
+                    self.editTracker(trackerCoreData)
                     AnalyticsService.trackClick(item: "edit")
                 }
-
+                
                 let deleteAction = UIAction(title: NSLocalizedString("tracker.action.delete", comment: "Удалить трекер"), image: UIImage(systemName: "trash"), attributes: .destructive) { _ in
                     self.viewModel.deleteTracker(tracker)
                     AnalyticsService.trackClick(item: "delete")
                 }
-
+                
                 return [pinAction, editAction, deleteAction]
             }
         )
     }
-
+    
     // MARK: - Helpers for categories
     var visibleCategories: [TrackerCategory] = []
-
+    
     private func recalculateVisibleCategories() {
         visibleCategories = viewModel.categories.filter { category in
-            // смотрим, есть ли отфильтрованные трекеры для этой категории
             filtersViewModel.filteredTrackers.contains { tracker in
                 (tracker.trackerCategory?.title ?? "Мои трекеры") == category.title
             }
@@ -349,7 +405,6 @@ final class TrackersViewController: UIViewController {
 // MARK: - UISearchBarDelegate
 extension TrackersViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        // теперь поиск через FiltersViewModel
         filtersViewModel.searchText = searchText
         updatePlaceholder()
     }

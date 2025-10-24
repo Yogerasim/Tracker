@@ -4,7 +4,7 @@ import Combine
 final class FiltersViewController: UIViewController {
     
     // MARK: - UI
-    private let header = ModalHeaderView(title: "Фильтры")
+    private let header = ModalHeaderView(title: NSLocalizedString("filters.title", comment: "Filters"))
     private let tableContainer = ContainerTableView()
     
     // MARK: - Constraints
@@ -12,10 +12,10 @@ final class FiltersViewController: UIViewController {
     
     // MARK: - State
     private let filters = [
-        "Все трекеры",
-        "Трекеры на сегодня",
-        "Завершенные",
-        "Не завершенные"
+        NSLocalizedString("filters.all_trackers", comment: "All trackers"),
+        NSLocalizedString("filters.today_trackers", comment: "Trackers for today"),
+        NSLocalizedString("filters.completed", comment: "Completed"),
+        NSLocalizedString("filters.not_completed", comment: "Not completed")
     ]
     
     private let viewModel: FiltersViewModel
@@ -141,14 +141,12 @@ extension FiltersViewController: UITableViewDataSource, UITableViewDelegate {
         
         print("🟢 [FiltersVC] Selected filter index: \(indexPath.row)")
         
-        // Reload previous + current cell
         var indexPathsToReload: [IndexPath] = [indexPath]
         if previousIndex != indexPath.row {
             indexPathsToReload.append(IndexPath(row: previousIndex, section: 0))
         }
         tableView.reloadRows(at: indexPathsToReload, with: .automatic)
         
-        // Callback наружу
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             print("🟠 [TrackersVC] Filter selected index = \(indexPath.row)")
             self.onFilterSelected?(indexPath.row)

@@ -121,7 +121,12 @@
 
 "edit_category_placeholder" = "Отредактируйте название категории";
 
-
+// FiltersViewController
+"filters.title" = "Фильтры";
+"filters.all_trackers" = "Все трекеры";
+"filters.today_trackers" = "Трекеры на сегодня";
+"filters.completed" = "Завершенные";
+"filters.not_completed" = "Не завершенные";
 
 
 

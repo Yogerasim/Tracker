@@ -33,7 +33,7 @@ final class TrackerCellViewModel {
     // MARK: - Actions
     func toggleCompletion() {
         print("🧩 [TrackerCellVM] toggleCompletion START for \(tracker.name), isCompleted before = \(isCompleted)")
-
+        
         if isCompleted {
             recordStore.deleteRecord(for: tracker.id, date: currentDate)
             isCompleted = false
@@ -43,7 +43,7 @@ final class TrackerCellViewModel {
             isCompleted = true
             daysCount += 1
         }
-
+        
         print("🧩 [TrackerCellVM] toggleCompletion END for \(tracker.name), isCompleted after = \(isCompleted)")
         onStateChanged?()
         NotificationCenter.default.post(name: .trackerRecordsDidChange, object: tracker)

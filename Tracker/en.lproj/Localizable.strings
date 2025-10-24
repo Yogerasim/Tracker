@@ -114,3 +114,9 @@
 
 //EditCategoryView
 "edit_category_title" = "Editing category";
+// FiltersViewController
+"filters.title" = "Filters";
+"filters.all_trackers" = "All trackers";
+"filters.today_trackers" = "Trackers for today";
+"filters.completed" = "Completed";
+"filters.not_completed" = "Not completed";
