@@ -17,11 +17,10 @@ final class TrackersViewController: UIViewController {
         self.viewModel = viewModel
 
         // создаём dateFilter на основе recordStore из viewModel
-        let dateFilter = TrackersDateFilter(recordStore: viewModel.recordStore)
+        let dateFilter = TrackersDateFilter()
 
         self.filtersViewModel = FiltersViewModel(
-            trackersProvider: { viewModel.trackers },          // полный список трекеров
-            currentDateProvider: { viewModel.currentDate },
+            trackersProvider: { viewModel.trackers },
             isCompletedProvider: { tracker, date in
                 viewModel.isTrackerCompleted(tracker, on: date)
             },
@@ -34,11 +33,10 @@ final class TrackersViewController: UIViewController {
     required init?(coder: NSCoder) {
         let viewModel = TrackersViewModel()
         self.viewModel = viewModel
-        let dateFilter = TrackersDateFilter(recordStore: viewModel.recordStore)
+        let dateFilter = TrackersDateFilter()
         
         self.filtersViewModel = FiltersViewModel(
             trackersProvider: { viewModel.trackers },
-            currentDateProvider: { viewModel.currentDate },
             isCompletedProvider: { tracker, date in
                 viewModel.isTrackerCompleted(tracker, on: date)
             },
@@ -237,10 +235,8 @@ final class TrackersViewController: UIViewController {
 
     @objc private func calendarDateChanged(_ sender: UIDatePicker) {
         ui.calendarContainer.isHidden = true
-        // обновляем дату в VM (источник правды)
         viewModel.currentDate = sender.date
-        // пересчёт фильтра — "На сегодня"
-        filtersViewModel.selectFilter(index: filtersViewModel.selectedFilterIndex)
+        filtersViewModel.applyFilter(for: sender.date)
     }
 
     @objc private func filtersTapped() {

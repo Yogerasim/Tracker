@@ -1,14 +1,12 @@
 import Foundation
 
 final class TrackersDateFilter {
-    private let recordStore: TrackerRecordStore
     private let calendar: Calendar
-    
-    init(recordStore: TrackerRecordStore, calendar: Calendar = .current) {
-        self.recordStore = recordStore
+
+    init(calendar: Calendar = .current) {
         self.calendar = calendar
     }
-    
+
     func filterTrackers(
         _ trackers: [Tracker],
         selectedFilterIndex: Int,
@@ -16,7 +14,7 @@ final class TrackersDateFilter {
         searchText: String,
         completionChecker: (Tracker, Date) -> Bool
     ) -> [Tracker] {
-        let normalized = currentDate.startOfDayUTC()
+        let normalized = Calendar.current.startOfDay(for: currentDate)
         
         let text = searchText.lowercased()
         let searchFiltered = trackers.filter {
@@ -25,29 +23,17 @@ final class TrackersDateFilter {
         
         switch selectedFilterIndex {
         case 1:
-            // На сегодня
+            // На выбранный день
+            let weekdayInt = Calendar.current.component(.weekday, from: normalized)
+            guard let weekday = WeekDay(rawValue: weekdayInt) else { return [] }
+
             return searchFiltered.filter {
-                let passes = $0.schedule.contains(normalized.weekDay)
-                print("   ◼️ [DateFilter] \($0.name) schedule passes: \(passes)")
-                return passes
+                $0.schedule.contains(weekday)
             }
-            
         case 2:
-            // Завершённые
-            return searchFiltered.filter {
-                let completed = completionChecker($0, normalized)
-                print("   ✅ [DateFilter] \($0.name) completed on \(normalized): \(completed)")
-                return completed
-            }
-            
+            return searchFiltered.filter { completionChecker($0, normalized) }
         case 3:
-            // Незавершённые
-            return searchFiltered.filter {
-                let completed = completionChecker($0, normalized)
-                print("   ❌ [DateFilter] \($0.name) completed on \(normalized): \(completed) → include = \(!completed)")
-                return !completed
-            }
-            
+            return searchFiltered.filter { !completionChecker($0, normalized) }
         default:
             return searchFiltered
         }
