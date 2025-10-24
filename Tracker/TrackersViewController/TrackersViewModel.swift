@@ -5,8 +5,7 @@ final class TrackersViewModel {
     
     // MARK: - Stores
     private let categoryStore: TrackerCategoryStore
-    private let recordStore: TrackerRecordStore
-    private let dateFilter: TrackersDateFilter
+    let recordStore: TrackerRecordStore
     let trackerStore: TrackerStore
     var cellViewModels: [UUID: TrackerCellViewModel] = [:]
     
@@ -21,14 +20,8 @@ final class TrackersViewModel {
     
     @Published var currentDate: Date = Date() {
         didSet {
-            updateFilteredData(reason: "dateChanged")
             onDateChanged?(currentDate)
         }
-    }
-    
-    @Published private(set) var filteredTrackers: [Tracker] = []
-    @Published var searchText: String = "" {
-        didSet { filterTrackers() }
     }
     
     private var originalCategoryMap: [UUID: String] = [:]
@@ -41,23 +34,11 @@ final class TrackersViewModel {
     var onDateChanged: ((Date) -> Void)?
     var onEditTracker: ((Tracker) -> Void)?
     
-    // MARK: - Computed
-    var nonEmptyCategories: [TrackerCategory] {
-        categories.filter { !$0.trackers.isEmpty }
-    }
-    
-    var selectedFilterIndex: Int = 0 {
-        didSet { updateFilteredData(reason: "filterChanged") }
-    }
-    
-    var isDateFilterEnabled: Bool = false
-    
     // MARK: - Init
     init(container: NSPersistentContainer = CoreDataStack.shared.persistentContainer) {
         self.categoryStore = TrackerCategoryStore(context: container.viewContext)
         self.recordStore = TrackerRecordStore(persistentContainer: container)
         self.trackerStore = TrackerStore(context: container.viewContext)
-        self.dateFilter = TrackersDateFilter(recordStore: recordStore)
         
         self.trackerStore.delegate = self
         self.categoryStore.delegate = self
@@ -66,33 +47,20 @@ final class TrackersViewModel {
         loadData()
     }
     
+    // MARK: - Data Loading
     func loadData() {
         print("📦 [TrackersVM] loadData() called")
-
-        // Загружаем данные из стора
         trackers = trackerStore.getTrackers()
         completedTrackers = recordStore.completedTrackers
         categories = categoryStore.categories
-
         print("📊 trackers.count = \(trackers.count), completed = \(completedTrackers.count)")
-
-        // 🩵 Если фильтр ещё не выбран — заполняем все трекеры, чтобы таблица не была пустой
-        if filteredTrackers.isEmpty {
-            filteredTrackers = trackers
-            print("🩵 [TrackersVM] filteredTrackers заполнен базовыми трекерами (\(filteredTrackers.count))")
-        }
-
-        // Применяем фильтр (если выбран)
-        applyFilter()
-
-        // Уведомляем UI
         onTrackersUpdated?()
     }
     
-    // MARK: - External Update Methods
-    func updateFilteredTrackers(_ trackers: [Tracker]) {
-        print("🟤 [TrackersVM] updateFilteredTrackers — count = \(trackers.count)")
-        self.filteredTrackers = trackers
+    func reloadTrackers() {
+        trackers = trackerStore.getTrackers()
+        completedTrackers = recordStore.completedTrackers
+        print("📦 [TrackersVM] reloadTrackers() — trackers.count = \(trackers.count), completed = \(completedTrackers.count)")
         onTrackersUpdated?()
     }
     
@@ -100,16 +68,15 @@ final class TrackersViewModel {
     
     func addTrackerToDefaultCategory(_ tracker: Tracker) {
         guard !trackers.contains(where: { $0.id == tracker.id }) else { return }
-        
         trackerStore.add(tracker)
         
         if let _ = categories.first(where: { $0.title == defaultCategoryTitle }) {
             categoryStore.moveTracker(tracker, to: defaultCategoryTitle)
         }
-        self.trackers.forEach { tracker in
-            _ = self.makeCellViewModel(for: tracker)
-        }
         
+        trackers.forEach { tracker in
+            _ = makeCellViewModel(for: tracker)
+        }
         reloadTrackers()
     }
     
@@ -119,7 +86,6 @@ final class TrackersViewModel {
             print("⚠️ [VM] fetchTracker FAILED for id \(tracker.id)")
             return
         }
-        
         recordStore.addRecord(for: trackerCoreData, date: date)
         DispatchQueue.main.async {
             self.reloadTrackers()
@@ -133,13 +99,13 @@ final class TrackersViewModel {
             print("⚠️ [VM] fetchTracker FAILED for id \(tracker.id)")
             return
         }
-        
         recordStore.removeRecord(for: trackerCoreData, date: date)
         DispatchQueue.main.async {
             self.reloadTrackers()
             completion?()
         }
     }
+    
     func isTrackerCompleted(_ tracker: Tracker, on date: Date) -> Bool {
         let normalized = normalizedDate(date)
         let result: Bool
@@ -163,79 +129,8 @@ final class TrackersViewModel {
         }
     }
     
-    // MARK: - Filtering
-    
-    func filterByDate(_ date: Date) {
-        currentDate = normalizedDate(date)
-        selectedFilterIndex = 1 // день недели
-        applyFilter()            // теперь все фильтры проходят через applyFilter
-    }
-    
-    private func filterTrackers() {
-        let normalized = normalizedDate(currentDate)
-        filteredTrackers = dateFilter.filterTrackers(
-            trackers,
-            selectedFilterIndex: selectedFilterIndex,
-            currentDate: normalized,
-            searchText: searchText
-        ) { [weak self] tracker, date in
-            guard let self else { return false }
-            let completed = self.isTrackerCompleted(tracker, on: normalized)
-            print("🔎 [filterTrackers] \(tracker.name) — completed on UTC \(normalized): \(completed)")
-            return completed
-        }
-        print("🔎 [filterTrackers] filteredTrackers.count = \(filteredTrackers.count)")
-        onTrackersUpdated?()
-    }
-    
-    func reloadTrackers() {
-        trackers = trackerStore.getTrackers()
-        completedTrackers = recordStore.completedTrackers
-
-        print("📦 [TrackersVM] reloadTrackers() — trackers.count = \(trackers.count), completed = \(completedTrackers.count)")
-
-        updateFilteredData(reason: "manualReload")
-    }
-    
-    private func applyFilter() {
-        switch selectedFilterIndex {
-        case 0:
-            filteredTrackers = trackers
-        case 1:
-            filteredTrackers = trackers.filter { tracker in
-                let passes = tracker.schedule.contains(currentDate.weekDay)
-                print("📌 [applyFilter] \(tracker.name) — passes schedule filter: \(passes)")
-                return passes
-            }
-        default:
-            filteredTrackers = trackers
-        }
-        print("📌 [applyFilter] filteredTrackers.count = \(filteredTrackers.count)")
-        onTrackersUpdated?()
-    }
     private func normalizedDate(_ date: Date) -> Date {
         date.startOfDayUTC()
-    }
-    // MARK: - Centralized Filtering
-    private func updateFilteredData(reason: String) {
-        print("⚙️ [TrackersVM] updateFilteredData (reason: \(reason))")
-
-        let normalized = normalizedDate(currentDate)
-
-        filteredTrackers = dateFilter.filterTrackers(
-            trackers,
-            selectedFilterIndex: selectedFilterIndex,
-            currentDate: normalized,
-            searchText: searchText
-        ) { [weak self] tracker, date in
-            guard let self else { return false }
-            return self.isTrackerCompleted(tracker, on: date)
-        }
-
-        print("🔎 [TrackersVM] filteredTrackers.count = \(filteredTrackers.count)")
-        DispatchQueue.main.async {
-            self.onTrackersUpdated?()
-        }
     }
 }
 
@@ -249,7 +144,6 @@ extension TrackersViewModel {
             categories.insert(pinnedCategory!, at: 0)
             onCategoriesUpdated?()
         }
-        
         originalCategoryMap[tracker.id] = tracker.trackerCategory?.title ?? defaultCategoryTitle
         categoryStore.moveTracker(tracker, to: pinnedCategoryTitle)
         reloadTrackers()
@@ -273,7 +167,6 @@ extension TrackersViewModel {
             vm.tracker = tracker
             vm.refreshState()
         }
-        
         onEditTracker?(tracker)
     }
     
@@ -291,7 +184,7 @@ extension TrackersViewModel {
 extension TrackersViewModel: TrackerStoreDelegate {
     func didUpdateTrackers(_ trackers: [Tracker]) {
         self.trackers = trackers
-        updateFilteredData(reason: "trackerStore")
+        onTrackersUpdated?()
     }
 }
 
@@ -305,7 +198,7 @@ extension TrackersViewModel: TrackerCategoryStoreDelegate {
 extension TrackersViewModel: TrackerRecordStoreDelegate {
     func didUpdateRecords() {
         completedTrackers = recordStore.completedTrackers
-        updateFilteredData(reason: "recordStore")
+        onTrackersUpdated?()
     }
 }
 

@@ -9,56 +9,38 @@ final class FiltersViewModel {
         didSet { applyFilter() }
     }
     
+    var searchText: String = "" {
+        didSet { applyFilter() }
+    }
+    
     private let trackersProvider: () -> [Tracker]
     private let currentDateProvider: () -> Date
     private let isCompletedProvider: (Tracker, Date) -> Bool
+    private let dateFilter: TrackersDateFilter
     
-    // MARK: - Callbacks
     var onFilteredTrackersUpdated: (() -> Void)?
     
-    // MARK: - Init
     init(trackersProvider: @escaping () -> [Tracker],
          currentDateProvider: @escaping () -> Date,
-         isCompletedProvider: @escaping (Tracker, Date) -> Bool) {
+         isCompletedProvider: @escaping (Tracker, Date) -> Bool,
+         dateFilter: TrackersDateFilter) {
+        
         self.trackersProvider = trackersProvider
         self.currentDateProvider = currentDateProvider
         self.isCompletedProvider = isCompletedProvider
+        self.dateFilter = dateFilter
     }
     
-    // MARK: - Filtering
-    private func applyFilter() {
-        print("🔵 [FiltersVM] applyFilter called — selectedFilterIndex = \(selectedFilterIndex)")
-
-        let allTrackers = trackersProvider()
+    func applyFilter() {
+        let trackers = trackersProvider()
         let currentDate = currentDateProvider()
-        print("🔵 [FiltersVM] allTrackers.count = \(allTrackers.count), currentDate = \(currentDate)")
-
-        switch selectedFilterIndex {
-        case 0:
-            filteredTrackers = allTrackers
-        case 1:
-            filteredTrackers = allTrackers.filter {
-                let passes = $0.schedule.contains(currentDate.weekDay)
-                print("   ◼️ '\($0.name)' schedule contains day? \(passes) schedule=\($0.schedule)")
-                return passes
-            }
-        case 2:
-            filteredTrackers = allTrackers.filter {
-                let completed = isCompletedProvider($0, currentDate)
-                print("   ✅ '\($0.name)' completed on \(currentDate): \(completed)")
-                return completed
-            }
-        case 3:
-            filteredTrackers = allTrackers.filter {
-                let completed = isCompletedProvider($0, currentDate)
-                print("   ❌ '\($0.name)' completed on \(currentDate): \(completed) -> include = \(!completed)")
-                return !completed
-            }
-        default:
-            filteredTrackers = allTrackers
-        }
-
-        print("🔵 [FiltersVM] filteredTrackers.count = \(filteredTrackers.count) names = \(filteredTrackers.map { $0.name })")
+        filteredTrackers = dateFilter.filterTrackers(
+            trackers,
+            selectedFilterIndex: selectedFilterIndex,
+            currentDate: currentDate,
+            searchText: searchText,
+            completionChecker: isCompletedProvider
+        )
         onFilteredTrackersUpdated?()
     }
     
