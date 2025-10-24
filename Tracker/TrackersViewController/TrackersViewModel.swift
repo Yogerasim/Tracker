@@ -31,7 +31,7 @@ final class TrackersViewModel {
     var onDateChanged: ((Date) -> Void)?
     var onEditTracker: ((Tracker) -> Void)?
     
-    // MARK: - Основной инициализатор (для приложения)
+    // MARK: init
     init(container: NSPersistentContainer = CoreDataStack.shared.persistentContainer) {
         self.categoryStore = TrackerCategoryStore(context: container.viewContext)
         self.trackerStore = TrackerStore(context: container.viewContext)
@@ -42,21 +42,6 @@ final class TrackersViewModel {
         self.recordStore.delegate = self
         
         loadData()
-    }
-    
-    // MARK: - Тестовый инициализатор (для Snapshot и Unit тестов)
-    init(
-        categoryStore: TrackerCategoryStore,
-        trackerStore: TrackerStore,
-        recordStore: TrackerRecordStore
-    ) {
-        self.categoryStore = categoryStore
-        self.trackerStore = trackerStore
-        self.recordStore = recordStore
-        
-        self.trackerStore.delegate = self
-        self.categoryStore.delegate = self
-        self.recordStore.delegate = self
     }
     
     // MARK: - Data Loading
