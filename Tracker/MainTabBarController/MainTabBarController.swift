@@ -1,7 +1,6 @@
 import UIKit
 
 // MARK: - MainTabBarController
-
 final class MainTabBarController: UITabBarController {
     
     override func viewDidLoad() {
@@ -13,14 +12,15 @@ final class MainTabBarController: UITabBarController {
     private func configureViewControllers() {
         let trackersVC = UINavigationController(rootViewController: TrackersViewController())
         trackersVC.tabBarItem = UITabBarItem(
-            title: "Трекеры",
+            title: NSLocalizedString("tab_trackers", comment: "Название вкладки для списка трекеров"),
             image: UIImage(named: "Tracker"),
             selectedImage: UIImage(named: "Tracker")
         )
         
-        let statisticsVC = UINavigationController(rootViewController: StatisticsViewController())
+        let trackerRecordStore = TrackerRecordStore(persistentContainer: CoreDataStack.shared.persistentContainer)
+        let statisticsVC = UINavigationController(rootViewController: StatisticsViewController(trackerRecordStore: trackerRecordStore))
         statisticsVC.tabBarItem = UITabBarItem(
-            title: "Статистика",
+            title: NSLocalizedString("tab_statistics", comment: "Название вкладки для статистики"),
             image: UIImage(named: "Statistic"),
             selectedImage: UIImage(named: "Statistic")
         )
@@ -32,13 +32,18 @@ final class MainTabBarController: UITabBarController {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
         
-        // фон таббара
-        appearance.backgroundColor = .white
+        appearance.backgroundColor = UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark
+            ? AppColors.backgroundBlackButton
+            : .white
+        }
+
+        appearance.shadowColor = UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark
+            ? UIColor(white: 1.0, alpha: 0.1)
+            : UIColor.gray
+        }
         
-        // разделительная линия (тень сверху)
-        appearance.shadowColor = .gray
-        
-        // применяем для всех состояний
         tabBar.standardAppearance = appearance
         if #available(iOS 15.0, *) {
             tabBar.scrollEdgeAppearance = appearance

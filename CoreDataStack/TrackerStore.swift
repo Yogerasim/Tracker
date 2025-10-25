@@ -1,4 +1,5 @@
 import CoreData
+import Foundation
 
 protocol TrackerStoreDelegate: AnyObject {
     func didUpdateTrackers(_ trackers: [Tracker])
@@ -18,9 +19,12 @@ final class TrackerStore: NSObject {
     }
     
     // MARK: - FRC Setup
+    // MARK: - FRC Setup
     private func setupFetchedResultsController() {
         let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
+        
+        print("⚙️ [TrackerStore] Setting up FRC with request: \(request)")
         
         fetchedResultsController = NSFetchedResultsController(
             fetchRequest: request,
@@ -32,6 +36,13 @@ final class TrackerStore: NSObject {
         
         do {
             try fetchedResultsController.performFetch()
+            let count = fetchedResultsController.fetchedObjects?.count ?? 0
+            print("📥 [TrackerStore] FRC initial fetch — \(count) objects fetched")
+            if let trackers = fetchedResultsController.fetchedObjects {
+                trackers.forEach {
+                    print("   • \($0.name ?? "nil") | category: \($0.category?.title ?? "nil")")
+                }
+            }
             notifyDelegate()
         } catch {
             print("❌ Ошибка FRC fetch: \(error)")
@@ -44,30 +55,22 @@ final class TrackerStore: NSObject {
         return cdTrackers.compactMap { $0.toTracker() }
     }
     
+    // MARK: - Public
     func add(_ tracker: Tracker) {
         let cdTracker = TrackerCoreData(context: context)
         cdTracker.id = tracker.id
         cdTracker.name = tracker.name
         cdTracker.color = tracker.color
         cdTracker.emoji = tracker.emoji
-        cdTracker.schedule = tracker.schedule as NSObject
-        cdTracker.trackerCategory = tracker.trackerCategory // <- напрямую
 
-        saveContext()
-    }
-    
-    func delete(_ tracker: Tracker) {
-        let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
+        print("🟡 Saving Tracker: \(tracker.name), schedule: \(tracker.schedule.map { $0.rawValue })")
+        cdTracker.schedule = NSArray(array: tracker.schedule.map { $0.rawValue })
         
-        do {
-            if let cdTracker = try context.fetch(request).first {
-                context.delete(cdTracker)
-                saveContext()
-            }
-        } catch {
-            print("❌ Ошибка delete Tracker: \(error)")
+        if let category = tracker.trackerCategory {
+            cdTracker.category = context.object(with: category.objectID) as? TrackerCategoryCoreData
         }
+        
+        saveContext()
     }
     
     func update(_ tracker: Tracker) {
@@ -79,8 +82,16 @@ final class TrackerStore: NSObject {
                 cdTracker.name = tracker.name
                 cdTracker.color = tracker.color
                 cdTracker.emoji = tracker.emoji
-                cdTracker.schedule = tracker.schedule as NSObject
-                cdTracker.trackerCategory = tracker.trackerCategory
+
+                print("🟡 Saving Tracker: \(tracker.name), schedule: \(tracker.schedule.map { $0.rawValue })")
+                cdTracker.schedule = NSArray(array: tracker.schedule.map { $0.rawValue })
+
+                if let category = tracker.trackerCategory {
+                    cdTracker.category = context.object(with: category.objectID) as? TrackerCategoryCoreData
+                } else {
+                    cdTracker.category = nil
+                }
+                
                 saveContext()
             }
         } catch {
@@ -88,29 +99,89 @@ final class TrackerStore: NSObject {
         }
     }
     
+    
+    
+    func delete(_ tracker: Tracker) {
+        print("🗑 [TrackerStore] delete() called for tracker: \(tracker.name)")
+        let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
+        
+        do {
+            if let cdTracker = try context.fetch(request).first {
+                print("🗑 Deleting object: \(cdTracker.name ?? "nil") from Core Data")
+                context.delete(cdTracker)
+                saveContext()
+            } else {
+                print("⚠️ delete() — tracker not found in Core Data")
+            }
+        } catch {
+            print("❌ Ошибка delete Tracker: \(error)")
+        }
+    }
+    
+    func fetchTracker(by id: UUID) -> TrackerCoreData? {
+        let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        request.fetchLimit = 1
+        do {
+            return try context.fetch(request).first
+        } catch {
+            print("❌ Ошибка fetchTracker: \(error)")
+            return nil
+        }
+    }
+    
     // MARK: - Private
     private func saveContext() {
         do {
-            if context.hasChanges { try context.save() }
+            if context.hasChanges {
+                print("💾 [TrackerStore] Saving context...")
+                try context.save()
+                print("✅ [TrackerStore] Context saved successfully")
+            } else {
+                print("ℹ️ [TrackerStore] No changes to save")
+            }
         } catch {
             print("❌ Ошибка сохранения контекста: \(error)")
         }
     }
     
+    
     private func notifyDelegate() {
         let trackersList = getTrackers()
-        print("🟢 Notifying delegate, trackers: \(trackersList.map { $0.name })")
+        print("🟢 [TrackerStore] notifyDelegate() called")
+        print("   • trackers count: \(trackersList.count)")
+        if trackersList.isEmpty {
+            print("   ⚠️ [TrackerStore] EMPTY array passed to delegate!")
+            debugFetchContents() // Проверим, есть ли реально данные в Core Data
+        } else {
+            print("   • names: \(trackersList.map { $0.name })")
+        }
         delegate?.didUpdateTrackers(trackersList)
+    }
+    private func debugFetchContents() {
+        print("🔍 [TrackerStore] debugFetchContents() started")
+        let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
+        
+        do {
+            let results = try context.fetch(request)
+            print("   • Raw CoreData objects count: \(results.count)")
+            for (i, item) in results.enumerated() {
+                print("     \(i+1). \(item.name ?? "nil"), category: \(item.category?.title ?? "nil"), schedule: \(String(describing: item.schedule))")
+            }
+        } catch {
+            print("❌ [TrackerStore] debugFetchContents() failed: \(error)")
+        }
     }
 }
 
 // MARK: - NSFetchedResultsControllerDelegate
 extension TrackerStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        print("📡 [TrackerStore] controllerDidChangeContent() → delegate only")
         notifyDelegate()
     }
 }
-
 
 // MARK: - Mapper
 private extension TrackerCoreData {
@@ -118,19 +189,22 @@ private extension TrackerCoreData {
         guard let id = id,
               let name = name,
               let color = color,
-              let emoji = emoji,
-              let schedule = schedule else {
+              let emoji = emoji else {
             print("❌ toTracker guard failed for id: \(id?.uuidString ?? "nil")")
             return nil
         }
-
-        print("DEBUG: raw trackerCategory property type: \(type(of: self.trackerCategory as Any))")
-        print("DEBUG: raw schedule property type: \(type(of: schedule))")
-
-        // try cast schedule to expected type
-        let scheduleArray = schedule as? [WeekDay] ?? []
-        let category = trackerCategory as? TrackerCategoryCoreData
-
+        
+        let scheduleArray: [WeekDay]
+        if let data = schedule as? Data,
+           let decoded = try? JSONDecoder().decode([WeekDay].self, from: data) {
+            scheduleArray = decoded
+            print("💾 Decoded schedule from Core Data: \(decoded.map { $0.shortName })")
+        } else {
+            scheduleArray = []
+        }
+        
+        let category = self.category
+        
         let tracker = Tracker(
             id: id,
             name: name,
@@ -139,8 +213,29 @@ private extension TrackerCoreData {
             schedule: scheduleArray,
             trackerCategory: category
         )
-
+        
         print("🟢 Mapped TrackerCoreData -> Tracker: \(tracker.name), category: \(category?.title ?? "nil")")
         return tracker
     }
 }
+
+// MARK: - Debug
+extension TrackerStore {
+    func debugPrintSchedules() {
+        let trackers = getTrackers()
+        print("\n==============================")
+        print("🗓 Проверка расписаний трекеров (\(trackers.count) шт.)")
+        print("==============================")
+        
+        for tracker in trackers {
+            if tracker.schedule.isEmpty {
+                print("⚠️ \(tracker.name): расписание ПУСТО")
+            } else {
+                let days = tracker.schedule.map { $0.shortName }.joined(separator: ", ")
+                print("✅ \(tracker.name): \(days)")
+            }
+        }
+        print("==============================\n")
+    }
+}
+

@@ -5,10 +5,14 @@ final class OnboardingViewController: UIPageViewController, UIPageViewController
     // MARK: - Pages
     private lazy var pages: [UIViewController] = {
         return [
-            OnboardingPageViewController(imageName: "1",
-                                         text: "Отслеживайте только то, что хотите"),
-            OnboardingPageViewController(imageName: "2",
-                                         text: "Даже если это\nне литры воды и йога")
+            OnboardingPageViewController(
+                imageName: "1",
+                text: NSLocalizedString("onboarding.page1.text", comment: "Текст первой страницы онбординга")
+            ),
+            OnboardingPageViewController(
+                imageName: "2",
+                text: NSLocalizedString("onboarding.page2.text", comment: "Текст второй страницы онбординга")
+            )
         ]
     }()
     
@@ -25,7 +29,7 @@ final class OnboardingViewController: UIPageViewController, UIPageViewController
     
     // MARK: - Button
     private lazy var actionButton: BlackButton = {
-        let button = BlackButton(title: "Вот это технологии!")
+        let button = BlackButton(title: NSLocalizedString("onboarding.button", comment: "Кнопка завершения онбординга"))
         button.addTarget(self, action: #selector(finishOnboarding), for: .touchUpInside)
         return button
     }()
@@ -35,7 +39,8 @@ final class OnboardingViewController: UIPageViewController, UIPageViewController
         super.init(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
     }
     
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { nil }
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -71,14 +76,7 @@ final class OnboardingViewController: UIPageViewController, UIPageViewController
     
     // MARK: - Actions
     @objc private func finishOnboarding() {
-        UserDefaults.standard.set(true, forKey: "hasSeenOnboarding")
-        
-        let trackersVC = TrackersViewController()
-        let navVC = UINavigationController(rootViewController: trackersVC)
-        if let window = UIApplication.shared.windows.first {
-            window.rootViewController = navVC
-            window.makeKeyAndVisible()
-        }
+        dismiss(animated: true)
     }
     
     // MARK: - UIPageViewControllerDataSource

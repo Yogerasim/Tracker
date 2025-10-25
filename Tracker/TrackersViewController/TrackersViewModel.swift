@@ -1,119 +1,179 @@
-import Foundation
 import CoreData
 
 final class TrackersViewModel {
-
+    
     // MARK: - Stores
     private let categoryStore: TrackerCategoryStore
-    private let recordStore: TrackerRecordStore
-    private let trackerStore: TrackerStore
-
+    let recordStore: TrackerRecordStore
+    let trackerStore: TrackerStore
+    var cellViewModels: [UUID: TrackerCellViewModel] = [:]
+    
+    // MARK: - Constants
+    let pinnedCategoryTitle = NSLocalizedString("trackers.pinned_category", comment: "Закрепленные")
+    private let defaultCategoryTitle = NSLocalizedString("trackers.default_category", comment: "Мои трекеры")
+    
     // MARK: - State
-    private let defaultCategoryTitle = "Мои трекеры"
     @Published private(set) var trackers: [Tracker] = []
-    @Published var currentDate: Date = Date()
-    @Published var categories: [TrackerCategory] = []
+    @Published private(set) var categories: [TrackerCategory] = []
     @Published var completedTrackers: [TrackerRecord] = []
-
+    
+    @Published var currentDate: Date = Date() {
+        didSet { onDateChanged?(currentDate) }
+    }
+    
+    private var originalCategoryMap: [UUID: String] = [:]
+    private var updateWorkItem: DispatchWorkItem?
+    private var reloadWorkItem: DispatchWorkItem?
+    
     // MARK: - Callbacks
     var onTrackersUpdated: (() -> Void)?
     var onCategoriesUpdated: (() -> Void)?
     var onDateChanged: ((Date) -> Void)?
-
-    // MARK: - Init
+    var onEditTracker: ((Tracker) -> Void)?
+    
+    // MARK: init
     init(container: NSPersistentContainer = CoreDataStack.shared.persistentContainer) {
         self.categoryStore = TrackerCategoryStore(context: container.viewContext)
-        self.recordStore = TrackerRecordStore(persistentContainer: container)
         self.trackerStore = TrackerStore(context: container.viewContext)
-
+        self.recordStore = TrackerRecordStore(persistentContainer: container)
+        
         self.trackerStore.delegate = self
         self.categoryStore.delegate = self
-
+        self.recordStore.delegate = self
+        
         loadData()
     }
-
-    private func loadData() {
-        self.trackers = trackerStore.getTrackers()
-        self.categories = categoryStore.categories
-        self.completedTrackers = recordStore.completedTrackers
-
-        print("🟢 ViewModel init:")
-        print("Categories: \(categories.map { $0.title })")
-        print("Trackers: \(trackers.map { $0.name })")
-        print("Completed trackers count: \(completedTrackers.count)")
+    
+    // MARK: - Data Loading
+    func loadData() {
+        print("📦 [TrackersVM] loadData() called")
+        trackers = trackerStore.getTrackers()
+        completedTrackers = recordStore.completedTrackers
+        categories = categoryStore.categories
+        print("📊 trackers.count = \(trackers.count), completed = \(completedTrackers.count)")
+        onTrackersUpdated?()
     }
-
+    
+    func reloadTrackers() {
+        trackers = trackerStore.getTrackers()
+        completedTrackers = recordStore.completedTrackers
+        print("📦 [TrackersVM] reloadTrackers() — trackers.count = \(trackers.count), completed = \(completedTrackers.count)")
+        onTrackersUpdated?()
+    }
+    
     // MARK: - Business Logic
-    func ensureDefaultCategory() {
-        if !categories.contains(where: { $0.title == defaultCategoryTitle }) {
-            let defaultCategory = TrackerCategory(id: UUID(), title: defaultCategoryTitle, trackers: [])
-            categoryStore.add(defaultCategory)
-            categories = categoryStore.categories
+    
+    func addTrackerToDefaultCategory(_ tracker: Tracker) {
+        guard !trackers.contains(where: { $0.id == tracker.id }) else { return }
+        trackerStore.add(tracker)
+        
+        if let _ = categories.first(where: { $0.title == defaultCategoryTitle }) {
+            categoryStore.moveTracker(tracker, to: defaultCategoryTitle)
+        }
+        
+        trackers.forEach { tracker in
+            _ = makeCellViewModel(for: tracker)
+        }
+        reloadTrackers()
+    }
+    
+    func markTrackerAsCompleted(_ tracker: Tracker, on date: Date, completion: (() -> Void)? = nil) {
+        print("🟢 [VM] markTrackerAsCompleted — \(tracker.name) on \(date.formatted())")
+        guard let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) else {
+            print("⚠️ [VM] fetchTracker FAILED for id \(tracker.id)")
+            return
+        }
+        recordStore.addRecord(for: trackerCoreData, date: date)
+        DispatchQueue.main.async {
+            self.reloadTrackers()
+            completion?()
+        }
+    }
+    
+    func unmarkTrackerAsCompleted(_ tracker: Tracker, on date: Date, completion: (() -> Void)? = nil) {
+        print("🔴 [VM] unmarkTrackerAsCompleted — \(tracker.name) on \(date.formatted())")
+        guard let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) else {
+            print("⚠️ [VM] fetchTracker FAILED for id \(tracker.id)")
+            return
+        }
+        recordStore.removeRecord(for: trackerCoreData, date: date)
+        DispatchQueue.main.async {
+            self.reloadTrackers()
+            completion?()
+        }
+    }
+    
+    func isTrackerCompleted(_ tracker: Tracker, on date: Date) -> Bool {
+        let normalized = normalizedDate(date)
+        let result: Bool
+        if let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) {
+            result = recordStore.isCompleted(for: trackerCoreData, date: normalized)
+        } else {
+            result = false
+        }
+        print("📘 [VM] isTrackerCompleted(\(tracker.name)) = \(result) for UTC date \(normalized)")
+        return result
+    }
+    
+    func makeCellViewModel(for tracker: Tracker) -> TrackerCellViewModel {
+        if let existingVM = cellViewModels[tracker.id] {
+            existingVM.updateCurrentDate(currentDate)
+            return existingVM
+        } else {
+            let newVM = TrackerCellViewModel(tracker: tracker, recordStore: recordStore, currentDate: currentDate)
+            cellViewModels[tracker.id] = newVM
+            return newVM
+        }
+    }
+    
+    private func normalizedDate(_ date: Date) -> Date {
+        date.startOfDayUTC()
+    }
+}
+
+// MARK: - Pin / Unpin
+extension TrackersViewModel {
+    func pinTracker(_ tracker: Tracker) {
+        var pinnedCategory = categories.first(where: { $0.title == pinnedCategoryTitle })
+        if pinnedCategory == nil {
+            pinnedCategory = TrackerCategory(id: UUID(), title: pinnedCategoryTitle, trackers: [])
+            categoryStore.add(pinnedCategory!)
+            categories.insert(pinnedCategory!, at: 0)
             onCategoriesUpdated?()
         }
-    }
-
-    func addTrackerToDefaultCategory(_ tracker: Tracker) {
-        print("🟢 Adding tracker: \(tracker.name)")
-        categoryStore.addTracker(tracker, to: defaultCategoryTitle)
-        trackerStore.add(tracker)
-
-        // обновляем локальные массивы
-        let updatedTrackers = trackerStore.getTrackers()
-        self.trackers = updatedTrackers
-        self.completedTrackers = recordStore.completedTrackers
-
-        print("🟡 After add, trackers: \(trackers.map { $0.name })")
-        print("Completed trackers count: \(completedTrackers.count)")
-
-        onCategoriesUpdated?()
+        originalCategoryMap[tracker.id] = tracker.trackerCategory?.title ?? defaultCategoryTitle
+        categoryStore.moveTracker(tracker, to: pinnedCategoryTitle)
+        reloadTrackers()
         onTrackersUpdated?()
-        updateCurrentDateForNewTracker(tracker)
     }
+    
+    func unpinTracker(_ tracker: Tracker) {
+        guard let originalTitle = originalCategoryMap[tracker.id] else { return }
+        categoryStore.moveTracker(tracker, to: originalTitle)
+        originalCategoryMap.removeValue(forKey: tracker.id)
+        reloadTrackers()
+        onTrackersUpdated?()
+    }
+}
 
-    private func updateCurrentDateForNewTracker(_ tracker: Tracker) {
-        guard !tracker.schedule.isEmpty else { return }
-
-        let todayWeekday = Calendar.current.component(.weekday, from: Date())
-        let weekdaysMap: [Int: WeekDay] = [
-            1: .sunday, 2: .monday, 3: .tuesday, 4: .wednesday,
-            5: .thursday, 6: .friday, 7: .saturday
-        ]
-
-        let sortedDays = tracker.schedule.sorted { $0.rawValue < $1.rawValue }
-
-        for offset in 0..<7 {
-            let nextDayIndex = (todayWeekday + offset - 1) % 7 + 1
-            if let day = weekdaysMap[nextDayIndex], sortedDays.contains(day),
-               let nextDate = Calendar.current.date(byAdding: .day, value: offset, to: Date()) {
-                currentDate = nextDate
-                onDateChanged?(nextDate)
-                break
-            }
+// MARK: - Edit / Delete
+extension TrackersViewModel {
+    func editTracker(_ tracker: Tracker) {
+        print("🟢 Edit tracker tapped: \(tracker.name)")
+        if let vm = cellViewModels[tracker.id] {
+            vm.tracker = tracker
+            vm.refreshState()
         }
+        onEditTracker?(tracker)
     }
-
-    func markTrackerAsCompleted(_ tracker: Tracker, on date: Date) {
-        if let trackerCoreData = recordStore.fetchTracker(by: tracker.id) {
-            recordStore.addRecord(for: trackerCoreData, date: date)
-            self.trackers = trackerStore.getTrackers()
-            self.completedTrackers = recordStore.completedTrackers
-            onTrackersUpdated?()
-        }
-    }
-
-    func unmarkTrackerAsCompleted(_ tracker: Tracker, on date: Date) {
-        if let trackerCoreData = recordStore.fetchTracker(by: tracker.id) {
-            recordStore.removeRecord(for: trackerCoreData, date: date)
-            self.trackers = trackerStore.getTrackers()
-            self.completedTrackers = recordStore.completedTrackers
-            onTrackersUpdated?()
-        }
-    }
-
-    func isTrackerCompleted(_ tracker: Tracker, on date: Date) -> Bool {
-        guard let trackerCoreData = recordStore.fetchTracker(by: tracker.id) else { return false }
-        return recordStore.isCompleted(for: trackerCoreData, date: date)
+    
+    func deleteTracker(_ tracker: Tracker) {
+        print("🔴 Request delete tracker: \(tracker.name)")
+        trackerStore.delete(tracker)
+        reloadTrackers()
+        onTrackersUpdated?()
+        print("✅ Deleted tracker: \(tracker.name). trackers.count = \(trackers.count)")
+        NotificationCenter.default.post(name: .trackersDidChange, object: nil)
     }
 }
 
@@ -121,7 +181,6 @@ final class TrackersViewModel {
 extension TrackersViewModel: TrackerStoreDelegate {
     func didUpdateTrackers(_ trackers: [Tracker]) {
         self.trackers = trackers
-        print("🔵 didUpdateTrackers called, trackers: \(trackers.map { $0.name })")
         onTrackersUpdated?()
     }
 }
@@ -129,7 +188,19 @@ extension TrackersViewModel: TrackerStoreDelegate {
 extension TrackersViewModel: TrackerCategoryStoreDelegate {
     func didUpdateCategories() {
         self.categories = categoryStore.categories
-        print("🔵 didUpdateCategories called, categories: \(categories.map { $0.title })")
         onCategoriesUpdated?()
+    }
+}
+
+extension TrackersViewModel: TrackerRecordStoreDelegate {
+    func didUpdateRecords() {
+        completedTrackers = recordStore.completedTrackers
+        onTrackersUpdated?()
+    }
+}
+
+extension Date {
+    var weekDay: WeekDay {
+        WeekDay.from(date: self)
     }
 }

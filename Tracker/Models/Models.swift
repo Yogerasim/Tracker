@@ -6,11 +6,7 @@ struct Tracker {
     let color: String
     let emoji: String
     let schedule: [WeekDay]
-    let trackerCategory: TrackerCategoryCoreData? // <- Core Data тип
-}
-
-enum WeekDay: Int, CaseIterable, Codable {
-    case monday, tuesday, wednesday, thursday, friday, saturday, sunday
+    let trackerCategory: TrackerCategoryCoreData?
 }
 
 struct TrackerCategory {

@@ -14,7 +14,8 @@ final class SelectableCollectionViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
     }
     
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { nil }
     
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -57,26 +58,34 @@ extension SelectableCollectionViewController: UICollectionViewDataSource {
         items.count
     }
     
-    func collectionView(_ collectionView: UICollectionView,
-                        cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: SelectableCell.reuseId,
             for: indexPath
-        ) as! SelectableCell
-        
-        let isSelected = indexPath == selectedIndexPath
-        cell.configure(with: items[indexPath.item], isSelected: isSelected)
+        ) as? SelectableCell else {
+            return UICollectionViewCell()
+        }
+
+        if items.indices.contains(indexPath.item) {
+            let isSelected = indexPath == selectedIndexPath
+            cell.configure(with: items[indexPath.item], isSelected: isSelected)
+        }
+
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         viewForSupplementaryElementOfKind kind: String,
                         at indexPath: IndexPath) -> UICollectionReusableView {
-        let header = collectionView.dequeueReusableSupplementaryView(
+
+        guard let header = collectionView.dequeueReusableSupplementaryView(
             ofKind: kind,
             withReuseIdentifier: HeaderView.reuseId,
             for: indexPath
-        ) as! HeaderView
+        ) as? HeaderView else {
+            return UICollectionReusableView()
+        }
+
         header.titleLabel.text = headerTitle
         return header
     }
@@ -128,11 +137,9 @@ final class SelectableCell: UICollectionViewCell {
         colorView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            // Центрируем эмоджи
             label.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             label.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             
-            // Цветной квадрат 40x40
             colorView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             colorView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             colorView.widthAnchor.constraint(equalToConstant: 40),
@@ -143,7 +150,8 @@ final class SelectableCell: UICollectionViewCell {
         contentView.layer.masksToBounds = true
     }
     
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { nil }
     
     func configure(with item: CollectionItem, isSelected: Bool) {
         switch item {
@@ -152,14 +160,28 @@ final class SelectableCell: UICollectionViewCell {
             label.isHidden = false
             colorView.isHidden = true
             
-            contentView.backgroundColor = isSelected ? .systemGray6 : AppColors.background
+            contentView.backgroundColor = isSelected
+            ? UIColor.systemGray5.withAlphaComponent(0.4)
+            : UIColor { traitCollection in
+                traitCollection.userInterfaceStyle == .dark
+                ? UIColor.systemGray6.withAlphaComponent(0.3)
+                : AppColors.background
+            }
+            
+            contentView.layer.borderWidth = isSelected ? 2 : 0
+            contentView.layer.borderColor = isSelected ? UIColor.systemGray4.cgColor : nil
             
         case .color(let color):
             label.isHidden = true
             colorView.isHidden = false
             colorView.backgroundColor = color
-            // добавим эффект выбора — рамка
-            contentView.backgroundColor = AppColors.background
+            
+            contentView.backgroundColor = UIColor { traitCollection in
+                traitCollection.userInterfaceStyle == .dark
+                ? UIColor.systemBackground
+                : AppColors.background
+            }
+            
             contentView.layer.borderWidth = isSelected ? 2 : 0
             contentView.layer.borderColor = isSelected ? UIColor.systemGray4.cgColor : nil
         }
@@ -171,8 +193,10 @@ final class HeaderView: UICollectionReusableView {
     
     let titleLabel: UILabel = {
         let label = UILabel()
-        label.font = AppFonts.bold(19)   
-        label.textColor = AppColors.backgroundBlackButton
+        label.font = AppFonts.bold(19)
+        label.textColor = UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark ? UIColor(white: 1.0, alpha: 0.9) : AppColors.backgroundBlackButton
+        }
         return label
     }()
     
@@ -187,5 +211,6 @@ final class HeaderView: UICollectionReusableView {
         ])
     }
     
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { nil }
 }
