@@ -7,6 +7,10 @@ struct AppLogger {
     static let coreData = Logger(label: "com.myapp.coredata")
     
     static func setup() {
-        LoggingSystem.bootstrap(StreamLogHandler.standardOutput)
+        LoggingSystem.bootstrap { label in
+            var handler = StreamLogHandler.standardOutput(label: label)
+            handler.logLevel = .error
+            return handler
+        }
     }
 }

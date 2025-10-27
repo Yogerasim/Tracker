@@ -1,11 +1,7 @@
 import UIKit
 import Combine
-import Logging
 
 final class FiltersViewController: UIViewController {
-    
-    // MARK: - Logger
-    private let logger = Logger(label: "FiltersViewController")
     
     // MARK: - UI
     private let header = ModalHeaderView(title: NSLocalizedString("filters.title", comment: "Filters"))
@@ -64,7 +60,6 @@ final class FiltersViewController: UIViewController {
                 guard let self else { return }
                 UserDefaults.standard.set(index, forKey: "selectedFilterIndex")
                 self.tableContainer.tableView.reloadData()
-                self.logger.info("Selected filter index updated: \(index)")
             }
             .store(in: &cancellables)
     }
@@ -145,8 +140,6 @@ extension FiltersViewController: UITableViewDataSource, UITableViewDelegate {
         let previousIndex = viewModel.selectedFilterIndex
         viewModel.selectFilter(index: indexPath.row)
         
-        logger.info("🟢 Selected filter index: \(indexPath.row)")
-        
         var indexPathsToReload: [IndexPath] = [indexPath]
         if previousIndex != indexPath.row {
             indexPathsToReload.append(IndexPath(row: previousIndex, section: 0))
@@ -154,7 +147,6 @@ extension FiltersViewController: UITableViewDataSource, UITableViewDelegate {
         tableView.reloadRows(at: indexPathsToReload, with: .automatic)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            self.logger.info("🟠 Filter selected index = \(indexPath.row), notifying trackersVC")
             self.onFilterSelected?(indexPath.row)
             self.dismiss(animated: true)
         }
