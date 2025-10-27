@@ -42,7 +42,6 @@ class TrackerCreationViewModel: BaseTrackerCreationViewController {
         let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         request.predicate = NSPredicate(format: "name == %@ AND category == %@", title, category)
         if let existing = try? context.fetch(request), !existing.isEmpty {
-            print("⚠️ Такой трекер уже существует")
             isCreating = false
             return enableCreateButton()
         }
@@ -56,7 +55,6 @@ class TrackerCreationViewModel: BaseTrackerCreationViewController {
         
         do {
             try context.save()
-            print("✅ Трекер сохранён")
             let tracker = Tracker(
                 id: trackerCD.id!,
                 name: title,
@@ -72,7 +70,6 @@ class TrackerCreationViewModel: BaseTrackerCreationViewController {
             }
             dismiss(animated: true)
         } catch {
-            print("❌ Ошибка сохранения: \(error)")
             isCreating = false
             enableCreateButton()
         }

@@ -24,7 +24,7 @@ final class TrackerStore: NSObject {
         let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
         
-        AppLogger.trackers.info("⚙️ [TrackerStore] Setting up FRC with request: \(request)")
+        // removed log")
         
         fetchedResultsController = NSFetchedResultsController(
             fetchRequest: request,
@@ -36,16 +36,16 @@ final class TrackerStore: NSObject {
         
         do {
             try fetchedResultsController.performFetch()
-            let count = fetchedResultsController.fetchedObjects?.count ?? 0
-            AppLogger.trackers.info("📥 [TrackerStore] FRC initial fetch — \(count) objects fetched")
+            _ = fetchedResultsController.fetchedObjects?.count ?? 0
+            // removed log objects fetched")
             if let trackers = fetchedResultsController.fetchedObjects {
-                trackers.forEach {
-                    AppLogger.trackers.info("   • \($0.name ?? "nil") | category: \($0.category?.title ?? "nil")")
+                trackers.forEach {_ in 
+                    // removed log | category: \($0.category?.title ?? "nil")")
                 }
             }
             notifyDelegate()
         } catch {
-            AppLogger.trackers.error("❌ Ошибка FRC fetch: \(error)")
+            // removed log")
         }
     }
     
@@ -61,7 +61,7 @@ final class TrackerStore: NSObject {
         cdTracker.color = tracker.color
         cdTracker.emoji = tracker.emoji
         
-        AppLogger.trackers.info("🟡 Saving Tracker: \(tracker.name), schedule: \(tracker.schedule.map { $0.rawValue })")
+        // removed log, schedule: \(tracker.schedule.map { $0.rawValue })")
         cdTracker.schedule = NSArray(array: tracker.schedule.map { $0.rawValue })
         
         if let category = tracker.trackerCategory {
@@ -81,7 +81,7 @@ final class TrackerStore: NSObject {
                 cdTracker.color = tracker.color
                 cdTracker.emoji = tracker.emoji
                 
-                AppLogger.trackers.info("🟡 Saving Tracker: \(tracker.name), schedule: \(tracker.schedule.map { $0.rawValue })")
+                // removed log, schedule: \(tracker.schedule.map { $0.rawValue })")
                 cdTracker.schedule = NSArray(array: tracker.schedule.map { $0.rawValue })
                 
                 if let category = tracker.trackerCategory {
@@ -93,25 +93,25 @@ final class TrackerStore: NSObject {
                 saveContext()
             }
         } catch {
-            AppLogger.trackers.error("❌ Ошибка update Tracker: \(error)")
+            // removed log")
         }
     }
     
     func delete(_ tracker: Tracker) {
-        AppLogger.trackers.info("🗑 [TrackerStore] delete() called for tracker: \(tracker.name)")
+        // removed log called for tracker: \(tracker.name)")
         let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
         
         do {
             if let cdTracker = try context.fetch(request).first {
-                AppLogger.trackers.info("🗑 Deleting object: \(cdTracker.name ?? "nil") from Core Data")
+                // removed log from Core Data")
                 context.delete(cdTracker)
                 saveContext()
             } else {
-                AppLogger.trackers.debug("⚠️ delete() — tracker not found in Core Data")
+                // removed log — tracker not found in Core Data")
             }
         } catch {
-            AppLogger.trackers.error("❌ Ошибка delete Tracker: \(error)")
+            // removed log")
         }
     }
     
@@ -122,7 +122,7 @@ final class TrackerStore: NSObject {
         do {
             return try context.fetch(request).first
         } catch {
-            AppLogger.trackers.error("❌ Ошибка fetchTracker: \(error)")
+            // removed log")
             return nil
         }
     }
@@ -130,33 +130,33 @@ final class TrackerStore: NSObject {
     private func saveContext() {
         do {
             if context.hasChanges {
-                AppLogger.trackers.info("💾 [TrackerStore] Saving context...")
+                // removed log
                 try context.save()
-                AppLogger.trackers.info("✅ [TrackerStore] Context saved successfully")
+                // removed log
             } else {
-                AppLogger.trackers.info("ℹ️ [TrackerStore] No changes to save")
+                // removed log
             }
         } catch {
-            AppLogger.trackers.error("❌ Ошибка сохранения контекста: \(error)")
+            // removed log")
         }
     }
     
     private func notifyDelegate() {
         guard !isNotifyingDelegate else {
-            AppLogger.trackers.debug("⚠️ [TrackerStore] Skipping duplicate notifyDelegate()")
+            // removed log")
             return
         }
         isNotifyingDelegate = true
         
         let trackersList = getTrackers()
         
-        AppLogger.trackers.info("🟢 [TrackerStore] notifyDelegate() called")
-        AppLogger.trackers.info("   • trackers count: \(trackersList.count)")
+        // removed log called")
+        // removed log")
         if trackersList.isEmpty {
-            AppLogger.trackers.debug("   ⚠️ [TrackerStore] EMPTY array passed to delegate!")
+            // removed log
             debugFetchContents()
         } else {
-            AppLogger.trackers.info("   • names: \(trackersList.map { $0.name })")
+            // removed log")
         }
         
         DispatchQueue.main.async { [weak self] in
@@ -164,31 +164,31 @@ final class TrackerStore: NSObject {
             self.delegate?.didUpdateTrackers(trackersList)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) { [weak self] in
                 self?.isNotifyingDelegate = false
-                AppLogger.trackers.info("ℹ️ [TrackerStore] notifyDelegate flag cleared")
+                // removed log
             }
         }
     }
     
     private func debugFetchContents() {
-        AppLogger.trackers.debug("🔍 [TrackerStore] debugFetchContents() started")
+        // removed log started")
         let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         
         do {
             let results = try context.fetch(request)
-            AppLogger.trackers.debug("   • Raw CoreData objects count: \(results.count)")
-            for (i, item) in results.enumerated() {
-                AppLogger.trackers.debug("     \(i+1). \(item.name ?? "nil"), category: \(item.category?.title ?? "nil"), schedule: \(String(describing: item.schedule))")
+            // removed log")
+            for (_, _) in results.enumerated() {
+                // removed log. \(item.name ?? "nil"), category: \(item.category?.title ?? "nil"), schedule: \(String(describing: item.schedule))")
             }
         } catch {
-            AppLogger.trackers.error("❌ [TrackerStore] debugFetchContents() failed: \(error)")
+            // removed log failed: \(error)")
         }
     }
 }
 
 extension TrackerStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        let ms = Int(Date().timeIntervalSince1970 * 1000)
-        AppLogger.trackers.info("📡 [TrackerStore] controllerDidChangeContent() at \(ms) ms")
+        _ = Int(Date().timeIntervalSince1970 * 1000)
+        // removed log at \(ms) ms")
         notifyDelegate()
     }
 }
@@ -199,7 +199,7 @@ private extension TrackerCoreData {
               let name = name,
               let color = color,
               let emoji = emoji else {
-            AppLogger.trackers.error("❌ toTracker guard failed for id: \(id?.uuidString ?? "nil")")
+            // removed log")
             return nil
         }
         
@@ -207,7 +207,7 @@ private extension TrackerCoreData {
         if let data = schedule as? Data,
            let decoded = try? JSONDecoder().decode([WeekDay].self, from: data) {
             scheduleArray = decoded
-            AppLogger.trackers.info("💾 Decoded schedule from Core Data: \(decoded.map { $0.shortName })")
+            // removed log")
         } else {
             scheduleArray = []
         }
@@ -223,7 +223,7 @@ private extension TrackerCoreData {
             trackerCategory: category
         )
         
-        AppLogger.trackers.info("🟢 Mapped TrackerCoreData -> Tracker: \(tracker.name), category: \(category?.title ?? "nil")")
+        // removed log, category: \(category?.title ?? "nil")")
         return tracker
     }
 }
@@ -231,19 +231,19 @@ private extension TrackerCoreData {
 extension TrackerStore {
     func debugPrintSchedules() {
         let trackers = getTrackers()
-        AppLogger.trackers.info("\n==============================")
-        AppLogger.trackers.info("🗓 Проверка расписаний трекеров (\(trackers.count) шт.)")
-        AppLogger.trackers.info("==============================")
+        // removed log
+        // removed log шт.)")
+        // removed log
         
         for tracker in trackers {
             if tracker.schedule.isEmpty {
-                AppLogger.trackers.debug("⚠️ \(tracker.name): расписание ПУСТО")
+                // removed log: расписание ПУСТО")
             } else {
-                let days = tracker.schedule.map { $0.shortName }.joined(separator: ", ")
-                AppLogger.trackers.info("✅ \(tracker.name): \(days)")
+                _ = tracker.schedule.map { $0.shortName }.joined(separator: ", ")
+                // removed log: \(days)")
             }
         }
-        AppLogger.trackers.info("==============================\n")
+        // removed log
     }
     
     func deleteAll() {
@@ -253,7 +253,7 @@ extension TrackerStore {
             try context.execute(deleteRequest)
             try context.save()
         } catch {
-            AppLogger.trackers.debug("⚠️ [TrackerStore] Failed to delete all trackers: \(error)")
+            // removed log")
         }
     }
 }

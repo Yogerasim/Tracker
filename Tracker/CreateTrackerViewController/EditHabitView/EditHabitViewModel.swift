@@ -55,10 +55,8 @@ final class EditHabitViewModel {
         
         do {
             try context.save()
-            print("✏️ Трекер обновлён: \(trimmedName)")
             onHabitEdited?()
         } catch {
-            print("❌ Ошибка сохранения изменений трекера: \(error)")
         }
     }
 }

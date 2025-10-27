@@ -12,7 +12,6 @@ final class NewHabitView: TrackerCreationViewModel {
     // MARK: - Создание трекера
     override func createTapped() {
         guard !selectedDays.isEmpty else {
-            print("⚠️ Не выбрано расписание")
             return enableCreateButton()
         }
         createTracker(with: selectedDays)

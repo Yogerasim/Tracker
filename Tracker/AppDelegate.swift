@@ -14,9 +14,9 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     ) -> Bool {
         if let configuration = YMMYandexMetricaConfiguration(apiKey: "53e8c0c7-ca97-44d0-9b89-836ccff6b602") {
             YMMYandexMetrica.activate(with: configuration)
-            AppLogger.analytics.info("✅ YandexMetrica activated")
+            // removed log
         } else {
-            AppLogger.analytics.error("❌ YandexMetrica configuration failed")
+            // removed log
         }
         
         UIViewController.enableGlobalKeyboardDismiss()

@@ -181,10 +181,8 @@ final class CategoryViewController: UIViewController {
                 context.delete(category)
                 do {
                     try context.save()
-                    print("🗑️ Категория \"\(title)\" удалена из Core Data")
                     self.updateUI()
                 } catch {
-                    print("❌ Ошибка при удалении категории: \(error)")
                 }
             }
         })
@@ -246,7 +244,6 @@ extension CategoryViewController: UITableViewDataSource, UITableViewDelegate {
         tableView.reloadRows(at: indexPathsToReload, with: .none)
         
         let selectedCategory = categoryStore.fetchCategories()[indexPath.row]
-        print("Выбрана категория: \(selectedCategory.title ?? "")")
         onCategorySelected?(selectedCategory)
     }
 }

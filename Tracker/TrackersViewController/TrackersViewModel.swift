@@ -62,18 +62,18 @@ final class TrackersViewModel {
     
     // MARK: - Data Loading
     func loadData() {
-        AppLogger.trackers.info("📦 [TrackersVM] loadData() called")
+        // removed log called")
         trackers = trackerStore.getTrackers()
         completedTrackers = recordStore.completedTrackers
         categories = categoryStore.categories
-        AppLogger.trackers.info("📊 trackers.count = \(trackers.count), completed = \(completedTrackers.count)")
+        // removed log, completed = \(completedTrackers.count)")
         onTrackersUpdated?()
     }
     
     func reloadTrackers() {
         trackers = trackerStore.getTrackers()
         completedTrackers = recordStore.completedTrackers
-        AppLogger.trackers.info("📦 [TrackersVM] reloadTrackers() — trackers.count = \(trackers.count), completed = \(completedTrackers.count)")
+        // removed log — trackers.count = \(trackers.count), completed = \(completedTrackers.count)")
         onTrackersUpdated?()
     }
     
@@ -113,7 +113,7 @@ final class TrackersViewModel {
         } else {
             result = false
         }
-        AppLogger.trackers.debug("📘 [VM] isTrackerCompleted(\(tracker.name)) = \(result) for UTC date \(normalized)")
+        // removed log) = \(result) for UTC date \(normalized)")
         return result
     }
     
@@ -161,7 +161,7 @@ extension TrackersViewModel {
 // MARK: - Edit / Delete
 extension TrackersViewModel {
     func editTracker(_ tracker: Tracker) {
-        AppLogger.trackers.info("🟢 Edit tracker tapped: \(tracker.name)")
+        // removed log")
         if let vm = cellViewModels[tracker.id] {
             vm.tracker = tracker
             vm.refreshState()
@@ -170,11 +170,11 @@ extension TrackersViewModel {
     }
     
     func deleteTracker(_ tracker: Tracker) {
-        AppLogger.trackers.warning("🔴 Request delete tracker: \(tracker.name)")
+        // removed log")
         trackerStore.delete(tracker)
         reloadTrackers()
         onTrackersUpdated?()
-        AppLogger.trackers.info("✅ Deleted tracker: \(tracker.name). trackers.count = \(trackers.count)")
+        // removed log. trackers.count = \(trackers.count)")
         NotificationCenter.default.post(name: .trackersDidChange, object: nil)
     }
 }

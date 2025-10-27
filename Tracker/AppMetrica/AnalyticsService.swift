@@ -33,9 +33,7 @@ final class AnalyticsService {
             attributes["item"] = item
         }
         
-        print("📊 Analytics event: \(attributes)")
         YMMYandexMetrica.reportEvent("user_action", parameters: attributes) { error in
-            print("❌ Analytics error: \(error.localizedDescription)")
         }
     }
 }

@@ -10,9 +10,9 @@ final class CoreDataStack {
         let container = NSPersistentContainer(name: "Tracker")
         container.loadPersistentStores { description, error in
             if let error = error as NSError? {
-                AppLogger.trackers.error("❌ Ошибка загрузки Persistent Store: \(error), \(error.userInfo)")
+                // removed log, \(error.userInfo)")
             } else {
-                AppLogger.trackers.info("✅ Загружен Store: \(description)")
+                // removed log")
                 container.viewContext.automaticallyMergesChangesFromParent = true
                 container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
             }
@@ -27,16 +27,16 @@ final class CoreDataStack {
     func saveContext() {
         let context = persistentContainer.viewContext
         guard context.hasChanges else {
-            AppLogger.trackers.info("ℹ️ Сохранение пропущено — изменений нет")
+            // removed log
             return
         }
         
         do {
             try context.save()
-            AppLogger.trackers.info("💾 Контекст сохранён в Core Data")
+            // removed log
         } catch {
-            let nserror = error as NSError
-            AppLogger.trackers.error("❌ Ошибка сохранения контекста: \(nserror), \(nserror.userInfo)")
+            _ = error as NSError
+            // removed log, \(nserror.userInfo)")
         }
     }
 }

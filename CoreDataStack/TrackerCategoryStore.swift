@@ -30,9 +30,9 @@ final class TrackerCategoryStore: NSObject {
         
         do {
             try self.fetchedResultsController.performFetch()
-            AppLogger.trackers.info("📥 [TrackerCategoryStore] Initial fetch — \(self.fetchedResultsController.fetchedObjects?.count ?? 0) categories loaded")
+            // removed log categories loaded")
         } catch {
-            AppLogger.trackers.error("❌ Ошибка performFetch категорий: \(error)")
+            // removed log")
         }
     }
     
@@ -52,7 +52,7 @@ final class TrackerCategoryStore: NSObject {
         let cdCategory = TrackerCategoryCoreData(context: context)
         cdCategory.id = category.id
         cdCategory.title = category.title
-        AppLogger.trackers.info("🟢 Добавлена категория: \(category.title)")
+        // removed log")
         saveContext()
     }
     
@@ -63,10 +63,10 @@ final class TrackerCategoryStore: NSObject {
         do {
             let results = try context.fetch(request)
             results.forEach { context.delete($0) }
-            AppLogger.trackers.info("🗑 Удалена категория: \(category.title)")
+            // removed log")
             saveContext()
         } catch {
-            AppLogger.trackers.error("❌ Ошибка delete TrackerCategory: \(error)")
+            // removed log")
         }
     }
     
@@ -83,7 +83,7 @@ final class TrackerCategoryStore: NSObject {
                 cdCategory = TrackerCategoryCoreData(context: context)
                 cdCategory.id = UUID()
                 cdCategory.title = categoryTitle
-                AppLogger.trackers.info("🟢 Создана новая категория: \(categoryTitle)")
+                // removed log")
             }
             
             let cdTracker = TrackerCoreData(context: context)
@@ -97,10 +97,10 @@ final class TrackerCategoryStore: NSObject {
             trackersSet.insert(cdTracker)
             cdCategory.trackers = trackersSet as NSSet
             
-            AppLogger.trackers.info("➕ Добавлен трекер '\(tracker.name)' в категорию '\(categoryTitle)'")
+            // removed log' в категорию '\(categoryTitle)'")
             saveContext()
         } catch {
-            AppLogger.trackers.error("❌ Ошибка добавления трекера в категорию: \(error)")
+            // removed log")
         }
     }
     
@@ -115,7 +115,7 @@ final class TrackerCategoryStore: NSObject {
             let newCategory = TrackerCategoryCoreData(context: context)
             newCategory.id = category.id
             newCategory.title = category.title
-            AppLogger.trackers.info("🟢 Добавлена категория (CD): \(category.title)")
+            // removed log: \(category.title)")
             saveContext()
         }
     }
@@ -127,7 +127,7 @@ final class TrackerCategoryStore: NSObject {
         else { return }
         
         trackerCoreData.category = categoryCoreData
-        AppLogger.trackers.info("🔀 Трекер '\(tracker.name)' перемещен в категорию '\(categoryTitle)'")
+        // removed log' перемещен в категорию '\(categoryTitle)'")
         saveContext()
     }
     
@@ -152,7 +152,7 @@ final class TrackerCategoryStore: NSObject {
     private func toCategory(from cdCategory: TrackerCategoryCoreData) -> TrackerCategory? {
         guard let id = cdCategory.id,
               let title = cdCategory.title else {
-            AppLogger.trackers.warning("\(mappingErrorMessage)")
+            // removed log")
             return nil
         }
         return TrackerCategory(id: id, title: title, trackers: [])
@@ -162,17 +162,17 @@ final class TrackerCategoryStore: NSObject {
         do {
             if context.hasChanges {
                 try context.save()
-                AppLogger.trackers.info("💾 Контекст категорий сохранен")
+                // removed log
             }
         } catch {
-            AppLogger.trackers.error("❌ Ошибка сохранения контекста: \(error)")
+            // removed log")
         }
     }
 }
 
 extension TrackerCategoryStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        AppLogger.trackers.info("📡 Контент категорий изменен, уведомляем делегата")
+        // removed log
         delegate?.didUpdateCategories()
     }
 }

@@ -17,7 +17,6 @@ enum MainHeaderLayoutHelper {
         view.subviews.forEach { subview in
             if String(describing: type(of: subview)).contains("MainTitle") {
                 subview.isUserInteractionEnabled = false
-                print("✅ Disabled interaction for:", subview)
             }
         }
         

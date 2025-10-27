@@ -30,9 +30,7 @@ final class EditCategoryViewModel {
         do {
             try context.save()
             onCategoryEdited?()
-            print("✏️ Категория обновлена: \(trimmedName)")
         } catch {
-            print("❌ Ошибка при сохранении изменений категории: \(error)")
         }
     }
 }

@@ -38,7 +38,6 @@ final class ScheduleViewController: UIViewController {
         setupActions()
         tableContainer.updateHeight(forRows: daysOfWeek.count)
         updateDoneButtonState()
-        print("📅 ScheduleViewController загружен")
     }
     
     // MARK: - Layout
@@ -70,7 +69,6 @@ final class ScheduleViewController: UIViewController {
     }
     
     @objc private func doneTapped() {
-        print("✅ Done tapped, sending back selectedDays: \(selectedDays.map { $0.shortName })")
         onDone?(selectedDays)
         dismiss(animated: true)
     }
@@ -116,11 +114,9 @@ extension ScheduleViewController {
         if sender.isOn {
             if !selectedDays.contains(day) {
                 selectedDays.append(day)
-                print("🔵 Added day: \(day.shortName), current selectedDays: \(selectedDays.map { $0.shortName })")
             }
         } else {
             selectedDays.removeAll { $0 == day }
-            print("🔴 Removed day: \(day.shortName), current selectedDays: \(selectedDays.map { $0.shortName })")
         }
         
         updateDoneButtonState()

@@ -16,9 +16,7 @@ final class HabitFlowPresenter {
     func addTracker(_ tracker: Tracker, completion: @escaping () -> Void) {
         if let _ = categoryStore.fetchCategories().first(where: { $0.title == defaultCategoryTitle }) {
             categoryStore.addTracker(tracker, to: defaultCategoryTitle)
-            print("📌 Трекер '\(tracker.name)' добавлен в '\(defaultCategoryTitle)'")
         } else {
-            print("⚠️ Категория '\(defaultCategoryTitle)' отсутствует, создайте вручную.")
         }
         DispatchQueue.main.async {
             completion()
@@ -35,7 +33,6 @@ final class HabitFlowPresenter {
                 trackers: []
             )
             categoryStore.add(newCategory)
-            print("📂 Создана категория по умолчанию '\(defaultCategoryTitle)'")
         }
     }
 }
