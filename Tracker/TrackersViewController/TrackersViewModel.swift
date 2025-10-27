@@ -93,29 +93,15 @@ final class TrackersViewModel {
     }
     
     func markTrackerAsCompleted(_ tracker: Tracker, on date: Date, completion: (() -> Void)? = nil) {
-        print("🟢 [VM] markTrackerAsCompleted — \(tracker.name) on \(date.formatted())")
-        guard let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) else {
-            print("⚠️ [VM] fetchTracker FAILED for id \(tracker.id)")
-            return
-        }
+        guard let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) else { return }
         recordStore.addRecord(for: trackerCoreData, date: date)
-        DispatchQueue.main.async {
-            self.reloadTrackers()
-            completion?()
-        }
+        completion?()
     }
-    
+
     func unmarkTrackerAsCompleted(_ tracker: Tracker, on date: Date, completion: (() -> Void)? = nil) {
-        print("🔴 [VM] unmarkTrackerAsCompleted — \(tracker.name) on \(date.formatted())")
-        guard let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) else {
-            print("⚠️ [VM] fetchTracker FAILED for id \(tracker.id)")
-            return
-        }
+        guard let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) else { return }
         recordStore.removeRecord(for: trackerCoreData, date: date)
-        DispatchQueue.main.async {
-            self.reloadTrackers()
-            completion?()
-        }
+        completion?()
     }
     
     func isTrackerCompleted(_ tracker: Tracker, on date: Date) -> Bool {
@@ -209,8 +195,16 @@ extension TrackersViewModel: TrackerCategoryStoreDelegate {
 
 extension TrackersViewModel: TrackerRecordStoreDelegate {
     func didUpdateRecords() {
-        completedTrackers = recordStore.completedTrackers
-        onTrackersUpdated?()
+        // ❗ Отменяем предыдущее обновление, если новое приходит слишком быстро
+        reloadWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.completedTrackers = self.recordStore.completedTrackers
+            self.onTrackersUpdated?()
+        }
+        reloadWorkItem = workItem
+        // 🕐 Добавляем лёгкую задержку, чтобы сгладить "дребезг"
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: workItem)
     }
 }
 

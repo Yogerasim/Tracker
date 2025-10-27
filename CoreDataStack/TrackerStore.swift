@@ -9,6 +9,7 @@ final class TrackerStore: NSObject {
     
     private let context: NSManagedObjectContext
     private var fetchedResultsController: NSFetchedResultsController<TrackerCoreData>!
+    private var isNotifyingDelegate = false
     
     weak var delegate: TrackerStoreDelegate?
     
@@ -148,16 +149,36 @@ final class TrackerStore: NSObject {
     
     
     private func notifyDelegate() {
+        // если уже уведомляем — пропускаем дубликат
+        guard !isNotifyingDelegate else {
+            print("⚠️ [TrackerStore] Skipping duplicate notifyDelegate()")
+            return
+        }
+        isNotifyingDelegate = true
+
+        // Собираем свежий список трекеров (может быть тяжелая операция)
         let trackersList = getTrackers()
+
         print("🟢 [TrackerStore] notifyDelegate() called")
         print("   • trackers count: \(trackersList.count)")
         if trackersList.isEmpty {
             print("   ⚠️ [TrackerStore] EMPTY array passed to delegate!")
-            debugFetchContents() // Проверим, есть ли реально данные в Core Data
+            debugFetchContents()
         } else {
             print("   • names: \(trackersList.map { $0.name })")
         }
-        delegate?.didUpdateTrackers(trackersList)
+
+        // Вызов делегата на главном потоке
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.delegate?.didUpdateTrackers(trackersList)
+
+            // Сбрасываем флаг чуть позже — это защищает от быстрого "дребезга" FRC
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) { [weak self] in
+                self?.isNotifyingDelegate = false
+                print("ℹ️ [TrackerStore] notifyDelegate flag cleared")
+            }
+        }
     }
     private func debugFetchContents() {
         print("🔍 [TrackerStore] debugFetchContents() started")
@@ -178,7 +199,8 @@ final class TrackerStore: NSObject {
 // MARK: - NSFetchedResultsControllerDelegate
 extension TrackerStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        print("📡 [TrackerStore] controllerDidChangeContent() → delegate only")
+        let ms = Int(Date().timeIntervalSince1970 * 1000) // milliseconds since epoch
+        print("📡 [TrackerStore] controllerDidChangeContent() at \(ms) ms")
         notifyDelegate()
     }
 }

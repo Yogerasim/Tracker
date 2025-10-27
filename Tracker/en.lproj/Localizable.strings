@@ -114,6 +114,10 @@
 
 //EditCategoryView
 "edit_category_title" = "Editing category";
+
+"edit_category_placeholder" = "Edit the category name";
+
+
 // FiltersViewController
 "filters.title" = "Filters";
 "filters.all_trackers" = "All trackers";

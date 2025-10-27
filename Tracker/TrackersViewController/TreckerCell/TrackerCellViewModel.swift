@@ -32,21 +32,28 @@ final class TrackerCellViewModel {
     
     // MARK: - Actions
     func toggleCompletion() {
-        print("🧩 [TrackerCellVM] toggleCompletion START for \(tracker.name), isCompleted before = \(isCompleted)")
-        
-        if isCompleted {
-            recordStore.deleteRecord(for: tracker.id, date: currentDate)
-            isCompleted = false
-            daysCount -= 1
-        } else {
-            recordStore.addRecord(for: tracker.id, date: currentDate)
-            isCompleted = true
-            daysCount += 1
+        let oldState = isCompleted
+        isCompleted.toggle()
+        daysCount += isCompleted ? 1 : -1
+        onStateChanged?() // мгновенно обновляем UI
+
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self else { return }
+
+            if oldState {
+                self.recordStore.deleteRecord(for: self.tracker.id, date: self.currentDate)
+            } else {
+                if let trackerCore = self.recordStore.fetchTrackerInViewContext(by: self.tracker.id) {
+                    self.recordStore.addRecord(for: trackerCore, date: self.currentDate)
+                } else {
+                    self.recordStore.addRecord(for: self.tracker.id, date: self.currentDate)
+                }
+            }
+
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .trackerRecordsDidChange, object: self.tracker)
+            }
         }
-        
-        print("🧩 [TrackerCellVM] toggleCompletion END for \(tracker.name), isCompleted after = \(isCompleted)")
-        onStateChanged?()
-        NotificationCenter.default.post(name: .trackerRecordsDidChange, object: tracker)
     }
     
     func refreshState() {

@@ -142,10 +142,8 @@ final class TrackerRecordStore: NSObject {
             do {
                 if self.viewContext.hasChanges {
                     try self.viewContext.save()
-                    DispatchQueue.main.async {
-                        self.delegate?.didUpdateRecords()
-                    }
                     print("✅ [TrackerRecordStore] Context saved (\(reason))")
+                    // ❗ Не уведомляем delegate напрямую — FRC сам вызовет controllerDidChangeContent
                 }
             } catch {
                 print("❌ Ошибка сохранения (\(reason)): \(error)")
@@ -158,8 +156,10 @@ final class TrackerRecordStore: NSObject {
 
 extension TrackerRecordStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        print("📡 [TrackerRecordStore] controllerDidChangeContent()")
-        delegate?.didUpdateRecords()
+        // Теперь уведомляем делегата только один раз и на главном потоке
+        DispatchQueue.main.async { [weak self] in
+            self?.delegate?.didUpdateRecords()
+        }
     }
 }
 
