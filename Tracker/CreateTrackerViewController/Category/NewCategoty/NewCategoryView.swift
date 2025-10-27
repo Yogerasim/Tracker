@@ -2,7 +2,7 @@ import UIKit
 
 final class NewCategoryView: UIView {
     
-    // MARK: - UI
+    
     let header = ModalHeaderView(
         title: NSLocalizedString("new_category_title", comment: "")
     )
@@ -17,7 +17,7 @@ final class NewCategoryView: UIView {
     
     let placeholderView = PlaceholderView()
     
-    // MARK: - Init
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = AppColors.background
@@ -28,7 +28,7 @@ final class NewCategoryView: UIView {
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
     
-    // MARK: - Layout
+    
     private func setupLayout() {
         [header, nameTextField, doneButton, placeholderView].forEach { addSubview($0) }
         [header, nameTextField, doneButton, placeholderView].forEach { $0.translatesAutoresizingMaskIntoConstraints = false }
@@ -67,7 +67,7 @@ final class NewCategoryView: UIView {
         placeholderView.setContentCompressionResistancePriority(.required, for: .vertical)
     }
     
-    // MARK: - Initial State
+    
     private func configureInitialState() {
         doneButton.isEnabled = false
         doneButton.backgroundColor = AppColors.gray

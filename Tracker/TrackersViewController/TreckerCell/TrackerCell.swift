@@ -3,10 +3,10 @@ import UIKit
 final class TrackerCell: UICollectionViewCell {
     static let reuseIdentifier = "TrackerCell"
     
-    // MARK: - ViewModel
+    
     private var viewModel: TrackerCellViewModel?
     
-    // MARK: - UI Components
+    
     private let cardView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 12
@@ -52,7 +52,7 @@ final class TrackerCell: UICollectionViewCell {
         return button
     }()
     
-    // MARK: - Init
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         
@@ -71,7 +71,7 @@ final class TrackerCell: UICollectionViewCell {
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
     
-    // MARK: - Actions
+    
     @objc private func toggleTapped() {
         viewModel?.toggleCompletion()
     }
@@ -94,7 +94,7 @@ final class TrackerCell: UICollectionViewCell {
         viewModel.onStateChanged = { [weak self] in
             guard let self else { return }
             DispatchQueue.main.async {
-                guard self.viewModel === viewModel else { return } // защита от reuse
+                guard self.viewModel === viewModel else { return } 
                 self.updateUI()
             }
         }
@@ -119,7 +119,7 @@ final class TrackerCell: UICollectionViewCell {
         }
     }
     
-    // MARK: - Layout
+    
     private func setupConstraints() {
         [cardView, emojiLabel, titleLabel, bottomContainer, dayLabel, toggleButton].forEach { $0.translatesAutoresizingMaskIntoConstraints = false }
         
@@ -155,7 +155,7 @@ final class TrackerCell: UICollectionViewCell {
     }
 }
 
-// MARK: - UIColor Hex Extension
+
 private extension UIColor {
     convenience init?(hexString: String) {
         var hex = hexString.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()

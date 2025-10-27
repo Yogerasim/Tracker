@@ -3,7 +3,7 @@ import Combine
 
 final class TrackersViewController: UIViewController {
     
-    // MARK: - ViewModel
+    
     let viewModel: TrackersViewModel
     let ui = TrackersUI()
     
@@ -12,7 +12,7 @@ final class TrackersViewController: UIViewController {
     let filtersViewModel: FiltersViewModel
     var contextMenuController: BaseContextMenuController<TrackerCell>?
     
-    // MARK: - Init
+    
     init(viewModel: TrackersViewModel = TrackersViewModel()) {
         self.viewModel = viewModel
         let dateFilter = TrackersDateFilter()
@@ -43,7 +43,7 @@ final class TrackersViewController: UIViewController {
         super.init(coder: coder)
     }
     
-    // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = AppColors.background
@@ -78,7 +78,7 @@ final class TrackersViewController: UIViewController {
         AnalyticsService.trackClose(screen: "Main")
     }
     
-    // MARK: - UI Setup
+    
     private func updateColorsForCurrentTraitCollection() {
         view.backgroundColor = AppColors.background
         ui.collectionView.backgroundColor = AppColors.background
@@ -145,7 +145,7 @@ final class TrackersViewController: UIViewController {
         ui.dateButton.addTarget(self, action: #selector(toggleCalendar), for: .touchUpInside)
     }
     
-    // MARK: - Placeholder
+    
     private func setupPlaceholder() {
         view.addSubview(ui.placeholderView)
         ui.placeholderView.translatesAutoresizingMaskIntoConstraints = false
@@ -231,7 +231,7 @@ final class TrackersViewController: UIViewController {
         present(alert, animated: true)
     }
     
-    // MARK: - Calendar
+    
     private func setupCalendarContainer() {
         view.addSubview(ui.calendarContainer)
         ui.calendarContainer.translatesAutoresizingMaskIntoConstraints = false
@@ -260,7 +260,7 @@ final class TrackersViewController: UIViewController {
         ui.calendarView.addTarget(self, action: #selector(calendarDateChanged(_:)), for: .valueChanged)
     }
     
-    // MARK: - Bindings
+    
     private func setupBindings() {
         viewModel.onTrackersUpdated = { [weak self] in
             guard let self else { return }
@@ -296,7 +296,7 @@ final class TrackersViewController: UIViewController {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: work)
     }
     
-    // MARK: - Actions
+    
     @objc private func addButtonTapped() {
         let createVC = CreateTrackerViewController()
         createVC.onTrackerCreated = { [weak self] tracker in
@@ -322,7 +322,7 @@ final class TrackersViewController: UIViewController {
         let filtersVC = FiltersViewController(viewModel: filtersViewModel)
         filtersVC.onFilterSelected = { [weak self] index in
             guard let self else { return }
-            if index == 1 { // "Сегодня"
+            if index == 1 { 
                 self.showTodayTrackers()
             } else {
                 self.filtersViewModel.selectFilter(index: index)
@@ -339,12 +339,12 @@ final class TrackersViewController: UIViewController {
         ui.collectionView.reloadData()
     }
     
-    // MARK: - Search
+    
     private func setupSearchBar() {
         ui.searchBar.delegate = self
     }
     
-    // MARK: - Loading
+    
     private func setupLoadingIndicator() {
         view.addSubview(loadingIndicator)
         loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
@@ -354,7 +354,7 @@ final class TrackersViewController: UIViewController {
         ])
     }
     
-    // MARK: - Gesture
+    
     private func setupTapGesture() {
         let tap = UITapGestureRecognizer(target: self, action: #selector(handleScreenTap(_:)))
         tap.cancelsTouchesInView = false
@@ -367,7 +367,7 @@ final class TrackersViewController: UIViewController {
         }
     }
     
-    // MARK: - Context Menu
+    
     private func setupContextMenuController() {
         contextMenuController = BaseContextMenuController(
             owner: self,
@@ -412,7 +412,7 @@ final class TrackersViewController: UIViewController {
         )
     }
     
-    // MARK: - Helpers for categories
+    
     var visibleCategories: [TrackerCategory] = []
     
     func recalculateVisibleCategories() {
@@ -424,7 +424,7 @@ final class TrackersViewController: UIViewController {
     }
 }
 
-// MARK: - UISearchBarDelegate
+
 extension TrackersViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         filtersViewModel.searchText = searchText

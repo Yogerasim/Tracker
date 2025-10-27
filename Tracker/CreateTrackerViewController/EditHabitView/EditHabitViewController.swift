@@ -2,10 +2,10 @@ import UIKit
 
 final class EditHabitViewController: BaseTrackerCreationViewController {
     
-    // MARK: - Dependencies
+    
     private let viewModel: EditHabitViewModel
     
-    // MARK: - UI
+    
     private let daysCountLabel: UILabel = {
         let label = UILabel()
         label.font = AppFonts.bold(32)
@@ -14,7 +14,7 @@ final class EditHabitViewController: BaseTrackerCreationViewController {
         return label
     }()
     
-    // MARK: - Init
+    
     init(viewModel: EditHabitViewModel) {
         self.viewModel = viewModel
         super.init(title: NSLocalizedString("edit_habit.title", comment: "Редактировать привычку"))
@@ -29,7 +29,7 @@ final class EditHabitViewController: BaseTrackerCreationViewController {
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
     
-    // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupDaysCountLabel()
@@ -38,7 +38,7 @@ final class EditHabitViewController: BaseTrackerCreationViewController {
     }
 }
 
-// MARK: - Setup
+
 private extension EditHabitViewController {
     
     func setupDaysCountLabel() {
@@ -97,7 +97,7 @@ private extension EditHabitViewController {
     }
 }
 
-// MARK: - Actions
+
 private extension EditHabitViewController {
     
     @objc func saveTapped() {
@@ -117,7 +117,7 @@ private extension EditHabitViewController {
     }
 }
 
-// MARK: - UITableViewDelegate
+
 extension EditHabitViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {

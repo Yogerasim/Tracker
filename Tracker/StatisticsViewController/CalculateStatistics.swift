@@ -23,7 +23,7 @@ final class CalculateStatistics {
             return Statistics(bestPeriod: 0, idealDays: 0, completedTrackers: 0, averageTrackersPerDay: 0)
         }
         
-        // MARK: - Best Period
+        
         var bestStreak = 1
         var currentStreak = 1
         

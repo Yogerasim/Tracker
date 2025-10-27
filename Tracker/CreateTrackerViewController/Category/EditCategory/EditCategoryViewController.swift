@@ -6,7 +6,7 @@ final class EditCategoryViewController: UIViewController {
     private let viewModel: EditCategoryViewModel
     private let customView = EditCategoryView()
     
-    // MARK: - Init
+    
     init(viewModel: EditCategoryViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
@@ -15,7 +15,7 @@ final class EditCategoryViewController: UIViewController {
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
     
-    // MARK: - Lifecycle
+    
     override func loadView() {
         view = customView
     }
@@ -38,7 +38,7 @@ final class EditCategoryViewController: UIViewController {
         }
     }
     
-    // MARK: - Actions
+    
     private func setupActions() {
         customView.nameTextField.onTextChanged = { [weak self] text in
             self?.viewModel.categoryName = text

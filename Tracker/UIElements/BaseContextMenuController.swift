@@ -2,13 +2,13 @@ import UIKit
 
 final class BaseContextMenuController<Cell: UIView>: NSObject, UIContextMenuInteractionDelegate {
     
-    // MARK: - Properties
+    
     private weak var owner: UIViewController?
     private weak var container: UIView?
     private let actionsProvider: (IndexPath) -> [UIAction]
     private let indexPathProvider: (Cell) -> IndexPath?
     
-    // MARK: - Init
+    
     init(
         owner: UIViewController,
         container: UIView,
@@ -22,14 +22,14 @@ final class BaseContextMenuController<Cell: UIView>: NSObject, UIContextMenuInte
         super.init()
     }
     
-    // MARK: - Public API
+    
     func attach(to cell: Cell) {
         cell.interactions.forEach { cell.removeInteraction($0) }
         let interaction = UIContextMenuInteraction(delegate: self)
         cell.addInteraction(interaction)
     }
     
-    // MARK: - UIContextMenuInteractionDelegate
+    
     func contextMenuInteraction(
         _ interaction: UIContextMenuInteraction,
         configurationForMenuAtLocation location: CGPoint

@@ -2,7 +2,7 @@ import UIKit
 
 final class BlackButton: UIButton {
     
-    // MARK: - Init
+    
     init(title: String) {
         super.init(frame: .zero)
         setupUI(title: title)
@@ -11,7 +11,7 @@ final class BlackButton: UIButton {
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
     
-    // MARK: - UI Setup
+    
     private func setupUI(title: String) {
         setTitle(title, for: .normal)
         

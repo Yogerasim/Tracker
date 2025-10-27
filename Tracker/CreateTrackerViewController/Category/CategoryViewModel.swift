@@ -5,11 +5,11 @@ final class CategoryViewModel<T: CategoryType> {
     
     private let categoryStore: TrackerCategoryStore
     
-    // MARK: - Bindings
+    
     var onCategoriesChanged: (([T]) -> Void)?
     var onCategorySelected: ((T) -> Void)?
     
-    // MARK: - Data
+    
     private(set) var categories: [T] = [] {
         didSet { onCategoriesChanged?(categories) }
     }

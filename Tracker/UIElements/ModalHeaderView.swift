@@ -2,7 +2,7 @@ import UIKit
 
 final class ModalHeaderView: UIView {
     
-    // MARK: - UI
+    
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.font = AppFonts.medium(16)
@@ -17,7 +17,7 @@ final class ModalHeaderView: UIView {
         return label
     }()
     
-    // MARK: - Init
+    
     init(title: String) {
         super.init(frame: .zero)
         translatesAutoresizingMaskIntoConstraints = false 
@@ -29,12 +29,12 @@ final class ModalHeaderView: UIView {
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
     
-    // MARK: - Public API
+    
     func setTitle(_ title: String) {
         titleLabel.text = title
     }
     
-    // MARK: - Layout
+    
     private func setupLayout() {
         addSubview(titleLabel)
         NSLayoutConstraint.activate([

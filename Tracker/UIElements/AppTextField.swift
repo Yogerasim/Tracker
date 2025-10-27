@@ -2,7 +2,7 @@ import UIKit
 
 final class AppTextField: UIView, UITextFieldDelegate {
     
-    // MARK: - UI
+    
     let textField: CustomTextField
     private let charLimitLabel: UILabel
     private let clearButton: UIButton
@@ -11,7 +11,7 @@ final class AppTextField: UIView, UITextFieldDelegate {
     
     var onTextChanged: ((String) -> Void)?
     
-    // MARK: - Init
+    
     init(placeholder: String, maxCharacters: Int = 38) {
         self.textField = CustomTextField()
         self.charLimitLabel = UILabel()
@@ -26,7 +26,7 @@ final class AppTextField: UIView, UITextFieldDelegate {
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
     
-    // MARK: - UI Setup
+    
     private func setupUI(placeholder: String) {
 
         textField.placeholder = placeholder
@@ -63,7 +63,7 @@ final class AppTextField: UIView, UITextFieldDelegate {
         ])
     }
     
-    // MARK: - Clear Button
+    
     private func setupClearButton() {
         clearButton.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
         clearButton.tintColor = UIColor.systemGray3
@@ -82,14 +82,14 @@ final class AppTextField: UIView, UITextFieldDelegate {
         textChanged()
     }
     
-    // MARK: - Actions
+    
     @objc private func textChanged() {
         let text = textField.text ?? ""
         charLimitLabel.isHidden = text.count < maxCharacters
         onTextChanged?(text)
     }
     
-    // MARK: - UITextFieldDelegate
+    
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         let currentText = textField.text ?? ""
         guard let stringRange = Range(range, in: currentText) else { return false }
@@ -108,7 +108,7 @@ final class AppTextField: UIView, UITextFieldDelegate {
     }
 }
 
-// MARK: - Custom UITextField для сдвига rightView
+
 final class CustomTextField: UITextField {
     override func rightViewRect(forBounds bounds: CGRect) -> CGRect {
         var rect = super.rightViewRect(forBounds: bounds)

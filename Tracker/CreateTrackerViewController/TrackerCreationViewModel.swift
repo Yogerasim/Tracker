@@ -3,19 +3,19 @@ import CoreData
 
 class TrackerCreationViewModel: BaseTrackerCreationViewController {
     
-    // MARK: - Callback
+    
     var onTrackerCreated: ((Tracker) -> Void)?
     
-    // MARK: - State
+    
     private var isCreating = false
     
-    // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         bottomButtons.createButton.addTarget(self, action: #selector(createTapped), for: .touchUpInside)
     }
     
-    // MARK: - Методы для наследников
+    
     @objc func createTapped() {
         fatalError("Subclasses must override createTapped()")
     }
@@ -25,7 +25,7 @@ class TrackerCreationViewModel: BaseTrackerCreationViewController {
             self?.bottomButtons.createButton.isEnabled = true
         }
     }
-    // MARK: - Создание трекера
+    
     func createTracker(with schedule: [WeekDay]) {
         guard !isCreating else { return }
         isCreating = true

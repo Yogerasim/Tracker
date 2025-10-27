@@ -2,7 +2,7 @@ import UIKit
 
 final class CreateTrackerViewController: UIViewController {
     
-    // MARK: - UI
+    
     private let modalHeader = ModalHeaderView(
         title: NSLocalizedString("create_tracker_title", comment: "Заголовок создания трекера")
     )
@@ -13,13 +13,13 @@ final class CreateTrackerViewController: UIViewController {
         title: NSLocalizedString("irregular_button_title", comment: "Кнопка для создания нерегулярного события")
     )
     
-    // MARK: - Callback
+    
     var onTrackerCreated: ((Tracker) -> Void)?
     
-    // MARK: - State
+    
     private var isTrackerBeingCreated = false
     
-    // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = AppColors.background
@@ -35,7 +35,7 @@ final class CreateTrackerViewController: UIViewController {
         setupConstraints()
     }
     
-    // MARK: - Actions
+    
     @objc private func habitButtonTapped() {
         let newHabitVC = NewHabitView()
         newHabitVC.onTrackerCreated = { [weak self] tracker in
@@ -51,7 +51,7 @@ final class CreateTrackerViewController: UIViewController {
         }
         presentFullScreenSheet(irregularVC)
     }
-    // MARK: - Constraints
+    
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             modalHeader.topAnchor.constraint(equalTo: view.topAnchor),

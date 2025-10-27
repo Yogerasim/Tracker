@@ -2,7 +2,7 @@ import UIKit
 
 final class DoneButton: UIButton {
     
-    // MARK: - Init
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupStyle()
@@ -13,7 +13,7 @@ final class DoneButton: UIButton {
         setupStyle()
     }
     
-    // MARK: - Setup
+    
     private func setupStyle() {
         setTitle(NSLocalizedString("done_button", comment: "Готово"), for: .normal)
         setTitleColor(AppColors.textPrimary, for: .normal)

@@ -2,7 +2,7 @@ import UIKit
 
 final class EditCategoryView: UIView {
     
-    // MARK: - UI
+    
     let header = ModalHeaderView(
         title: NSLocalizedString("edit_category_title", comment: "Заголовок экрана редактирования категории")
     )
@@ -15,7 +15,7 @@ final class EditCategoryView: UIView {
         title: NSLocalizedString("done_button", comment: "Кнопка подтверждения")
     )
     
-    // MARK: - Init
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = AppColors.background
@@ -26,7 +26,7 @@ final class EditCategoryView: UIView {
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
     
-    // MARK: - Layout
+    
     private func setupLayout() {
         [header, nameTextField, doneButton].forEach { addSubview($0) }
         nameTextField.translatesAutoresizingMaskIntoConstraints = false
@@ -49,13 +49,13 @@ final class EditCategoryView: UIView {
         ])
     }
     
-    // MARK: - Initial State
+    
     private func configureInitialState() {
         doneButton.isEnabled = false
         doneButton.backgroundColor = AppColors.gray
     }
     
-    // MARK: - Helpers
+    
     func setCategoryName(_ text: String) {
         nameTextField.textField.text = text
     }

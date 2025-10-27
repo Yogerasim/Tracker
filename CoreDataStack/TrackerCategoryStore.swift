@@ -30,9 +30,9 @@ final class TrackerCategoryStore: NSObject {
         
         do {
             try self.fetchedResultsController.performFetch()
-            // removed log categories loaded")
+            
         } catch {
-            // removed log")
+            
         }
     }
     
@@ -52,7 +52,7 @@ final class TrackerCategoryStore: NSObject {
         let cdCategory = TrackerCategoryCoreData(context: context)
         cdCategory.id = category.id
         cdCategory.title = category.title
-        // removed log")
+        
         saveContext()
     }
     
@@ -63,10 +63,10 @@ final class TrackerCategoryStore: NSObject {
         do {
             let results = try context.fetch(request)
             results.forEach { context.delete($0) }
-            // removed log")
+            
             saveContext()
         } catch {
-            // removed log")
+            
         }
     }
     
@@ -83,7 +83,7 @@ final class TrackerCategoryStore: NSObject {
                 cdCategory = TrackerCategoryCoreData(context: context)
                 cdCategory.id = UUID()
                 cdCategory.title = categoryTitle
-                // removed log")
+                
             }
             
             let cdTracker = TrackerCoreData(context: context)
@@ -97,10 +97,10 @@ final class TrackerCategoryStore: NSObject {
             trackersSet.insert(cdTracker)
             cdCategory.trackers = trackersSet as NSSet
             
-            // removed log' в категорию '\(categoryTitle)'")
+            
             saveContext()
         } catch {
-            // removed log")
+            
         }
     }
     
@@ -115,7 +115,7 @@ final class TrackerCategoryStore: NSObject {
             let newCategory = TrackerCategoryCoreData(context: context)
             newCategory.id = category.id
             newCategory.title = category.title
-            // removed log: \(category.title)")
+            
             saveContext()
         }
     }
@@ -127,7 +127,7 @@ final class TrackerCategoryStore: NSObject {
         else { return }
         
         trackerCoreData.category = categoryCoreData
-        // removed log' перемещен в категорию '\(categoryTitle)'")
+        
         saveContext()
     }
     
@@ -152,7 +152,7 @@ final class TrackerCategoryStore: NSObject {
     private func toCategory(from cdCategory: TrackerCategoryCoreData) -> TrackerCategory? {
         guard let id = cdCategory.id,
               let title = cdCategory.title else {
-            // removed log")
+            
             return nil
         }
         return TrackerCategory(id: id, title: title, trackers: [])
@@ -162,17 +162,17 @@ final class TrackerCategoryStore: NSObject {
         do {
             if context.hasChanges {
                 try context.save()
-                // removed log
+                
             }
         } catch {
-            // removed log")
+            
         }
     }
 }
 
 extension TrackerCategoryStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        // removed log
+        
         delegate?.didUpdateCategories()
     }
 }

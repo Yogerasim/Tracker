@@ -2,7 +2,7 @@ import UIKit
 
 final class MainTitleLabelView: UIView {
     
-    // MARK: - UI
+    
     private let label: UILabel = {
         let label = UILabel()
         label.font = AppFonts.bigTitle
@@ -15,7 +15,7 @@ final class MainTitleLabelView: UIView {
         return label
     }()
     
-    // MARK: - Init
+    
     init(title: String) {
         super.init(frame: .zero)
         translatesAutoresizingMaskIntoConstraints = false
@@ -28,7 +28,7 @@ final class MainTitleLabelView: UIView {
         setupUI()
     }
     
-    // MARK: - Private methods
+    
     private func setupUI() {
         addSubview(label)
         NSLayoutConstraint.activate([
@@ -39,7 +39,7 @@ final class MainTitleLabelView: UIView {
         ])
     }
     
-    // MARK: - Public methods
+    
     func setTitle(_ text: String) {
         label.text = text
     }

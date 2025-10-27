@@ -2,7 +2,7 @@ import UIKit
 
 final class OnboardingViewController: UIPageViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
     
-    // MARK: - Pages
+    
     private lazy var pages: [UIViewController] = {
         return [
             OnboardingPageViewController(
@@ -16,7 +16,7 @@ final class OnboardingViewController: UIPageViewController, UIPageViewController
         ]
     }()
     
-    // MARK: - PageControl
+    
     private lazy var pageControl: UIPageControl = {
         let pageControl = UIPageControl()
         pageControl.numberOfPages = pages.count
@@ -27,14 +27,14 @@ final class OnboardingViewController: UIPageViewController, UIPageViewController
         return pageControl
     }()
     
-    // MARK: - Button
+    
     private lazy var actionButton: BlackButton = {
         let button = BlackButton(title: NSLocalizedString("onboarding.button", comment: "Кнопка завершения онбординга"))
         button.addTarget(self, action: #selector(finishOnboarding), for: .touchUpInside)
         return button
     }()
     
-    // MARK: - Init
+    
     init() {
         super.init(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
     }
@@ -42,7 +42,7 @@ final class OnboardingViewController: UIPageViewController, UIPageViewController
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
     
-    // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -58,7 +58,7 @@ final class OnboardingViewController: UIPageViewController, UIPageViewController
         setupUI()
     }
     
-    // MARK: - Setup
+    
     private func setupUI() {
         view.addSubview(pageControl)
         view.addSubview(actionButton)
@@ -74,12 +74,12 @@ final class OnboardingViewController: UIPageViewController, UIPageViewController
         ])
     }
     
-    // MARK: - Actions
+    
     @objc private func finishOnboarding() {
         dismiss(animated: true)
     }
     
-    // MARK: - UIPageViewControllerDataSource
+    
     func pageViewController(_ pageViewController: UIPageViewController,
                             viewControllerBefore viewController: UIViewController) -> UIViewController? {
         guard let index = pages.firstIndex(of: viewController) else { return nil }
@@ -94,7 +94,7 @@ final class OnboardingViewController: UIPageViewController, UIPageViewController
         return index == pages.count - 1 ? pages.first : pages[index + 1]
     }
     
-    // MARK: - UIPageViewControllerDelegate
+    
     func pageViewController(_ pageViewController: UIPageViewController,
                             didFinishAnimating finished: Bool,
                             previousViewControllers: [UIViewController],

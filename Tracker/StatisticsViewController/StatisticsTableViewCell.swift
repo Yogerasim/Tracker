@@ -2,7 +2,7 @@ import UIKit
 
 final class StatisticsTableViewCell: UITableViewCell {
     
-    // MARK: - UI Elements
+    
     
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -33,7 +33,7 @@ final class StatisticsTableViewCell: UITableViewCell {
     private let gradientLayer = CAGradientLayer()
     private let shapeLayer = CAShapeLayer()
     
-    // MARK: - Init
+    
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -47,14 +47,14 @@ final class StatisticsTableViewCell: UITableViewCell {
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
     
-    // MARK: - Configuration
+    
     
     func configure(title: Int, subtitle: String) {
         titleLabel.text = String(title)
         subtitleLabel.text = subtitle
     }
     
-    // MARK: - Layout
+    
     
     private func setupLayout() {
         contentView.addSubview(titleLabel)

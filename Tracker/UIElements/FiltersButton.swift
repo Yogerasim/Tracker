@@ -2,7 +2,7 @@ import UIKit
 
 final class FiltersButton: UIButton {
     
-    // MARK: - Init
+    
     init() {
         super.init(frame: .zero)
         setupUI()
@@ -13,7 +13,7 @@ final class FiltersButton: UIButton {
         setupUI()
     }
     
-    // MARK: - UI Setup
+    
     private func setupUI() {
 
         translatesAutoresizingMaskIntoConstraints = false

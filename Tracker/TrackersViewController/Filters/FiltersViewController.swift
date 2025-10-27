@@ -3,14 +3,14 @@ import Combine
 
 final class FiltersViewController: UIViewController {
     
-    // MARK: - UI
+    
     private let header = ModalHeaderView(title: NSLocalizedString("filters.title", comment: "Filters"))
     private let tableContainer = ContainerTableView()
     
-    // MARK: - Constraints
+    
     private var tableHeightConstraint: NSLayoutConstraint?
     
-    // MARK: - State
+    
     private let filters = [
         NSLocalizedString("filters.all_trackers", comment: "All trackers"),
         NSLocalizedString("filters.today_trackers", comment: "Trackers for today"),
@@ -23,13 +23,13 @@ final class FiltersViewController: UIViewController {
     
     var onFilterSelected: ((Int) -> Void)?
     
-    // MARK: - Constants
+    
     private enum Constants {
         static let checkmarkImageName = "ic 24x24"
         static let rowHeight: CGFloat = 75
     }
     
-    // MARK: - Init
+    
     init(viewModel: FiltersViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
@@ -37,7 +37,7 @@ final class FiltersViewController: UIViewController {
     
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
-    // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = AppColors.background
@@ -52,7 +52,7 @@ final class FiltersViewController: UIViewController {
         }
     }
     
-    // MARK: - Binding
+    
     private func bindViewModel() {
         viewModel.$selectedFilterIndex
             .receive(on: DispatchQueue.main)
@@ -64,7 +64,7 @@ final class FiltersViewController: UIViewController {
             .store(in: &cancellables)
     }
     
-    // MARK: - Layout
+    
     private func setupLayout() {
         [header, tableContainer].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
@@ -87,7 +87,7 @@ final class FiltersViewController: UIViewController {
         ])
     }
     
-    // MARK: - Setup
+    
     private func setupTableView() {
         let tableView = tableContainer.tableView
         tableView.dataSource = self
@@ -98,7 +98,7 @@ final class FiltersViewController: UIViewController {
         tableView.rowHeight = Constants.rowHeight
     }
     
-    // MARK: - Helpers
+    
     private func configureCheckmark(for cell: UITableViewCell, at indexPath: IndexPath) {
         if indexPath.row == viewModel.selectedFilterIndex {
             let checkmark = UIImageView(image: UIImage(named: Constants.checkmarkImageName))
@@ -113,7 +113,7 @@ final class FiltersViewController: UIViewController {
     }
 }
 
-// MARK: - UITableViewDataSource & UITableViewDelegate
+
 extension FiltersViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {

@@ -31,9 +31,9 @@ final class TrackerRecordStore: NSObject {
         
         do {
             try fetchedResultsController.performFetch()
-            // removed log records loaded")
+            
         } catch {
-            // removed log")
+            
         }
     }
     
@@ -51,7 +51,7 @@ final class TrackerRecordStore: NSObject {
         let dayStart = date.startOfDayUTC()
         let dayEnd = date.endOfDayUTC()
         
-        // removed log for \(tracker.name ?? "nil") | dayStartUTC=\(dayStart) | endOfDayUTC=\(dayEnd)")
+        
         
         viewContext.perform { [weak self] in
             guard let self else { return }
@@ -68,13 +68,13 @@ final class TrackerRecordStore: NSObject {
                     let record = TrackerRecordCoreData(context: self.viewContext)
                     record.date = dayStart
                     record.tracker = tracker
-                    // removed log — saved date = \(record.date ?? Date())")
+                    
                 } else {
-                    // removed log")
+                    
                 }
                 self.saveContext(reason: "addRecord")
             } catch {
-                // removed log")
+                
             }
         }
     }
@@ -83,7 +83,7 @@ final class TrackerRecordStore: NSObject {
         let dayStart = date.startOfDayUTC()
         let dayEnd = date.endOfDayUTC()
         
-        // removed log for \(tracker.name ?? "nil") | dayStartUTC=\(dayStart) | endOfDayUTC=\(dayEnd)")
+        
         
         viewContext.perform { [weak self] in
             guard let self else { return }
@@ -97,14 +97,14 @@ final class TrackerRecordStore: NSObject {
             do {
                 let results = try self.viewContext.fetch(request)
                 if results.isEmpty {
-                    // removed log")
+                    
                 } else {
                     results.forEach { self.viewContext.delete($0) }
-                    // removed log | \(dayStart)")
+                    
                 }
                 self.saveContext(reason: "removeRecord")
             } catch {
-                // removed log")
+                
             }
         }
     }
@@ -113,7 +113,7 @@ final class TrackerRecordStore: NSObject {
         let dayStart = date.startOfDayUTC()
         let dayEnd = date.endOfDayUTC()
         
-        // removed log | dayStartUTC=\(dayStart) | dayEndUTC=\(dayEnd) | TZ=\(TimeZone.current.identifier)")
+        
         
         let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
         request.predicate = NSPredicate(
@@ -123,10 +123,10 @@ final class TrackerRecordStore: NSObject {
         
         do {
             let count = try viewContext.count(for: request)
-            // removed log: \(count > 0 ? "✅ YES" : "❌ NO") (found \(count) records)")
+            
             return count > 0
         } catch {
-            // removed log")
+            
             return false
         }
     }
@@ -137,10 +137,10 @@ final class TrackerRecordStore: NSObject {
             do {
                 if self.viewContext.hasChanges {
                     try self.viewContext.save()
-                    // removed log)")
+                    
                 }
             } catch {
-                // removed log): \(error)")
+                
             }
         }
     }
@@ -187,7 +187,7 @@ extension TrackerRecordStore {
         do {
             return try viewContext.count(for: request)
         } catch {
-            // removed log")
+            
             return 0
         }
     }
@@ -196,7 +196,7 @@ extension TrackerRecordStore {
 extension TrackerRecordStore {
     func addRecord(for trackerID: UUID, date: Date) {
         guard let tracker = fetchTrackerInViewContext(by: trackerID) else {
-            // removed log")
+            
             return
         }
         let dayStart = date.startOfDayUTC()
@@ -204,7 +204,7 @@ extension TrackerRecordStore {
         record.tracker = tracker
         record.date = dayStart
         
-        // removed log at dayStartUTC=\(dayStart)")
+        
         self.saveContext(reason: "addRecord")
     }
     
@@ -214,7 +214,7 @@ extension TrackerRecordStore {
               let record = tracker.records?.first(where: {
                   ($0 as? TrackerRecordCoreData)?.date == dayStart
               }) as? TrackerRecordCoreData else {
-            // removed log")
+            
             return
         }
         viewContext.delete(record)
@@ -228,7 +228,7 @@ extension TrackerRecordStore {
             try context.execute(deleteRequest)
             try context.save()
         } catch {
-            // removed log")
+            
         }
     }
 }

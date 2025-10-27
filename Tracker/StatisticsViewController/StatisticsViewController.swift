@@ -2,11 +2,11 @@ import UIKit
 
 final class StatisticsViewController: UIViewController {
     
-    // MARK: - Dependencies
+    
     private let trackerRecordStore: TrackerRecordStore
     private let placeholderView = PlaceholderView()
     
-    // MARK: - Init
+    
     init(trackerRecordStore: TrackerRecordStore) {
         self.trackerRecordStore = trackerRecordStore
         super.init(nibName: nil, bundle: nil)
@@ -15,7 +15,7 @@ final class StatisticsViewController: UIViewController {
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
     
-    // MARK: - UI Elements
+    
     private let titleView = MainTitleLabelView(
         title: NSLocalizedString("statistics.title", comment: "Заголовок страницы статистики")
     )
@@ -31,15 +31,15 @@ final class StatisticsViewController: UIViewController {
         return table
     }()
     
-    // MARK: - Layout Constraints
+    
     private var titleTopConstraint: NSLayoutConstraint!
     private var tableViewCenterYConstraint: NSLayoutConstraint!
     private var tableViewHeightConstraint: NSLayoutConstraint!
     
-    // MARK: - Data
+    
     private var items: [(Int, String)] = []
     
-    // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -69,7 +69,7 @@ final class StatisticsViewController: UIViewController {
         loadStatistics()
     }
     
-    // MARK: - Load Data
+    
     private func loadStatistics() {
         let calculator = CalculateStatistics(trackerRecordStore: trackerRecordStore)
         let stats = calculator.calculateStatistics()
@@ -86,7 +86,7 @@ final class StatisticsViewController: UIViewController {
         updatePlaceholderVisibility()
     }
     
-    // MARK: - Placeholder Logic
+    
     private func updatePlaceholderVisibility() {
         let trackerStore = TrackerStore(context: trackerRecordStore.context)
         let trackers = trackerStore.getTrackers()
@@ -104,7 +104,7 @@ final class StatisticsViewController: UIViewController {
         }
     }
     
-    // MARK: - Layout
+    
     private func setupLayout() {
         view.addSubview(titleView)
         titleView.translatesAutoresizingMaskIntoConstraints = false
@@ -155,7 +155,7 @@ final class StatisticsViewController: UIViewController {
         NotificationCenter.default.removeObserver(self)
     }
     
-    // MARK: - Title Manipulation
+    
     func moveTitle(upBy offset: CGFloat) {
         titleTopConstraint.constant = 44 - offset
         UIView.animate(withDuration: 0.25) {
@@ -164,7 +164,7 @@ final class StatisticsViewController: UIViewController {
     }
 }
 
-// MARK: - UITableViewDataSource
+
 extension StatisticsViewController: UITableViewDataSource {
     func numberOfSections(in tableView: UITableView) -> Int {
         items.count
@@ -184,7 +184,7 @@ extension StatisticsViewController: UITableViewDataSource {
     }
 }
 
-// MARK: - UITableViewDelegate
+
 extension StatisticsViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         90

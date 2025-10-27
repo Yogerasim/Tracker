@@ -2,7 +2,7 @@ import UIKit
 
 final class TrackersUI {
     
-    // MARK: - Buttons
+    
     lazy var filtersButton: FiltersButton = {
         let button = FiltersButton()
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -48,7 +48,7 @@ final class TrackersUI {
         return button
     }()
     
-    // MARK: - Search Bar
+    
     let searchBar: UISearchBar = {
         let sb = UISearchBar()
         sb.placeholder = NSLocalizedString("trackers.search_placeholder", comment: "")
@@ -58,7 +58,7 @@ final class TrackersUI {
         return sb
     }()
     
-    // MARK: - CollectionView
+    
     lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewCompositionalLayout { sectionIndex, _ in
             let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.5),
@@ -94,11 +94,11 @@ final class TrackersUI {
         return cv
     }()
     
-    // MARK: - Title and Placeholder
+    
     let titleView = MainTitleLabelView(title: NSLocalizedString("trackers.title", comment: ""))
     let placeholderView = PlaceholderView()
     
-    // MARK: - Calendar
+    
     lazy var calendarView: UIDatePicker = {
         let dp = UIDatePicker()
         dp.translatesAutoresizingMaskIntoConstraints = false

@@ -13,7 +13,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         let sections = visibleCategories.isEmpty ? 1 : visibleCategories.count
-        // removed log")
+        
         return sections
     }
     
@@ -54,20 +54,20 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     }
     
     func addNewTracker(_ tracker: Tracker) {
-        // removed log")
+        
         viewModel.addTrackerToDefaultCategory(tracker)
         filtersViewModel.applyFilter()
         ui.collectionView.reloadData()
     }
     
     func debugPrintTrackersSchedule() {
-        // removed log
+        
         for tracker in filtersViewModel.filteredTrackers {
             if !tracker.schedule.isEmpty {
                 _ = tracker.schedule.map { $0.shortName }.joined(separator: ", ")
-                // removed log: \(days)")
+                
             } else {
-                // removed log: нет присвоенных дней недели")
+                
             }
         }
     }
@@ -130,7 +130,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     }
 }
 
-// MARK: - Delegate
+
 extension TrackersViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let category = visibleCategories[indexPath.section]
@@ -139,7 +139,7 @@ extension TrackersViewController: UICollectionViewDelegate {
             ($0.trackerCategory == nil && category.title == "Мои трекеры")
         }
         let tracker = trackersInCategory[indexPath.item]
-        // removed log")
+        
         AnalyticsService.trackClick(item: tracker.name, screen: "Main")
     }
 }

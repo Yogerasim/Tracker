@@ -50,7 +50,7 @@ final class SelectableCollectionViewController: UIViewController {
     }
 }
 
-// MARK: - UICollectionViewDataSource
+
 extension SelectableCollectionViewController: UICollectionViewDataSource {
     func numberOfSections(in collectionView: UICollectionView) -> Int { 1 }
     
@@ -91,7 +91,7 @@ extension SelectableCollectionViewController: UICollectionViewDataSource {
     }
 }
 
-// MARK: - UICollectionViewDelegate
+
 extension SelectableCollectionViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if selectedIndexPath == indexPath {
@@ -104,7 +104,7 @@ extension SelectableCollectionViewController: UICollectionViewDelegate {
     }
 }
 
-// MARK: - UICollectionViewDelegateFlowLayout
+
 extension SelectableCollectionViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,

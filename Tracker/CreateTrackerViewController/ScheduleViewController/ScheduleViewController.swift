@@ -2,7 +2,7 @@ import UIKit
 
 final class ScheduleViewController: UIViewController {
     
-    // MARK: - Properties
+    
     var selectedDays: [WeekDay] = []
     var onDone: (([WeekDay]) -> Void)?
     
@@ -16,12 +16,12 @@ final class ScheduleViewController: UIViewController {
         ("schedule.sunday", .sunday)
     ]
     
-    // MARK: - UI
+    
     private let modalHeader = ModalHeaderView(title: NSLocalizedString("schedule.title", comment: "Заголовок расписания"))
     private let tableContainer = ContainerTableView()
     private let doneButton = BlackButton(title: NSLocalizedString("done_button", comment: "Кнопка подтверждения"))
     
-    // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = AppColors.background
@@ -40,7 +40,7 @@ final class ScheduleViewController: UIViewController {
         updateDoneButtonState()
     }
     
-    // MARK: - Layout
+    
     private func setupLayout() {
         [modalHeader, tableContainer, doneButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
@@ -63,7 +63,7 @@ final class ScheduleViewController: UIViewController {
         ])
     }
     
-    // MARK: - Actions
+    
     private func setupActions() {
         doneButton.addTarget(self, action: #selector(doneTapped), for: .touchUpInside)
     }
@@ -79,7 +79,7 @@ final class ScheduleViewController: UIViewController {
     }
 }
 
-// MARK: - UITableView
+
 extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { daysOfWeek.count }
@@ -107,7 +107,7 @@ extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat { tableView.rowHeight }
 }
 
-// MARK: - UISwitch Handler
+
 extension ScheduleViewController {
     @objc private func toggleChanged(_ sender: UISwitch) {
         let day = daysOfWeek[sender.tag].day

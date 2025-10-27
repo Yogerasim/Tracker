@@ -3,7 +3,7 @@ import CoreData
 
 class BaseTrackerCreationViewController: UIViewController {
     
-    // MARK: - UI
+    
     let scrollView = UIScrollView()
     let contentStack = UIStackView()
     let modalHeader: ModalHeaderView
@@ -22,16 +22,16 @@ class BaseTrackerCreationViewController: UIViewController {
     )
     let bottomButtons = ButonnsPanelView()
     
-    // MARK: - Core Data
+    
     let context = CoreDataStack.shared.context
     
-    // MARK: - State
+    
     var selectedDays: [WeekDay] = []
     var selectedEmoji: String?
     var selectedColor: UIColor?
     var selectedCategory: TrackerCategoryCoreData?
     
-    // MARK: - Init
+    
     init(title: String) {
         self.modalHeader = ModalHeaderView(title: title)
         super.init(nibName: nil, bundle: nil)
@@ -40,7 +40,7 @@ class BaseTrackerCreationViewController: UIViewController {
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
     
-    // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = AppColors.background
@@ -51,7 +51,7 @@ class BaseTrackerCreationViewController: UIViewController {
         setupTextField()
     }
     
-    // MARK: - UI Setup
+    
     private func setupTextField() {
         nameTextField.onTextChanged = { [weak self] text in
             let hasText = !text.trimmingCharacters(in: .whitespaces).isEmpty
@@ -157,7 +157,7 @@ class BaseTrackerCreationViewController: UIViewController {
     func didSelectRow(at indexPath: IndexPath, tableView: UITableView) { }
 }
 
-// MARK: - UITableView
+
 extension BaseTrackerCreationViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { numberOfRowsInTable() }
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {

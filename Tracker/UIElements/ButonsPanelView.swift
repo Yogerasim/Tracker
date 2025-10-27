@@ -2,7 +2,7 @@ import UIKit
 
 final class ButonnsPanelView: UIView {
     
-    // MARK: - UI
+    
     let cancelButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle(NSLocalizedString("cancel_button", comment: "Отмена"), for: .normal)
@@ -35,7 +35,7 @@ final class ButonnsPanelView: UIView {
         return stack
     }()
     
-    // MARK: - Init
+    
     var onCreateTapped: (() -> Void)?
     
     override init(frame: CGRect) {
@@ -53,13 +53,13 @@ final class ButonnsPanelView: UIView {
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
     
-    // MARK: - Public
+    
     func setCreateButton(enabled: Bool) {
         createButton.isEnabled = enabled
         createButton.alpha = enabled ? 1.0 : 0.5
     }
     
-    // MARK: - Layout
+    
     private func setupLayout() {
         addSubview(stackView)
         

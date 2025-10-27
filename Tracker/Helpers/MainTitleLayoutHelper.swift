@@ -1,7 +1,7 @@
 import UIKit
 
 enum MainHeaderLayoutHelper {
-    /// Универсальная настройка хедера для экранов с кнопками (например, трекеры)
+    
     static func setupTrackerLayout(
         in view: UIView,
         titleView: UIView,

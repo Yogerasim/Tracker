@@ -2,7 +2,7 @@ import UIKit
 
 final class PlaceholderView: UIView {
     
-    // MARK: - UI
+    
     private let imageView: UIImageView = {
         let iv = UIImageView()
         iv.tintColor = AppColors.textSecondary
@@ -26,7 +26,7 @@ final class PlaceholderView: UIView {
         return lbl
     }()
     
-    // MARK: - Init
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         translatesAutoresizingMaskIntoConstraints = false
@@ -38,7 +38,7 @@ final class PlaceholderView: UIView {
         setupLayout()
     }
     
-    // MARK: - Public configuration
+    
     func configure(imageName: String?, text: String) {
         if let imageName = imageName {
             imageView.image = UIImage(named: imageName)
@@ -48,7 +48,7 @@ final class PlaceholderView: UIView {
         label.text = text
     }
     
-    // MARK: - Layout
+    
     private func setupLayout() {
         addSubview(imageView)
         addSubview(label)

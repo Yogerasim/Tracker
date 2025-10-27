@@ -3,19 +3,19 @@ import UIKit
 
 final class TrackerCellViewModel {
     
-    // MARK: - Dependencies
+    
     var tracker: Tracker
     private let recordStore: TrackerRecordStore
     
-    // MARK: - State
+    
     private(set) var isCompleted: Bool
     private(set) var daysCount: Int
     var currentDate: Date
     
-    // MARK: - Callbacks
+    
     var onStateChanged: (() -> Void)?
     
-    // MARK: - Init
+    
     init(tracker: Tracker, recordStore: TrackerRecordStore, currentDate: Date = Date()) {
         self.tracker = tracker
         self.recordStore = recordStore
@@ -30,12 +30,12 @@ final class TrackerCellViewModel {
         self.daysCount = recordStore.completedTrackers.filter { $0.trackerId == tracker.id }.count
     }
     
-    // MARK: - Actions
+    
     func toggleCompletion() {
         let oldState = isCompleted
         isCompleted.toggle()
         daysCount += isCompleted ? 1 : -1
-        onStateChanged?() // мгновенно обновляем UI
+        onStateChanged?() 
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
@@ -82,7 +82,7 @@ final class TrackerCellViewModel {
         recordStore.completedTrackers.contains { $0.trackerId == trackerId }
     }
     
-    // MARK: - UI Helpers
+    
     func dayLabelText() -> String {
         String.localizedStringWithFormat(
             NSLocalizedString("days_count", comment: "Number of days tracker completed"),

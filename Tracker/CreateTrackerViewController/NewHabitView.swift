@@ -9,7 +9,7 @@ final class NewHabitView: TrackerCreationViewModel {
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
     
-    // MARK: - Создание трекера
+    
     override func createTapped() {
         guard !selectedDays.isEmpty else {
             return enableCreateButton()
@@ -17,7 +17,7 @@ final class NewHabitView: TrackerCreationViewModel {
         createTracker(with: selectedDays)
     }
     
-    // MARK: - Таблица
+    
     override func numberOfRowsInTable() -> Int { 2 }
     
     override func tableViewCell(for tableView: UITableView, indexPath: IndexPath) -> UITableViewCell {

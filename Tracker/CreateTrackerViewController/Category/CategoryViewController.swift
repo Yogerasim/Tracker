@@ -3,7 +3,7 @@ import CoreData
 
 final class CategoryViewController: UIViewController {
     
-    // MARK: - UI
+    
     private let header = ModalHeaderView(
         title: NSLocalizedString("category_title", comment: "Заголовок экрана выбора категории")
     )
@@ -13,21 +13,21 @@ final class CategoryViewController: UIViewController {
     )
     private let tableContainer = ContainerTableView()
     
-    // MARK: - Dependencies
+    
     private let categoryStore: TrackerCategoryStore
     
-    // MARK: - State
+    
     private var selectedCategoryIndex: Int?
     private var contextMenuController: BaseContextMenuController<UITableViewCell>?
     var onCategorySelected: ((TrackerCategoryCoreData) -> Void)?
     
-    // MARK: - Constants
+    
     private enum Constants {
         static let checkmarkImageName = "ic 24x24"
         static let rowHeight: CGFloat = 75
     }
     
-    // MARK: - Init
+    
     init(store: TrackerCategoryStore) {
         self.categoryStore = store
         super.init(nibName: nil, bundle: nil)
@@ -37,7 +37,7 @@ final class CategoryViewController: UIViewController {
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
     
-    // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = AppColors.background
@@ -48,7 +48,7 @@ final class CategoryViewController: UIViewController {
         updateUI()
     }
     
-    // MARK: - UI Setup
+    
     private func setupLayout() {
         [header, tableContainer, placeholderView, addButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
@@ -56,19 +56,19 @@ final class CategoryViewController: UIViewController {
         }
         
         NSLayoutConstraint.activate([
-            // Header
+            
             header.topAnchor.constraint(equalTo: view.topAnchor),
             header.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             header.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             header.heightAnchor.constraint(equalToConstant: 90),
             
-            // Add Button
+            
             addButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             addButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             addButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             addButton.heightAnchor.constraint(equalToConstant: 60),
             
-            // Table Container
+            
             tableContainer.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 16),
             tableContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
@@ -156,7 +156,7 @@ final class CategoryViewController: UIViewController {
         )
     }
     
-    // MARK: - Category Editing & Deletion
+    
     private func editCategory(_ category: TrackerCategoryCoreData) {
         guard let context = category.managedObjectContext else { return }
         
@@ -191,7 +191,7 @@ final class CategoryViewController: UIViewController {
         present(alert, animated: true)
     }
     
-    // MARK: - Helpers
+    
     private func configureCheckmark(for cell: UITableViewCell, at indexPath: IndexPath) {
         if indexPath.row == selectedCategoryIndex {
             let checkmark = UIImageView(image: UIImage(named: Constants.checkmarkImageName))
@@ -207,7 +207,7 @@ final class CategoryViewController: UIViewController {
     }
 }
 
-// MARK: - UITableViewDataSource & Delegate
+
 extension CategoryViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -248,7 +248,7 @@ extension CategoryViewController: UITableViewDataSource, UITableViewDelegate {
     }
 }
 
-// MARK: - TrackerCategoryStoreDelegate
+
 extension CategoryViewController: TrackerCategoryStoreDelegate {
     func didUpdateCategories() {
         updateUI()
