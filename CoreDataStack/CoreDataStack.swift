@@ -1,17 +1,18 @@
 import CoreData
+import Foundation
+import Logging
 
 final class CoreDataStack {
     
     static let shared = CoreDataStack()
     
-    // MARK: - Persistent Container
     lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "Tracker")
         container.loadPersistentStores { description, error in
             if let error = error as NSError? {
-                print("❌ Ошибка загрузки Persistent Store: \(error), \(error.userInfo)")
+                AppLogger.trackers.error("❌ Ошибка загрузки Persistent Store: \(error), \(error.userInfo)")
             } else {
-                print("✅ Загружен Store: \(description)")
+                AppLogger.trackers.info("✅ Загружен Store: \(description)")
                 container.viewContext.automaticallyMergesChangesFromParent = true
                 container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
             }
@@ -19,22 +20,23 @@ final class CoreDataStack {
         return container
     }()
     
-    // MARK: - Context
     var context: NSManagedObjectContext {
         persistentContainer.viewContext
     }
     
-    // MARK: - Save Context
     func saveContext() {
         let context = persistentContainer.viewContext
-        if context.hasChanges {
-            do {
-                try context.save()
-                print("💾 Сохранено в Core Data")
-            } catch {
-                let nserror = error as NSError
-                print("❌ Ошибка сохранения: \(nserror), \(nserror.userInfo)")
-            }
+        guard context.hasChanges else {
+            AppLogger.trackers.info("ℹ️ Сохранение пропущено — изменений нет")
+            return
+        }
+        
+        do {
+            try context.save()
+            AppLogger.trackers.info("💾 Контекст сохранён в Core Data")
+        } catch {
+            let nserror = error as NSError
+            AppLogger.trackers.error("❌ Ошибка сохранения контекста: \(nserror), \(nserror.userInfo)")
         }
     }
 }

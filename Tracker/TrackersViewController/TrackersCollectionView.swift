@@ -2,7 +2,6 @@ import UIKit
 
 extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     
-    // MARK: - Layout constants
     private enum Layout {
         static let itemWidth: CGFloat = 160
         static let itemHeight: CGFloat = 140
@@ -12,40 +11,35 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         static let headerHeight: CGFloat = 30
     }
     
-    // MARK: - DataSource
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         let sections = visibleCategories.isEmpty ? 1 : visibleCategories.count
-        print("🟢 numberOfSections: \(sections)")
+        AppLogger.trackers.info("🟢 numberOfSections: \(sections)")
         return sections
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         guard !visibleCategories.isEmpty else { return 0 }
         let category = visibleCategories[section]
-        
-        let trackersInCategory = filtersViewModel.filteredTrackers.filter { tracker in
-            tracker.trackerCategory?.title == category.title ||
-            (tracker.trackerCategory == nil && category.title == "Мои трекеры")
+        let trackersInCategory = filtersViewModel.filteredTrackers.filter {
+            $0.trackerCategory?.title == category.title ||
+            ($0.trackerCategory == nil && category.title == "Мои трекеры")
         }
         return trackersInCategory.count
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        
         guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: TrackerCell.reuseIdentifier,
             for: indexPath
         ) as? TrackerCell else { return UICollectionViewCell() }
         
         guard visibleCategories.indices.contains(indexPath.section) else { return cell }
-        
         let category = visibleCategories[indexPath.section]
-        let trackersInCategory = filtersViewModel.filteredTrackers.filter { tracker in
-            tracker.trackerCategory?.title == category.title ||
-            (tracker.trackerCategory == nil && category.title == "Мои трекеры")
+        let trackersInCategory = filtersViewModel.filteredTrackers.filter {
+            $0.trackerCategory?.title == category.title ||
+            ($0.trackerCategory == nil && category.title == "Мои трекеры")
         }
-        
         guard trackersInCategory.indices.contains(indexPath.item) else { return cell }
         
         let tracker = trackersInCategory[indexPath.item]
@@ -55,40 +49,35 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         let isFuture = viewModel.currentDate.startOfDayUTC() > Date().startOfDayUTC()
         cell.setCompletionEnabled(!isFuture)
         
-        if let contextMenuController {
-            contextMenuController.addInteraction(to: cell)
-        }
-        
+        contextMenuController?.addInteraction(to: cell)
         return cell
     }
     
     func addNewTracker(_ tracker: Tracker) {
-        print("🟢 Adding new tracker: \(tracker.name)")
+        AppLogger.trackers.info("🟢 Adding new tracker: \(tracker.name)")
         viewModel.addTrackerToDefaultCategory(tracker)
         filtersViewModel.applyFilter()
         ui.collectionView.reloadData()
     }
     
     func debugPrintTrackersSchedule() {
-        print("🔍 Проверка расписания всех трекеров:")
+        AppLogger.trackers.info("🔍 Проверка расписания всех трекеров:")
         for tracker in filtersViewModel.filteredTrackers {
             if !tracker.schedule.isEmpty {
                 let days = tracker.schedule.map { $0.shortName }.joined(separator: ", ")
-                print("🟢 \(tracker.name): \(days)")
+                AppLogger.trackers.info("🟢 \(tracker.name): \(days)")
             } else {
-                print("⚠️ \(tracker.name): нет присвоенных дней недели")
+                AppLogger.trackers.warning("⚠️ \(tracker.name): нет присвоенных дней недели")
             }
         }
     }
     
-    // MARK: - Headers
     func collectionView(_ collectionView: UICollectionView,
                         viewForSupplementaryElementOfKind kind: String,
                         at indexPath: IndexPath) -> UICollectionReusableView {
         guard kind == UICollectionView.elementKindSectionHeader else {
             return UICollectionReusableView()
         }
-        
         let header = collectionView.dequeueReusableSupplementaryView(
             ofKind: kind,
             withReuseIdentifier: TrackerSectionHeaderView.reuseIdentifier,
@@ -101,7 +90,6 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         } else {
             header.configure(with: "")
         }
-        
         return header
     }
     
@@ -110,7 +98,6 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
                         referenceSizeForHeaderInSection section: Int) -> CGSize {
         guard visibleCategories.indices.contains(section) else { return .zero }
         let category = visibleCategories[section]
-        
         let trackersInCategory = filtersViewModel.filteredTrackers.filter {
             $0.trackerCategory?.title == category.title ||
             ($0.trackerCategory == nil && category.title == "Мои трекеры")
@@ -152,7 +139,7 @@ extension TrackersViewController: UICollectionViewDelegate {
             ($0.trackerCategory == nil && category.title == "Мои трекеры")
         }
         let tracker = trackersInCategory[indexPath.item]
-        print("🟣 Tap on tracker: \(tracker.name)")
+        AppLogger.trackers.info("🟣 Tap on tracker: \(tracker.name)")
         AnalyticsService.trackClick(item: tracker.name, screen: "Main")
     }
 }

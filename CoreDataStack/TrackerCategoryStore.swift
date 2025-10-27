@@ -1,4 +1,6 @@
 import CoreData
+import Foundation
+import Logging
 
 protocol TrackerCategoryStoreDelegate: AnyObject {
     func didUpdateCategories()
@@ -6,14 +8,12 @@ protocol TrackerCategoryStoreDelegate: AnyObject {
 
 final class TrackerCategoryStore: NSObject {
     
-    // MARK: - Properties
     private let context: NSManagedObjectContext
     private let fetchedResultsController: NSFetchedResultsController<TrackerCategoryCoreData>
     weak var delegate: TrackerCategoryStoreDelegate?
     
     private let mappingErrorMessage = "⚠️ Ошибка маппинга TrackerCategoryCoreData: отсутствует id или title"
     
-    // MARK: - Init
     init(context: NSManagedObjectContext) {
         self.context = context
         let request = TrackerCategoryStore.makeFetchRequest()
@@ -30,12 +30,12 @@ final class TrackerCategoryStore: NSObject {
         
         do {
             try self.fetchedResultsController.performFetch()
+            AppLogger.trackers.info("📥 [TrackerCategoryStore] Initial fetch — \(self.fetchedResultsController.fetchedObjects?.count ?? 0) categories loaded")
         } catch {
-            print("❌ Ошибка performFetch категорий: \(error)")
+            AppLogger.trackers.error("❌ Ошибка performFetch категорий: \(error)")
         }
     }
     
-    // MARK: - Public API
     var categories: [TrackerCategory] {
         guard let objects = fetchedResultsController.fetchedObjects else { return [] }
         var result = objects.compactMap { toCategory(from: $0) }
@@ -45,7 +45,6 @@ final class TrackerCategoryStore: NSObject {
             if $1.title == pinnedTitle { return false }
             return $0.title.localizedCompare($1.title) == .orderedAscending
         }
-        
         return result
     }
     
@@ -53,6 +52,7 @@ final class TrackerCategoryStore: NSObject {
         let cdCategory = TrackerCategoryCoreData(context: context)
         cdCategory.id = category.id
         cdCategory.title = category.title
+        AppLogger.trackers.info("🟢 Добавлена категория: \(category.title)")
         saveContext()
     }
     
@@ -63,9 +63,10 @@ final class TrackerCategoryStore: NSObject {
         do {
             let results = try context.fetch(request)
             results.forEach { context.delete($0) }
+            AppLogger.trackers.info("🗑 Удалена категория: \(category.title)")
             saveContext()
         } catch {
-            print("❌ Ошибка delete TrackerCategory: \(error)")
+            AppLogger.trackers.error("❌ Ошибка delete TrackerCategory: \(error)")
         }
     }
     
@@ -82,6 +83,7 @@ final class TrackerCategoryStore: NSObject {
                 cdCategory = TrackerCategoryCoreData(context: context)
                 cdCategory.id = UUID()
                 cdCategory.title = categoryTitle
+                AppLogger.trackers.info("🟢 Создана новая категория: \(categoryTitle)")
             }
             
             let cdTracker = TrackerCoreData(context: context)
@@ -95,11 +97,13 @@ final class TrackerCategoryStore: NSObject {
             trackersSet.insert(cdTracker)
             cdCategory.trackers = trackersSet as NSSet
             
+            AppLogger.trackers.info("➕ Добавлен трекер '\(tracker.name)' в категорию '\(categoryTitle)'")
             saveContext()
         } catch {
-            print("❌ Ошибка добавления трекера в категорию: \(error)")
+            AppLogger.trackers.error("❌ Ошибка добавления трекера в категорию: \(error)")
         }
     }
+    
     func fetchCategories() -> [TrackerCategoryCoreData] {
         return fetchedResultsController.fetchedObjects ?? []
     }
@@ -111,6 +115,7 @@ final class TrackerCategoryStore: NSObject {
             let newCategory = TrackerCategoryCoreData(context: context)
             newCategory.id = category.id
             newCategory.title = category.title
+            AppLogger.trackers.info("🟢 Добавлена категория (CD): \(category.title)")
             saveContext()
         }
     }
@@ -120,13 +125,11 @@ final class TrackerCategoryStore: NSObject {
             let categoryCoreData = fetchCategoryByTitle(categoryTitle),
             let trackerCoreData = fetchTracker(by: tracker.id)
         else { return }
-
+        
         trackerCoreData.category = categoryCoreData
+        AppLogger.trackers.info("🔀 Трекер '\(tracker.name)' перемещен в категорию '\(categoryTitle)'")
         saveContext()
     }
-    
-    
-    // MARK: - Private
     
     private func fetchCategoryByTitle(_ title: String) -> TrackerCategoryCoreData? {
         let request = TrackerCategoryCoreData.fetchRequest()
@@ -149,27 +152,27 @@ final class TrackerCategoryStore: NSObject {
     private func toCategory(from cdCategory: TrackerCategoryCoreData) -> TrackerCategory? {
         guard let id = cdCategory.id,
               let title = cdCategory.title else {
-            print(mappingErrorMessage)
+            AppLogger.trackers.warning("\(mappingErrorMessage)")
             return nil
         }
-        let trackers: [Tracker] = []
-        return TrackerCategory(id: id, title: title, trackers: trackers)
+        return TrackerCategory(id: id, title: title, trackers: [])
     }
     
     private func saveContext() {
         do {
             if context.hasChanges {
                 try context.save()
+                AppLogger.trackers.info("💾 Контекст категорий сохранен")
             }
         } catch {
-            print("❌ Ошибка сохранения контекста: \(error)")
+            AppLogger.trackers.error("❌ Ошибка сохранения контекста: \(error)")
         }
     }
 }
 
-// MARK: - NSFetchedResultsControllerDelegate
 extension TrackerCategoryStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        AppLogger.trackers.info("📡 Контент категорий изменен, уведомляем делегата")
         delegate?.didUpdateCategories()
     }
 }

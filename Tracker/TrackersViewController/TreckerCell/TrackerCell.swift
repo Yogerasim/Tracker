@@ -6,7 +6,7 @@ final class TrackerCell: UICollectionViewCell {
     // MARK: - ViewModel
     private var viewModel: TrackerCellViewModel?
     
-    // MARK: - UI
+    // MARK: - UI Components
     private let cardView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 12
@@ -33,14 +33,12 @@ final class TrackerCell: UICollectionViewCell {
         return label
     }()
     
-    private let bottomContainer: UIView = UIView()
+    private let bottomContainer = UIView()
     
     private let dayLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 12, weight: .medium)
-        label.textColor = UIColor { traitCollection in
-            traitCollection.userInterfaceStyle == .dark ? UIColor.white : .black
-        }
+        label.textColor = UIColor { $0.userInterfaceStyle == .dark ? .white : .black }
         return label
     }()
     
@@ -57,6 +55,7 @@ final class TrackerCell: UICollectionViewCell {
     // MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
+        
         contentView.addSubview(cardView)
         contentView.addSubview(bottomContainer)
         
@@ -95,8 +94,7 @@ final class TrackerCell: UICollectionViewCell {
         viewModel.onStateChanged = { [weak self] in
             guard let self else { return }
             DispatchQueue.main.async {
-                // 💡 защита от reuse
-                guard self.viewModel === viewModel else { return }
+                guard self.viewModel === viewModel else { return } // защита от reuse
                 self.updateUI()
             }
         }
@@ -105,13 +103,13 @@ final class TrackerCell: UICollectionViewCell {
     func refreshCellState() {
         viewModel?.refreshStateIfNeeded()
     }
+    
     private func updateUI() {
         guard let vm = viewModel else { return }
-        print("🟩 [TrackerCell] updateUI() called for \(vm.tracker.name), isCompleted = \(vm.isCompleted), daysCount = \(vm.daysCount)")
+        print("🟩 [TrackerCell] updateUI() for \(vm.tracker.name), isCompleted = \(vm.isCompleted), daysCount = \(vm.daysCount)")
         
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            
             self.dayLabel.text = vm.dayLabelText()
             
             let symbolName = vm.buttonSymbol()
@@ -124,12 +122,7 @@ final class TrackerCell: UICollectionViewCell {
     
     // MARK: - Layout
     private func setupConstraints() {
-        cardView.translatesAutoresizingMaskIntoConstraints = false
-        emojiLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        bottomContainer.translatesAutoresizingMaskIntoConstraints = false
-        dayLabel.translatesAutoresizingMaskIntoConstraints = false
-        toggleButton.translatesAutoresizingMaskIntoConstraints = false
+        [cardView, emojiLabel, titleLabel, bottomContainer, dayLabel, toggleButton].forEach { $0.translatesAutoresizingMaskIntoConstraints = false }
         
         NSLayoutConstraint.activate([
             cardView.topAnchor.constraint(equalTo: contentView.topAnchor),
@@ -163,7 +156,7 @@ final class TrackerCell: UICollectionViewCell {
     }
 }
 
-// MARK: - UIColor + Hex
+// MARK: - UIColor Hex Extension
 private extension UIColor {
     convenience init?(hexString: String) {
         var hex = hexString.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()

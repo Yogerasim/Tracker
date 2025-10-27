@@ -1,4 +1,5 @@
 import CoreData
+import Logging
 
 final class TrackersViewModel {
     
@@ -61,18 +62,18 @@ final class TrackersViewModel {
     
     // MARK: - Data Loading
     func loadData() {
-        print("📦 [TrackersVM] loadData() called")
+        AppLogger.trackers.info("📦 [TrackersVM] loadData() called")
         trackers = trackerStore.getTrackers()
         completedTrackers = recordStore.completedTrackers
         categories = categoryStore.categories
-        print("📊 trackers.count = \(trackers.count), completed = \(completedTrackers.count)")
+        AppLogger.trackers.info("📊 trackers.count = \(trackers.count), completed = \(completedTrackers.count)")
         onTrackersUpdated?()
     }
     
     func reloadTrackers() {
         trackers = trackerStore.getTrackers()
         completedTrackers = recordStore.completedTrackers
-        print("📦 [TrackersVM] reloadTrackers() — trackers.count = \(trackers.count), completed = \(completedTrackers.count)")
+        AppLogger.trackers.info("📦 [TrackersVM] reloadTrackers() — trackers.count = \(trackers.count), completed = \(completedTrackers.count)")
         onTrackersUpdated?()
     }
     
@@ -112,7 +113,7 @@ final class TrackersViewModel {
         } else {
             result = false
         }
-        print("📘 [VM] isTrackerCompleted(\(tracker.name)) = \(result) for UTC date \(normalized)")
+        AppLogger.trackers.debug("📘 [VM] isTrackerCompleted(\(tracker.name)) = \(result) for UTC date \(normalized)")
         return result
     }
     
@@ -160,7 +161,7 @@ extension TrackersViewModel {
 // MARK: - Edit / Delete
 extension TrackersViewModel {
     func editTracker(_ tracker: Tracker) {
-        print("🟢 Edit tracker tapped: \(tracker.name)")
+        AppLogger.trackers.info("🟢 Edit tracker tapped: \(tracker.name)")
         if let vm = cellViewModels[tracker.id] {
             vm.tracker = tracker
             vm.refreshState()
@@ -169,11 +170,11 @@ extension TrackersViewModel {
     }
     
     func deleteTracker(_ tracker: Tracker) {
-        print("🔴 Request delete tracker: \(tracker.name)")
+        AppLogger.trackers.warning("🔴 Request delete tracker: \(tracker.name)")
         trackerStore.delete(tracker)
         reloadTrackers()
         onTrackersUpdated?()
-        print("✅ Deleted tracker: \(tracker.name). trackers.count = \(trackers.count)")
+        AppLogger.trackers.info("✅ Deleted tracker: \(tracker.name). trackers.count = \(trackers.count)")
         NotificationCenter.default.post(name: .trackersDidChange, object: nil)
     }
 }
@@ -195,7 +196,6 @@ extension TrackersViewModel: TrackerCategoryStoreDelegate {
 
 extension TrackersViewModel: TrackerRecordStoreDelegate {
     func didUpdateRecords() {
-        // ❗ Отменяем предыдущее обновление, если новое приходит слишком быстро
         reloadWorkItem?.cancel()
         let workItem = DispatchWorkItem { [weak self] in
             guard let self else { return }
@@ -203,7 +203,6 @@ extension TrackersViewModel: TrackerRecordStoreDelegate {
             self.onTrackersUpdated?()
         }
         reloadWorkItem = workItem
-        // 🕐 Добавляем лёгкую задержку, чтобы сгладить "дребезг"
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: workItem)
     }
 }

@@ -1,7 +1,11 @@
 import UIKit
 import Combine
+import Logging
 
 final class FiltersViewController: UIViewController {
+    
+    // MARK: - Logger
+    private let logger = Logger(label: "FiltersViewController")
     
     // MARK: - UI
     private let header = ModalHeaderView(title: NSLocalizedString("filters.title", comment: "Filters"))
@@ -44,6 +48,7 @@ final class FiltersViewController: UIViewController {
         setupLayout()
         setupTableView()
         bindViewModel()
+        
         if let savedIndex = UserDefaults.standard.value(forKey: "selectedFilterIndex") as? Int {
             viewModel.selectFilter(index: savedIndex)
         } else {
@@ -59,6 +64,7 @@ final class FiltersViewController: UIViewController {
                 guard let self else { return }
                 UserDefaults.standard.set(index, forKey: "selectedFilterIndex")
                 self.tableContainer.tableView.reloadData()
+                self.logger.info("Selected filter index updated: \(index)")
             }
             .store(in: &cancellables)
     }
@@ -116,7 +122,7 @@ final class FiltersViewController: UIViewController {
 extension FiltersViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return filters.count
+        filters.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -139,7 +145,7 @@ extension FiltersViewController: UITableViewDataSource, UITableViewDelegate {
         let previousIndex = viewModel.selectedFilterIndex
         viewModel.selectFilter(index: indexPath.row)
         
-        print("🟢 [FiltersVC] Selected filter index: \(indexPath.row)")
+        logger.info("🟢 Selected filter index: \(indexPath.row)")
         
         var indexPathsToReload: [IndexPath] = [indexPath]
         if previousIndex != indexPath.row {
@@ -148,7 +154,7 @@ extension FiltersViewController: UITableViewDataSource, UITableViewDelegate {
         tableView.reloadRows(at: indexPathsToReload, with: .automatic)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            print("🟠 [TrackersVC] Filter selected index = \(indexPath.row)")
+            self.logger.info("🟠 Filter selected index = \(indexPath.row), notifying trackersVC")
             self.onFilterSelected?(indexPath.row)
             self.dismiss(animated: true)
         }

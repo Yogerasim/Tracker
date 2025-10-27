@@ -1,6 +1,10 @@
 import UIKit
+import Logging
 
 final class StatisticsViewController: UIViewController {
+    
+    // MARK: - Logger
+    private let logger = Logger(label: "StatisticsViewController")
     
     // MARK: - Dependencies
     private let trackerRecordStore: TrackerRecordStore
@@ -42,15 +46,15 @@ final class StatisticsViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("📊 [StatsVC] viewDidLoad called")
+        logger.info("📊 viewDidLoad called")
         
         view.backgroundColor = AppColors.background
         setupLayout()
         setupTableView()
         
-        print("📊 [StatsVC] before loadStatistics()")
+        logger.info("📊 before loadStatistics()")
         loadStatistics()
-        print("📊 [StatsVC] after loadStatistics(), items.count = \(items.count)")
+        logger.info("📊 after loadStatistics(), items.count = \(items.count)")
         
         updatePlaceholderVisibility()
         
@@ -67,15 +71,16 @@ final class StatisticsViewController: UIViewController {
             object: nil
         )
     }
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        print("📊 [StatsVC] viewWillAppear — refreshing stats")
+        logger.info("📊 viewWillAppear — refreshing stats")
         loadStatistics()
     }
     
     // MARK: - Load Data
     private func loadStatistics() {
-        print("📊 [StatsVC] loadStatistics() called")
+        logger.info("📊 loadStatistics() called")
         let calculator = CalculateStatistics(trackerRecordStore: trackerRecordStore)
         let stats = calculator.calculateStatistics()
         
@@ -85,7 +90,7 @@ final class StatisticsViewController: UIViewController {
             (stats.completedTrackers, NSLocalizedString("statistics.completed_trackers_label", comment: "Трекеров завершено")),
             (stats.averageTrackersPerDay, NSLocalizedString("statistics.average_label", comment: "Среднее значение"))
         ]
-        print("📊 [StatsVC] stats = \(stats)")
+        logger.info("📊 stats = \(stats)")
         
         tableView.reloadData()
         updateTableHeight()
@@ -94,26 +99,26 @@ final class StatisticsViewController: UIViewController {
     
     // MARK: - Placeholder Logic
     private func updatePlaceholderVisibility() {
-        print("📊 [StatsVC] updatePlaceholderVisibility() called")
+        logger.info("📊 updatePlaceholderVisibility() called")
         
         let trackerStore = TrackerStore(context: trackerRecordStore.context)
         let trackers = trackerStore.getTrackers()
-        print("📊 [StatsVC] getTrackers count = \(trackers.count)")
+        logger.info("📊 getTrackers count = \(trackers.count)")
         
         let hasCreatedTrackers = !trackers.isEmpty
-        print("📊 [StatsVC] hasCreatedTrackers = \(hasCreatedTrackers)")
+        logger.info("📊 hasCreatedTrackers = \(hasCreatedTrackers)")
         
         placeholderView.isHidden = hasCreatedTrackers
         tableView.isHidden = !hasCreatedTrackers
         
         if !hasCreatedTrackers {
-            print("📊 [StatsVC] showing placeholder (нет трекеров)")
+            logger.info("📊 showing placeholder (нет трекеров)")
             placeholderView.configure(
                 imageName: "NoStatistic",
                 text: NSLocalizedString("statistics.placeholder.empty", comment: "Пустая статистика — нечего анализировать")
             )
         } else {
-            print("📊 [StatsVC] showing tableView (есть трекеры)")
+            logger.info("📊 showing tableView (есть трекеры)")
         }
     }
     
@@ -151,7 +156,7 @@ final class StatisticsViewController: UIViewController {
     
     private func updateTableHeight() {
         let totalHeight = CGFloat(items.count * 90 + (items.count - 1) * 16)
-        print("📊 [StatsVC] updateTableHeight() totalHeight = \(totalHeight)")
+        logger.info("📊 updateTableHeight() totalHeight = \(totalHeight)")
         tableViewHeightConstraint.constant = totalHeight
     }
     
@@ -162,7 +167,7 @@ final class StatisticsViewController: UIViewController {
     }
     
     @objc private func handleTrackerRecordsDidChange() {
-        print("📊 [StatsVC] received .trackerRecordsDidChange — reloading stats")
+        logger.info("📊 received tracker records change — reloading stats")
         loadStatistics()
     }
     
@@ -182,11 +187,11 @@ final class StatisticsViewController: UIViewController {
 // MARK: - UITableViewDataSource
 extension StatisticsViewController: UITableViewDataSource {
     func numberOfSections(in tableView: UITableView) -> Int {
-        return items.count
+        items.count
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 1
+        1
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -202,11 +207,11 @@ extension StatisticsViewController: UITableViewDataSource {
 // MARK: - UITableViewDelegate
 extension StatisticsViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 90
+        90
     }
     
     func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-        return 16
+        16
     }
     
     func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {

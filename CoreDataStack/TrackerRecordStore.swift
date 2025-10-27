@@ -1,4 +1,5 @@
 import CoreData
+import Logging
 
 protocol TrackerRecordStoreDelegate: AnyObject {
     func didUpdateRecords()
@@ -30,13 +31,11 @@ final class TrackerRecordStore: NSObject {
         
         do {
             try fetchedResultsController.performFetch()
-            print("📥 [TrackerRecordStore] Initial fetch — \(fetchedResultsController.fetchedObjects?.count ?? 0) records loaded")
+            AppLogger.trackers.info("📥 [TrackerRecordStore] Initial fetch — \(fetchedResultsController.fetchedObjects?.count ?? 0) records loaded")
         } catch {
-            print("❌ Ошибка performFetch: \(error)")
+            AppLogger.trackers.error("❌ Ошибка performFetch: \(error)")
         }
     }
-    
-    // MARK: - Access
     
     var completedTrackers: [TrackerRecord] {
         guard let objects = fetchedResultsController.fetchedObjects else { return [] }
@@ -48,13 +47,11 @@ final class TrackerRecordStore: NSObject {
         }
     }
     
-    // MARK: - CRUD
-    
     func addRecord(for tracker: TrackerCoreData, date: Date) {
         let dayStart = date.startOfDayUTC()
         let dayEnd = date.endOfDayUTC()
         
-        print("➕ [TrackerRecordStore] addRecord() for \(tracker.name ?? "nil") | dayStartUTC=\(dayStart) | endOfDayUTC=\(dayEnd)")
+        AppLogger.trackers.info("➕ [TrackerRecordStore] addRecord() for \(tracker.name ?? "nil") | dayStartUTC=\(dayStart) | endOfDayUTC=\(dayEnd)")
         
         viewContext.perform { [weak self] in
             guard let self else { return }
@@ -71,22 +68,22 @@ final class TrackerRecordStore: NSObject {
                     let record = TrackerRecordCoreData(context: self.viewContext)
                     record.date = dayStart
                     record.tracker = tracker
-                    print("💾 [Record Added] \(tracker.name ?? "nil") — saved date = \(record.date ?? Date())")
+                    AppLogger.trackers.info("💾 [Record Added] \(tracker.name ?? "nil") — saved date = \(record.date ?? Date())")
                 } else {
-                    print("⚠️ Record already exists for \(tracker.name ?? "nil")")
+                    AppLogger.trackers.debug("⚠️ Record already exists for \(tracker.name ?? "nil")")
                 }
                 self.saveContext(reason: "addRecord")
             } catch {
-                print("❌ addRecord fetch error: \(error)")
+                AppLogger.trackers.error("❌ addRecord fetch error: \(error)")
             }
         }
     }
-
+    
     func removeRecord(for tracker: TrackerCoreData, date: Date) {
         let dayStart = date.startOfDayUTC()
         let dayEnd = date.endOfDayUTC()
         
-        print("➖ [TrackerRecordStore] removeRecord() for \(tracker.name ?? "nil") | dayStartUTC=\(dayStart) | endOfDayUTC=\(dayEnd)")
+        AppLogger.trackers.info("➖ [TrackerRecordStore] removeRecord() for \(tracker.name ?? "nil") | dayStartUTC=\(dayStart) | endOfDayUTC=\(dayEnd)")
         
         viewContext.perform { [weak self] in
             guard let self else { return }
@@ -100,14 +97,14 @@ final class TrackerRecordStore: NSObject {
             do {
                 let results = try self.viewContext.fetch(request)
                 if results.isEmpty {
-                    print("⚠️ No records found to delete for tracker: \(tracker.name ?? "nil")")
+                    AppLogger.trackers.debug("⚠️ No records found to delete for tracker: \(tracker.name ?? "nil")")
                 } else {
                     results.forEach { self.viewContext.delete($0) }
-                    print("🗑 Deleted record for \(tracker.name ?? "nil") | \(dayStart)")
+                    AppLogger.trackers.info("🗑 Deleted record for \(tracker.name ?? "nil") | \(dayStart)")
                 }
                 self.saveContext(reason: "removeRecord")
             } catch {
-                print("❌ removeRecord fetch error: \(error)")
+                AppLogger.trackers.error("❌ removeRecord fetch error: \(error)")
             }
         }
     }
@@ -116,7 +113,7 @@ final class TrackerRecordStore: NSObject {
         let dayStart = date.startOfDayUTC()
         let dayEnd = date.endOfDayUTC()
         
-        print("🔍 Checking isCompleted for \(tracker.name ?? "nil") | dayStartUTC=\(dayStart) | dayEndUTC=\(dayEnd) | TZ=\(TimeZone.current.identifier)")
+        AppLogger.trackers.debug("🔍 Checking isCompleted for \(tracker.name ?? "nil") | dayStartUTC=\(dayStart) | dayEndUTC=\(dayEnd) | TZ=\(TimeZone.current.identifier)")
         
         let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
         request.predicate = NSPredicate(
@@ -126,15 +123,13 @@ final class TrackerRecordStore: NSObject {
         
         do {
             let count = try viewContext.count(for: request)
-            print("📊 isCompleted result for \(tracker.name ?? "nil"): \(count > 0 ? "✅ YES" : "❌ NO") (found \(count) records)")
+            AppLogger.trackers.info("📊 isCompleted result for \(tracker.name ?? "nil"): \(count > 0 ? "✅ YES" : "❌ NO") (found \(count) records)")
             return count > 0
         } catch {
-            print("❌ Ошибка isCompleted: \(error)")
+            AppLogger.trackers.error("❌ Ошибка isCompleted: \(error)")
             return false
         }
     }
-    
-    // MARK: - Save
     
     private func saveContext(reason: String) {
         viewContext.perform { [weak self] in
@@ -142,28 +137,22 @@ final class TrackerRecordStore: NSObject {
             do {
                 if self.viewContext.hasChanges {
                     try self.viewContext.save()
-                    print("✅ [TrackerRecordStore] Context saved (\(reason))")
-                    // ❗ Не уведомляем delegate напрямую — FRC сам вызовет controllerDidChangeContent
+                    AppLogger.trackers.info("✅ [TrackerRecordStore] Context saved (\(reason))")
                 }
             } catch {
-                print("❌ Ошибка сохранения (\(reason)): \(error)")
+                AppLogger.trackers.error("❌ Ошибка сохранения (\(reason)): \(error)")
             }
         }
     }
 }
 
-// MARK: - NSFetchedResultsControllerDelegate
-
 extension TrackerRecordStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        // Теперь уведомляем делегата только один раз и на главном потоке
         DispatchQueue.main.async { [weak self] in
             self?.delegate?.didUpdateRecords()
         }
     }
 }
-
-// MARK: - Helpers
 
 extension TrackerRecordStore {
     func fetchTrackerInViewContext(by id: UUID) -> TrackerCoreData? {
@@ -198,17 +187,16 @@ extension TrackerRecordStore {
         do {
             return try viewContext.count(for: request)
         } catch {
-            print("❌ Ошибка подсчета трекеров: \(error)")
+            AppLogger.trackers.error("❌ Ошибка подсчета трекеров: \(error)")
             return 0
         }
     }
 }
 
-// MARK: - Public Record Operations
 extension TrackerRecordStore {
     func addRecord(for trackerID: UUID, date: Date) {
         guard let tracker = fetchTrackerInViewContext(by: trackerID) else {
-            print("❌ [RecordStore] Tracker not found for ID \(trackerID)")
+            AppLogger.trackers.error("❌ [RecordStore] Tracker not found for ID \(trackerID)")
             return
         }
         let dayStart = date.startOfDayUTC()
@@ -216,7 +204,7 @@ extension TrackerRecordStore {
         record.tracker = tracker
         record.date = dayStart
         
-        print("💾 [RecordStore] Added by ID \(trackerID) at dayStartUTC=\(dayStart)")
+        AppLogger.trackers.info("💾 [RecordStore] Added by ID \(trackerID) at dayStartUTC=\(dayStart)")
         self.saveContext(reason: "addRecord")
     }
     
@@ -226,14 +214,13 @@ extension TrackerRecordStore {
               let record = tracker.records?.first(where: {
                   ($0 as? TrackerRecordCoreData)?.date == dayStart
               }) as? TrackerRecordCoreData else {
-            print("⚠️ [RecordStore] No record found to delete for \(trackerID)")
+            AppLogger.trackers.debug("⚠️ [RecordStore] No record found to delete for \(trackerID)")
             return
         }
         viewContext.delete(record)
         self.saveContext(reason: "deleteRecord")
     }
-}
-extension TrackerRecordStore {
+    
     func deleteAll() {
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "TrackerRecordCoreData")
         let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
@@ -241,7 +228,7 @@ extension TrackerRecordStore {
             try context.execute(deleteRequest)
             try context.save()
         } catch {
-            print("⚠️ [TrackerRecordStore] Failed to delete all records: \(error)")
+            AppLogger.trackers.debug("⚠️ [TrackerRecordStore] Failed to delete all records: \(error)")
         }
     }
 }

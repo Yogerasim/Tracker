@@ -1,6 +1,7 @@
 import UIKit
 import CoreData
 import YandexMobileMetrica
+import Logging
 
 @main
 final class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -13,10 +14,11 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     ) -> Bool {
         if let configuration = YMMYandexMetricaConfiguration(apiKey: "53e8c0c7-ca97-44d0-9b89-836ccff6b602") {
             YMMYandexMetrica.activate(with: configuration)
-            print("✅ YandexMetrica activated")
+            AppLogger.analytics.info("✅ YandexMetrica activated")
         } else {
-            print("❌ YandexMetrica configuration failed")
+            AppLogger.analytics.error("❌ YandexMetrica configuration failed")
         }
+        
         UIViewController.enableGlobalKeyboardDismiss()
         
         window = UIWindow(frame: UIScreen.main.bounds)
