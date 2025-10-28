@@ -11,7 +11,7 @@ final class TrackersViewModel {
     
     
     let pinnedCategoryTitle = NSLocalizedString("trackers.pinned_category", comment: "Закрепленные")
-    private let defaultCategoryTitle = NSLocalizedString("trackers.default_category", comment: "Мои трекеры")
+
     
     
     @Published private(set) var trackers: [Tracker] = []
@@ -79,18 +79,16 @@ final class TrackersViewModel {
     
     
     
-    func addTrackerToDefaultCategory(_ tracker: Tracker) {
+    func addTracker(_ tracker: Tracker, to categoryTitle: String) {
         guard !trackers.contains(where: { $0.id == tracker.id }) else { return }
-        trackerStore.add(tracker)
         
-        if let _ = categories.first(where: { $0.title == defaultCategoryTitle }) {
-            categoryStore.moveTracker(tracker, to: defaultCategoryTitle)
-        }
+        AppLogger.coreData.info("[Tracker] ➕ Добавляем новый трекер \(tracker.name) в категорию \(categoryTitle)")
         
-        trackers.forEach { tracker in
-            _ = makeCellViewModel(for: tracker)
-        }
-        reloadTrackers()
+        categoryStore.addTracker(tracker, to: categoryTitle)
+        
+        trackers = trackerStore.getTrackers()
+        trackers.forEach { _ = makeCellViewModel(for: $0) }
+        onTrackersUpdated?()
     }
     
     func markTrackerAsCompleted(_ tracker: Tracker, on date: Date, completion: (() -> Void)? = nil) {
@@ -143,7 +141,7 @@ extension TrackersViewModel {
             categories.insert(pinnedCategory!, at: 0)
             onCategoriesUpdated?()
         }
-        originalCategoryMap[tracker.id] = tracker.trackerCategory?.title ?? defaultCategoryTitle
+        originalCategoryMap[tracker.id] = tracker.trackerCategory?.title ?? ""
         categoryStore.moveTracker(tracker, to: pinnedCategoryTitle)
         reloadTrackers()
         onTrackersUpdated?()

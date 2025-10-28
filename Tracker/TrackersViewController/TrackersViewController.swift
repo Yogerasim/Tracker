@@ -299,9 +299,6 @@ final class TrackersViewController: UIViewController {
     
     @objc private func addButtonTapped() {
         let createVC = CreateTrackerViewController()
-        createVC.onTrackerCreated = { [weak self] tracker in
-            self?.viewModel.addTrackerToDefaultCategory(tracker)
-        }
         present(createVC, animated: true)
     }
     

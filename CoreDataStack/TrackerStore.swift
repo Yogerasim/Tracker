@@ -39,7 +39,7 @@ final class TrackerStore: NSObject {
             _ = fetchedResultsController.fetchedObjects?.count ?? 0
             
             if let trackers = fetchedResultsController.fetchedObjects {
-                trackers.forEach {_ in 
+                trackers.forEach {_ in
                     
                 }
             }
@@ -62,7 +62,8 @@ final class TrackerStore: NSObject {
         cdTracker.emoji = tracker.emoji
         
         
-        cdTracker.schedule = NSArray(array: tracker.schedule.map { $0.rawValue })
+        cdTracker.schedule = tracker.schedule as NSObject
+        AppLogger.coreData.info("💾 Добавлен schedule для \(tracker.name): \(tracker.schedule.map { $0.rawValue })")
         
         if let category = tracker.trackerCategory {
             cdTracker.category = context.object(with: category.objectID) as? TrackerCategoryCoreData
@@ -82,7 +83,8 @@ final class TrackerStore: NSObject {
                 cdTracker.emoji = tracker.emoji
                 
                 
-                cdTracker.schedule = NSArray(array: tracker.schedule.map { $0.rawValue })
+                cdTracker.schedule = tracker.schedule as NSObject
+                AppLogger.coreData.info("🔄 Обновлён schedule для \(tracker.name): \(tracker.schedule.map { $0.rawValue })")
                 
                 if let category = tracker.trackerCategory {
                     cdTracker.category = context.object(with: category.objectID) as? TrackerCategoryCoreData
@@ -204,12 +206,12 @@ private extension TrackerCoreData {
         }
         
         let scheduleArray: [WeekDay]
-        if let data = schedule as? Data,
-           let decoded = try? JSONDecoder().decode([WeekDay].self, from: data) {
-            scheduleArray = decoded
-            
+        if let stored = schedule as? [WeekDay] {
+            scheduleArray = stored
+            AppLogger.coreData.debug("✅ Загружен schedule для \(name): \(stored.map { $0.rawValue })")
         } else {
             scheduleArray = []
+            AppLogger.coreData.warning("⚠️ schedule пуст или нераспознан у трекера \(name)")
         }
         
         let category = self.category

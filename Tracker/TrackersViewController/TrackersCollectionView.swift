@@ -21,8 +21,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         guard !visibleCategories.isEmpty else { return 0 }
         let category = visibleCategories[section]
         let trackersInCategory = filtersViewModel.filteredTrackers.filter {
-            $0.trackerCategory?.title == category.title ||
-            ($0.trackerCategory == nil && category.title == "Мои трекеры")
+            $0.trackerCategory?.title == category.title
         }
         return trackersInCategory.count
     }
@@ -37,8 +36,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         guard visibleCategories.indices.contains(indexPath.section) else { return cell }
         let category = visibleCategories[indexPath.section]
         let trackersInCategory = filtersViewModel.filteredTrackers.filter {
-            $0.trackerCategory?.title == category.title ||
-            ($0.trackerCategory == nil && category.title == "Мои трекеры")
+            $0.trackerCategory?.title == category.title
         }
         guard trackersInCategory.indices.contains(indexPath.item) else { return cell }
         
@@ -55,7 +53,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     
     func addNewTracker(_ tracker: Tracker) {
         
-        viewModel.addTrackerToDefaultCategory(tracker)
+        viewModel.addTracker(tracker, to: tracker.trackerCategory?.title ?? "")
         filtersViewModel.applyFilter()
         ui.collectionView.reloadData()
     }
@@ -99,8 +97,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         guard visibleCategories.indices.contains(section) else { return .zero }
         let category = visibleCategories[section]
         let trackersInCategory = filtersViewModel.filteredTrackers.filter {
-            $0.trackerCategory?.title == category.title ||
-            ($0.trackerCategory == nil && category.title == "Мои трекеры")
+            $0.trackerCategory?.title == category.title
         }
         return trackersInCategory.isEmpty ? .zero : CGSize(width: collectionView.bounds.width, height: Layout.headerHeight)
     }
@@ -135,8 +132,7 @@ extension TrackersViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let category = visibleCategories[indexPath.section]
         let trackersInCategory = filtersViewModel.filteredTrackers.filter {
-            $0.trackerCategory?.title == category.title ||
-            ($0.trackerCategory == nil && category.title == "Мои трекеры")
+            $0.trackerCategory?.title == category.title
         }
         let tracker = trackersInCategory[indexPath.item]
         
