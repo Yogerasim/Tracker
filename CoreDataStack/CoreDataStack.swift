@@ -8,12 +8,7 @@ final class CoreDataStack {
     
     // MARK: - Init
     private init() {
-        ValueTransformer.setValueTransformer(
-            WeekDayArrayTransformer(),
-            forName: NSValueTransformerName("WeekDayArrayTransformer")
-        )
-        
-        AppLogger.coreData.info("[CoreData] ✅ ValueTransformer зарегистрирован: WeekDayArrayTransformer")
+        AppLogger.coreData.info("[CoreData] ✅ CoreDataStack инициализирован")
     }
     
     // MARK: - Persistent Container

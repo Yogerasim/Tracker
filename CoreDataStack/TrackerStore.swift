@@ -201,17 +201,23 @@ private extension TrackerCoreData {
               let name = name,
               let color = color,
               let emoji = emoji else {
-            
             return nil
         }
         
         let scheduleArray: [WeekDay]
         if let stored = schedule as? [WeekDay] {
             scheduleArray = stored
-            AppLogger.coreData.debug("✅ Загружен schedule для \(name): \(stored.map { $0.rawValue })")
+        } else if let stored = schedule as? [NSNumber] {
+            scheduleArray = stored.compactMap { WeekDay(rawValue: $0.intValue) }
+        } else if let stored = schedule as? NSArray {
+            scheduleArray = stored.compactMap {
+                if let num = $0 as? NSNumber {
+                    return WeekDay(rawValue: num.intValue)
+                }
+                return nil
+            }
         } else {
             scheduleArray = []
-            AppLogger.coreData.warning("⚠️ schedule пуст или нераспознан у трекера \(name)")
         }
         
         let category = self.category
@@ -224,8 +230,6 @@ private extension TrackerCoreData {
             schedule: scheduleArray,
             trackerCategory: category
         )
-        
-        
         return tracker
     }
 }
