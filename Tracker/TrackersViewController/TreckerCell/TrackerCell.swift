@@ -73,6 +73,7 @@ final class TrackerCell: UICollectionViewCell {
     
     
     @objc private func toggleTapped() {
+        AppLogger.trackers.info("[UI] 🔘 toggleTapped() → \(viewModel?.tracker.name ?? "nil")")
         viewModel?.toggleCompletion()
     }
     
@@ -81,20 +82,23 @@ final class TrackerCell: UICollectionViewCell {
         toggleButton.alpha = enabled ? 1.0 : 0.5
     }
     
+    
     func configure(with viewModel: TrackerCellViewModel) {
+        AppLogger.trackers.info("[UI] ⚙️ configure cell for \(viewModel.tracker.name)")
         self.viewModel = viewModel
-        
+
         emojiLabel.text = viewModel.trackerEmoji()
         titleLabel.text = viewModel.trackerTitle()
         cardView.backgroundColor = viewModel.trackerColor()
         toggleButton.backgroundColor = viewModel.trackerColor()
-        
+
         updateUI()
-        
+
         viewModel.onStateChanged = { [weak self] in
             guard let self else { return }
             DispatchQueue.main.async {
-                guard self.viewModel === viewModel else { return } 
+                AppLogger.trackers.debug("[UI] 🔁 onStateChanged → \(viewModel.tracker.name)")
+                guard self.viewModel === viewModel else { return }
                 self.updateUI()
             }
         }

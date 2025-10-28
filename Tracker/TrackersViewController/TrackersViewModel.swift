@@ -33,6 +33,7 @@ final class TrackersViewModel {
     var onEditTracker: ((Tracker) -> Void)?
     
     
+    
     init(container: NSPersistentContainer = CoreDataStack.shared.persistentContainer) {
         self.categoryStore = TrackerCategoryStore(context: container.viewContext)
         self.trackerStore = TrackerStore(context: container.viewContext)
@@ -71,9 +72,9 @@ final class TrackersViewModel {
     }
     
     func reloadTrackers() {
+        AppLogger.trackers.info("[VM] 🔄 reloadTrackers()")
         trackers = trackerStore.getTrackers()
         completedTrackers = recordStore.completedTrackers
-        
         onTrackersUpdated?()
     }
     
@@ -194,11 +195,12 @@ extension TrackersViewModel: TrackerCategoryStoreDelegate {
 
 extension TrackersViewModel: TrackerRecordStoreDelegate {
     func didUpdateRecords() {
+        AppLogger.trackers.info("[VM] 📣 didUpdateRecords() received → updating trackers")
         reloadWorkItem?.cancel()
         let workItem = DispatchWorkItem { [weak self] in
             guard let self else { return }
+            AppLogger.trackers.info("[VM] 🧮 completedTrackers updated (\(self.recordStore.completedTrackers.count) records)")
             self.completedTrackers = self.recordStore.completedTrackers
-            self.onTrackersUpdated?()
         }
         reloadWorkItem = workItem
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: workItem)

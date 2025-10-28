@@ -28,10 +28,15 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     
     func collectionView(_ collectionView: UICollectionView,
                         cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        AppLogger.trackers.debug("[UI] 📱 cellForItemAt section: \(indexPath.section) item: \(indexPath.item)")
+        
         guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: TrackerCell.reuseIdentifier,
             for: indexPath
-        ) as? TrackerCell else { return UICollectionViewCell() }
+        ) as? TrackerCell else {
+            AppLogger.trackers.error("[UI] ⚠️ Failed to dequeue TrackerCell")
+            return UICollectionViewCell()
+        }
         
         guard visibleCategories.indices.contains(indexPath.section) else { return cell }
         let category = visibleCategories[indexPath.section]
@@ -41,6 +46,8 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         guard trackersInCategory.indices.contains(indexPath.item) else { return cell }
         
         let tracker = trackersInCategory[indexPath.item]
+        AppLogger.trackers.debug("[UI] 🧩 configuring cell for tracker \(tracker.name) in category \(category.title)")
+        
         let cellViewModel = viewModel.makeCellViewModel(for: tracker)
         cell.configure(with: cellViewModel)
         

@@ -32,17 +32,20 @@ final class TrackerCellViewModel {
     
     
     func toggleCompletion() {
+        AppLogger.trackers.info("[VM] 🌀 toggleCompletion for \(tracker.name) (oldState: \(isCompleted))")
+        
         let oldState = isCompleted
         isCompleted.toggle()
         daysCount += isCompleted ? 1 : -1
-        onStateChanged?() 
+        onStateChanged?()
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
-
             if oldState {
+                AppLogger.trackers.info("[VM] 🗑 deleteRecord for \(self.tracker.name)")
                 self.recordStore.deleteRecord(for: self.tracker.id, date: self.currentDate)
             } else {
+                AppLogger.trackers.info("[VM] 💾 addRecord for \(self.tracker.name)")
                 if let trackerCore = self.recordStore.fetchTrackerInViewContext(by: self.tracker.id) {
                     self.recordStore.addRecord(for: trackerCore, date: self.currentDate)
                 } else {
@@ -51,6 +54,7 @@ final class TrackerCellViewModel {
             }
 
             DispatchQueue.main.async {
+                AppLogger.trackers.info("[VM] 📡 post trackerRecordsDidChange for \(self.tracker.name)")
                 NotificationCenter.default.post(name: .trackerRecordsDidChange, object: self.tracker)
             }
         }
