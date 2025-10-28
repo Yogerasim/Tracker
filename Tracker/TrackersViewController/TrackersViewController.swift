@@ -272,29 +272,94 @@ final class TrackersViewController: UIViewController {
     
     private func setupBindings() {
         viewModel.onTrackersUpdated = { [weak self] in
-            AppLogger.trackers.info("[VM→UI] 🔁 onTrackersUpdated → reloadData()")
-            self?.filtersViewModel.selectFilter(index: self?.filtersViewModel.selectedFilterIndex ?? 0)
-            self?.scheduleUIRefresh()
+            guard let self = self else { return }
+
+            AppLogger.trackers.debug("[UI] 🔁 onTrackersUpdated() вызван")
+
+            // 1️⃣ Обновляем фильтры и категории перед UI-обновлением
+            self.filtersViewModel.applyFilter()
+            self.recalculateVisibleCategories()
+
+            // 2️⃣ Проверяем, есть ли обновлённый трекер
+            guard let updatedID = self.viewModel.lastUpdatedTrackerID else {
+                AppLogger.trackers.debug("[UI] ⚠️ lastUpdatedTrackerID отсутствует → выполняем полное обновление")
+                self.ui.collectionView.reloadData()
+                return
+            }
+
+            // 3️⃣ Находим IndexPath конкретного трекера
+            let allVisibleTrackers = self.filtersViewModel.filteredTrackers
+
+            guard let tracker = allVisibleTrackers.first(where: { $0.id == updatedID }) else {
+                AppLogger.trackers.debug("[UI] ⚠️ Обновлённый трекер отсутствует в фильтре → reloadData()")
+                self.ui.collectionView.reloadData()
+                return
+            }
+
+            let categoryTitle = tracker.trackerCategory?.title ?? "Мои трекеры"
+
+            guard let sectionIndex = self.visibleCategories.firstIndex(where: { $0.title == categoryTitle }) else {
+                AppLogger.trackers.debug("[UI] ⚠️ Категория '\(categoryTitle)' не найдена → reloadData()")
+                self.ui.collectionView.reloadData()
+                return
+            }
+
+            let trackersInSection = allVisibleTrackers.filter {
+                $0.trackerCategory?.title == categoryTitle
+            }
+
+            guard let itemIndex = trackersInSection.firstIndex(where: { $0.id == updatedID }) else {
+                AppLogger.trackers.debug("[UI] ⚠️ Трекер не найден в своей категории → reloadData()")
+                self.ui.collectionView.reloadData()
+                return
+            }
+
+            let indexPath = IndexPath(item: itemIndex, section: sectionIndex)
+
+            // 4️⃣ Логируем для отладки
+            AppLogger.trackers.debug("[UI] ✅ Обновляем одну ячейку → \(indexPath) [\(tracker.name)]")
+
+            // 5️⃣ Безопасное обновление UI
+            DispatchQueue.main.async {
+                UIView.performWithoutAnimation {
+                    self.ui.collectionView.reloadItems(at: [indexPath])
+                }
+            }
         }
+
         viewModel.onCategoriesUpdated = { [weak self] in
+            guard let self = self else { return }
             AppLogger.trackers.info("[VM→UI] 🗂 onCategoriesUpdated")
-            self?.scheduleUIRefresh()
+            self.scheduleUIRefresh()
         }
+
         viewModel.onDateChanged = { [weak self] date in
+            guard let self = self else { return }
             AppLogger.trackers.info("[VM→UI] 📆 onDateChanged → \(date)")
-            self?.filtersViewModel.selectFilter(index: self?.filtersViewModel.selectedFilterIndex ?? 0)
-            self?.scheduleUIRefresh()
+            self.filtersViewModel.selectFilter(index: self.filtersViewModel.selectedFilterIndex)
+            self.scheduleUIRefresh()
         }
+
         filtersViewModel.onFilteredTrackersUpdated = { [weak self] in
+            guard let self = self else { return }
             AppLogger.trackers.info("[Filter→UI] 🔍 onFilteredTrackersUpdated")
-            self?.scheduleUIRefresh()
+            self.scheduleUIRefresh()
         }
     }
     
     private var uiUpdateWorkItem: DispatchWorkItem?
-    
+    private var lastUIReloadTime: Date?
+
     private func scheduleUIRefresh() {
         uiUpdateWorkItem?.cancel()
+
+        let now = Date()
+        if let last = lastUIReloadTime, now.timeIntervalSince(last) < 0.2 {
+            AppLogger.trackers.debug("[UI] ⏸ Пропущен reload — слишком частый вызов")
+            return
+        }
+        lastUIReloadTime = now
+
         let work = DispatchWorkItem { [weak self] in
             guard let self else { return }
             AppLogger.trackers.debug("[UI] ♻️ scheduleUIRefresh() → reload collection")

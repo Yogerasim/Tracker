@@ -31,7 +31,7 @@ final class TrackersViewModel {
     var onCategoriesUpdated: (() -> Void)?
     var onDateChanged: ((Date) -> Void)?
     var onEditTracker: ((Tracker) -> Void)?
-    
+    var lastUpdatedTrackerID: UUID?
     
     
     init(container: NSPersistentContainer = CoreDataStack.shared.persistentContainer) {
@@ -95,12 +95,18 @@ final class TrackersViewModel {
     func markTrackerAsCompleted(_ tracker: Tracker, on date: Date, completion: (() -> Void)? = nil) {
         guard let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) else { return }
         recordStore.addRecord(for: trackerCoreData, date: date)
+        
+        lastUpdatedTrackerID = tracker.id
+        onTrackersUpdated?()
         completion?()
     }
 
     func unmarkTrackerAsCompleted(_ tracker: Tracker, on date: Date, completion: (() -> Void)? = nil) {
         guard let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) else { return }
         recordStore.removeRecord(for: trackerCoreData, date: date)
+        
+        lastUpdatedTrackerID = tracker.id
+        onTrackersUpdated?()
         completion?()
     }
     
@@ -160,12 +166,14 @@ extension TrackersViewModel {
 
 extension TrackersViewModel {
     func editTracker(_ tracker: Tracker) {
-        
         if let vm = cellViewModels[tracker.id] {
             vm.tracker = tracker
             vm.refreshState()
         }
+
+        lastUpdatedTrackerID = tracker.id
         onEditTracker?(tracker)
+        onTrackersUpdated?()
     }
     
     func deleteTracker(_ tracker: Tracker) {
@@ -195,15 +203,9 @@ extension TrackersViewModel: TrackerCategoryStoreDelegate {
 
 extension TrackersViewModel: TrackerRecordStoreDelegate {
     func didUpdateRecords() {
-        AppLogger.trackers.info("[VM] 📣 didUpdateRecords() received → updating trackers")
-        reloadWorkItem?.cancel()
-        let workItem = DispatchWorkItem { [weak self] in
-            guard let self else { return }
-            AppLogger.trackers.info("[VM] 🧮 completedTrackers updated (\(self.recordStore.completedTrackers.count) records)")
-            self.completedTrackers = self.recordStore.completedTrackers
-        }
-        reloadWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: workItem)
+        AppLogger.trackers.info("[VM] 📣 didUpdateRecords() → updating completedTrackers only")
+        self.completedTrackers = recordStore.completedTrackers
+        onTrackersUpdated?()
     }
 }
 
