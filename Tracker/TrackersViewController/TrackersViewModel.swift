@@ -1,18 +1,15 @@
 import CoreData
 import Logging
+import Combine
 
 final class TrackersViewModel {
-    
     
     private let categoryStore: TrackerCategoryStore
     let recordStore: TrackerRecordStore
     let trackerStore: TrackerStore
     var cellViewModels: [UUID: TrackerCellViewModel] = [:]
     
-    
     let pinnedCategoryTitle = NSLocalizedString("trackers.pinned_category", comment: "Закрепленные")
-
-    
     
     @Published private(set) var trackers: [Tracker] = []
     @Published private(set) var categories: [TrackerCategory] = []
@@ -23,9 +20,7 @@ final class TrackersViewModel {
     }
     
     private var originalCategoryMap: [UUID: String] = [:]
-    private var updateWorkItem: DispatchWorkItem?
     private var reloadWorkItem: DispatchWorkItem?
-    
     
     var onTrackersUpdated: (() -> Void)?
     var onCategoriesUpdated: (() -> Void)?
@@ -33,20 +28,16 @@ final class TrackersViewModel {
     var onEditTracker: ((Tracker) -> Void)?
     var lastUpdatedTrackerID: UUID?
     
-    
-    init(container: NSPersistentContainer = CoreDataStack.shared.persistentContainer) {
-        self.categoryStore = TrackerCategoryStore(context: container.viewContext)
-        self.trackerStore = TrackerStore(context: container.viewContext)
-        self.recordStore = TrackerRecordStore(persistentContainer: container)
-        
-        self.trackerStore.delegate = self
-        self.categoryStore.delegate = self
-        self.recordStore.delegate = self
+    // MARK: - Init
+    convenience init(container: NSPersistentContainer = CoreDataStack.shared.persistentContainer) {
+        let categoryStore = TrackerCategoryStore(context: container.viewContext)
+        let trackerStore = TrackerStore(context: container.viewContext)
+        let recordStore = TrackerRecordStore(persistentContainer: container)
+        self.init(categoryStore: categoryStore, trackerStore: trackerStore, recordStore: recordStore)
         
         loadData()
     }
-    
-    
+
     init(
         categoryStore: TrackerCategoryStore,
         trackerStore: TrackerStore,
@@ -61,39 +52,45 @@ final class TrackersViewModel {
         self.recordStore.delegate = self
     }
     
-    
+    // MARK: - Data Loading
     func loadData() {
-        
         trackers = trackerStore.getTrackers()
         completedTrackers = recordStore.completedTrackers
         categories = categoryStore.categories
         
-        onTrackersUpdated?()
+        scheduleTrackersUpdate()
     }
     
     func reloadTrackers() {
-
         trackers = trackerStore.getTrackers()
         completedTrackers = recordStore.completedTrackers
-
-        trackers.forEach {_ in 
-        }
-
-        onTrackersUpdated?()
+        trackers.forEach { _ = makeCellViewModel(for: $0) }
+        
+        scheduleTrackersUpdate()
     }
     
+    // MARK: - Batch Updates
+    private func scheduleTrackersUpdate() {
+        reloadWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.onTrackersUpdated?()
+        }
+        reloadWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: workItem)
+    }
     
-    
+    // MARK: - Tracker Operations
     func addTracker(_ tracker: Tracker, to categoryTitle: String) {
         guard !trackers.contains(where: { $0.id == tracker.id }) else { return }
         
         AppLogger.coreData.info("[Tracker] ➕ Добавляем новый трекер \(tracker.name) в категорию \(categoryTitle)")
-        
         categoryStore.addTracker(tracker, to: categoryTitle)
         
         trackers = trackerStore.getTrackers()
         trackers.forEach { _ = makeCellViewModel(for: $0) }
-        onTrackersUpdated?()
+        
+        scheduleTrackersUpdate()
     }
     
     func markTrackerAsCompleted(_ tracker: Tracker, on date: Date, completion: (() -> Void)? = nil) {
@@ -101,7 +98,7 @@ final class TrackersViewModel {
         recordStore.addRecord(for: trackerCoreData, date: date)
         
         lastUpdatedTrackerID = tracker.id
-        onTrackersUpdated?()
+        scheduleTrackersUpdate()
         completion?()
     }
 
@@ -110,20 +107,14 @@ final class TrackersViewModel {
         recordStore.removeRecord(for: trackerCoreData, date: date)
         
         lastUpdatedTrackerID = tracker.id
-        onTrackersUpdated?()
+        scheduleTrackersUpdate()
         completion?()
     }
     
     func isTrackerCompleted(_ tracker: Tracker, on date: Date) -> Bool {
         let normalized = normalizedDate(date)
-        let result: Bool
-        if let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) {
-            result = recordStore.isCompleted(for: trackerCoreData, date: normalized)
-        } else {
-            result = false
-        }
-        
-        return result
+        guard let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) else { return false }
+        return recordStore.isCompleted(for: trackerCoreData, date: normalized)
     }
     
     func makeCellViewModel(for tracker: Tracker) -> TrackerCellViewModel {
@@ -142,7 +133,7 @@ final class TrackersViewModel {
     }
 }
 
-
+// MARK: - Pin/Unpin
 extension TrackersViewModel {
     func pinTracker(_ tracker: Tracker) {
         var pinnedCategory = categories.first(where: { $0.title == pinnedCategoryTitle })
@@ -155,7 +146,6 @@ extension TrackersViewModel {
         originalCategoryMap[tracker.id] = tracker.trackerCategory?.title ?? ""
         categoryStore.moveTracker(tracker, to: pinnedCategoryTitle)
         reloadTrackers()
-        onTrackersUpdated?()
     }
     
     func unpinTracker(_ tracker: Tracker) {
@@ -163,40 +153,34 @@ extension TrackersViewModel {
         categoryStore.moveTracker(tracker, to: originalTitle)
         originalCategoryMap.removeValue(forKey: tracker.id)
         reloadTrackers()
-        onTrackersUpdated?()
     }
 }
 
-
+// MARK: - Edit/Delete
 extension TrackersViewModel {
     func editTracker(_ tracker: Tracker) {
         if let vm = cellViewModels[tracker.id] {
             vm.tracker = tracker
             vm.refreshState()
         }
-
         lastUpdatedTrackerID = tracker.id
         onEditTracker?(tracker)
-        onTrackersUpdated?()
+        scheduleTrackersUpdate()
     }
     
     func deleteTracker(_ tracker: Tracker) {
-        
         trackerStore.delete(tracker)
         reloadTrackers()
-        onTrackersUpdated?()
         
         NotificationCenter.default.post(name: .trackersDidChange, object: nil)
     }
 }
 
-
+// MARK: - Delegates
 extension TrackersViewModel: TrackerStoreDelegate {
     func didUpdateTrackers(_ trackers: [Tracker]) {
-        
         self.trackers = trackers
-        
-        onTrackersUpdated?()
+        scheduleTrackersUpdate()
     }
 }
 
@@ -210,10 +194,11 @@ extension TrackersViewModel: TrackerCategoryStoreDelegate {
 extension TrackersViewModel: TrackerRecordStoreDelegate {
     func didUpdateRecords() {
         self.completedTrackers = recordStore.completedTrackers
-        onTrackersUpdated?()
+        scheduleTrackersUpdate()
     }
 }
 
+// MARK: - Date Extension
 extension Date {
     var weekDay: WeekDay {
         WeekDay.from(date: self)

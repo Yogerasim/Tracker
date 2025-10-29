@@ -52,14 +52,13 @@ final class FiltersViewModel {
 
     // MARK: - Filtering logic
     func applyAllFilters(for date: Date) {
+        // 1️⃣ Берём исходные трекеры
         var trackers = trackersProvider()
-        print("🔎 [FiltersViewModel] Исходные трекеры: \(trackers.map { $0.name })")
 
-        // 1️⃣ Фильтр по дате
+        // 2️⃣ Применяем фильтр по дате
         trackers = dateFilter.filterTrackersByDay(trackers, date: date)
-        print("📅 [FiltersViewModel] После фильтрации по дню недели (\(date)): \(trackers.map { $0.name })")
 
-        // 2️⃣ Фильтр по выполнению / индексу
+        // 3️⃣ Применяем фильтр по выполнению / индексу
         trackers = dateFilter.filterTrackersByIndex(
             trackers,
             selectedFilterIndex: selectedFilterIndex,
@@ -67,17 +66,19 @@ final class FiltersViewModel {
             searchText: searchText,
             completionChecker: isCompletedProvider
         )
-        print("✅ [FiltersViewModel] После фильтрации по индексу \(selectedFilterIndex): \(trackers.map { $0.name })")
 
-        // 3️⃣ (опционально) Фильтр по категории
-        trackers = trackers.filter { tracker in
-            // Можно добавить кастомный фильтр по категории, если нужно
-            true
+        // 4️⃣ (опционально) Применяем фильтр по категориям
+        trackers = trackers.filter { _ in true }
+
+        // 5️⃣ Проверяем, изменился ли результат фильтрации
+        if trackers.map({ $0.id }) != filteredTrackers.map({ $0.id }) {
+            filteredTrackers = trackers
+            print("🔁 [FiltersViewModel] Обновлены фильтрованные трекеры для даты \(date): \(trackers.map { $0.name })")
+            onFilteredTrackersUpdated?()
+        } else {
+            // Если изменений нет — логируем это один раз, без обновления UI
+            print("⚙️ [FiltersViewModel] Фильтрация на дату \(date) не изменила список трекеров.")
         }
-        print("🏷 [FiltersViewModel] После фильтрации по категориям (если есть кастомные фильтры): \(trackers.map { $0.name })")
-
-        filteredTrackers = trackers
-        onFilteredTrackersUpdated?()
     }
     
     func selectFilter(index: Int) {

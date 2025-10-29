@@ -13,28 +13,29 @@ final class TrackerCategoryStore: NSObject {
     weak var delegate: TrackerCategoryStoreDelegate?
     
     private let mappingErrorMessage = "⚠️ Ошибка маппинга TrackerCategoryCoreData: отсутствует id или title"
+    private var previousCategoryIDs: [UUID] = []
     
     init(context: NSManagedObjectContext) {
-        self.context = context
-        let request = TrackerCategoryStore.makeFetchRequest()
-        
-        self.fetchedResultsController = NSFetchedResultsController(
-            fetchRequest: request,
-            managedObjectContext: context,
-            sectionNameKeyPath: nil,
-            cacheName: nil
-        )
-        
-        super.init()
-        self.fetchedResultsController.delegate = self
-        
-        do {
-            try self.fetchedResultsController.performFetch()
+            self.context = context
+            let request = TrackerCategoryStore.makeFetchRequest()
             
-        } catch {
+            self.fetchedResultsController = NSFetchedResultsController(
+                fetchRequest: request,
+                managedObjectContext: context,
+                sectionNameKeyPath: nil,
+                cacheName: nil
+            )
             
+            super.init()
+            self.fetchedResultsController.delegate = self
+            
+            do {
+                try self.fetchedResultsController.performFetch()
+                previousCategoryIDs = categories.map(\.id)
+            } catch {
+                
+            }
         }
-    }
     
     var categories: [TrackerCategory] {
         guard let objects = fetchedResultsController.fetchedObjects else { return [] }
@@ -172,7 +173,16 @@ final class TrackerCategoryStore: NSObject {
 
 extension TrackerCategoryStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        let newCategories = categories
+        let newIDs = newCategories.map(\.id)
         
-        delegate?.didUpdateCategories()
+        // 🔍 Вызываем delegate только если реально изменились категории
+        if newIDs != previousCategoryIDs {
+            previousCategoryIDs = newIDs
+            delegate?.didUpdateCategories()
+            AppLogger.coreData.info("🔁 [CoreData] Категории обновлены, вызван didUpdateCategories()")
+        } else {
+            AppLogger.coreData.debug("⚙️ [CoreData] Изменений категорий не обнаружено")
+        }
     }
 }
