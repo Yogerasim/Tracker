@@ -53,9 +53,11 @@ final class FiltersViewModel {
     // MARK: - Filtering logic
     func applyAllFilters(for date: Date) {
         var trackers = trackersProvider()
+        print("🔎 [FiltersViewModel] Исходные трекеры: \(trackers.map { $0.name })")
 
         // 1️⃣ Фильтр по дате
         trackers = dateFilter.filterTrackersByDay(trackers, date: date)
+        print("📅 [FiltersViewModel] После фильтрации по дню недели (\(date)): \(trackers.map { $0.name })")
 
         // 2️⃣ Фильтр по выполнению / индексу
         trackers = dateFilter.filterTrackersByIndex(
@@ -65,12 +67,14 @@ final class FiltersViewModel {
             searchText: searchText,
             completionChecker: isCompletedProvider
         )
+        print("✅ [FiltersViewModel] После фильтрации по индексу \(selectedFilterIndex): \(trackers.map { $0.name })")
 
         // 3️⃣ (опционально) Фильтр по категории
         trackers = trackers.filter { tracker in
             // Можно добавить кастомный фильтр по категории, если нужно
             true
         }
+        print("🏷 [FiltersViewModel] После фильтрации по категориям (если есть кастомные фильтры): \(trackers.map { $0.name })")
 
         filteredTrackers = trackers
         onFilteredTrackersUpdated?()

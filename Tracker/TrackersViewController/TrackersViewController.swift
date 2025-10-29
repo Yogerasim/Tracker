@@ -380,7 +380,6 @@ final class TrackersViewController: UIViewController {
     
     @objc private func calendarDateChanged(_ sender: UIDatePicker) {
         let newDate = sender.date
-
         ui.calendarContainer.isHidden = true
 
         viewModel.currentDate = newDate
@@ -388,10 +387,14 @@ final class TrackersViewController: UIViewController {
         ui.calendarView.setDate(newDate, animated: true)
         updateDateText()
 
-
+        // Применяем фильтры и форсируем callback
         filtersViewModel.applyAllFilters(for: newDate)
+        filtersViewModel.onFilteredTrackersUpdated?()
 
-        scheduleUIRefresh()
+        // Обновляем категории и UI
+        recalculateVisibleCategories()
+        ui.collectionView.reloadData()
+        updatePlaceholder()
     }
     
     @objc private func filtersTapped() {
@@ -409,19 +412,16 @@ final class TrackersViewController: UIViewController {
     
     func showTodayTrackers() {
         let today = Date()
+        print("📆 [TodayFilter] Активирован фильтр 'Сегодня', дата: \(today)")
 
-        // 1️⃣ Обновляем дату во viewModel и календаре
         viewModel.currentDate = today
         filtersViewModel.selectedDate = today
         ui.calendarView.setDate(today, animated: true)
-
-        // 2️⃣ Обновляем текст кнопки даты
         updateDateText()
 
-        // 3️⃣ Применяем фильтрацию для сегодняшней даты
         filtersViewModel.applyAllFilters(for: today)
+        print("📊 [TodayFilter] Фильтры применены для сегодняшней даты")
 
-        // 4️⃣ Обновляем UI
         scheduleUIRefresh()
     }
     
