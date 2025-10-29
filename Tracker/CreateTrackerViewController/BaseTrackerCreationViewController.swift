@@ -1,9 +1,7 @@
-import UIKit
 import CoreData
+import UIKit
 
 class BaseTrackerCreationViewController: UIViewController {
-    
-    
     let scrollView = UIScrollView()
     let contentStack = UIStackView()
     let modalHeader: ModalHeaderView
@@ -21,26 +19,18 @@ class BaseTrackerCreationViewController: UIViewController {
         headerTitle: NSLocalizedString("new_habit.color", comment: "")
     )
     let bottomButtons = ButonnsPanelView()
-    
-    
     let context = CoreDataStack.shared.context
-    
-    
     var selectedDays: [WeekDay] = []
     var selectedEmoji: String?
     var selectedColor: UIColor?
     var selectedCategory: TrackerCategoryCoreData?
-    
-    
     init(title: String) {
-        self.modalHeader = ModalHeaderView(title: title)
+        modalHeader = ModalHeaderView(title: title)
         super.init(nibName: nil, bundle: nil)
     }
-    
+
     @available(*, unavailable)
-    required init?(coder: NSCoder) { nil }
-    
-    
+    required init?(coder _: NSCoder) { nil }
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = AppColors.background
@@ -50,24 +40,23 @@ class BaseTrackerCreationViewController: UIViewController {
         setupSelectionCallbacks()
         setupTextField()
     }
-    
-    
+
     private func setupTextField() {
         nameTextField.onTextChanged = { [weak self] text in
             let hasText = !text.trimmingCharacters(in: .whitespaces).isEmpty
             self?.bottomButtons.setCreateButton(enabled: hasText)
         }
     }
-    
+
     private func setupSelectionCallbacks() {
         emojiCollectionVC.onItemSelected = { [weak self] item in
-            if case .emoji(let emoji) = item { self?.selectedEmoji = emoji }
+            if case let .emoji(emoji) = item { self?.selectedEmoji = emoji }
         }
         colorCollectionVC.onItemSelected = { [weak self] item in
-            if case .color(let color) = item { self?.selectedColor = color }
+            if case let .color(color) = item { self?.selectedColor = color }
         }
     }
-    
+
     private func setupTable() {
         let tableView = tableContainer.tableView
         tableView.dataSource = self
@@ -77,71 +66,67 @@ class BaseTrackerCreationViewController: UIViewController {
         tableView.isScrollEnabled = false
         tableView.rowHeight = 75
     }
-    
+
     private func setupLayout() {
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         contentStack.translatesAutoresizingMaskIntoConstraints = false
         contentStack.axis = .vertical
         contentStack.spacing = AppLayout.padding
-        
         modalHeader.translatesAutoresizingMaskIntoConstraints = false
         bottomButtons.translatesAutoresizingMaskIntoConstraints = false
         modalHeader.backgroundColor = AppColors.background
         bottomButtons.backgroundColor = AppColors.background
-        
         view.addSubview(modalHeader)
         view.addSubview(scrollView)
         view.addSubview(bottomButtons)
         scrollView.addSubview(contentStack)
-        
-        [nameTextField, tableContainer, emojiCollectionVC.view, colorCollectionVC.view].forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-            contentStack.addArrangedSubview($0)
+        let subviews: [UIView] = [
+            nameTextField,
+            tableContainer,
+            emojiCollectionVC.view ?? UIView(),
+            colorCollectionVC.view ?? UIView()
+        ]
+        for item in subviews {
+            item.translatesAutoresizingMaskIntoConstraints = false
+            contentStack.addArrangedSubview(item)
         }
-        
         addChild(emojiCollectionVC)
         emojiCollectionVC.didMove(toParent: self)
         addChild(colorCollectionVC)
         colorCollectionVC.didMove(toParent: self)
-        
         NSLayoutConstraint.activate([
             modalHeader.topAnchor.constraint(equalTo: view.topAnchor),
             modalHeader.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             modalHeader.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             modalHeader.heightAnchor.constraint(equalToConstant: 90),
-            
             bottomButtons.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             bottomButtons.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             bottomButtons.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            
             scrollView.topAnchor.constraint(equalTo: modalHeader.bottomAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: bottomButtons.topAnchor),
-            
             contentStack.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: AppLayout.padding),
             contentStack.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: UIConstants.horizontalPadding),
             contentStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -UIConstants.horizontalPadding),
             contentStack.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -AppLayout.padding),
             contentStack.widthAnchor.constraint(equalTo: scrollView.widthAnchor, constant: -2 * UIConstants.horizontalPadding),
-            
             nameTextField.heightAnchor.constraint(equalToConstant: 75),
             tableContainer.heightAnchor.constraint(equalToConstant: 150),
             emojiCollectionVC.view.heightAnchor.constraint(equalToConstant: 300),
-            colorCollectionVC.view.heightAnchor.constraint(equalToConstant: 200)
+            colorCollectionVC.view.heightAnchor.constraint(equalToConstant: 200),
         ])
     }
-    
+
     private func setupActions() {
         bottomButtons.cancelButton.addTarget(self, action: #selector(cancelTapped), for: .touchUpInside)
     }
-    
+
     @objc func cancelTapped() {
         dismiss(animated: true)
     }
-    
+
     func numberOfRowsInTable() -> Int { 2 }
-    
     func tableViewCell(for tableView: UITableView, indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell
         if indexPath.row == 0 {
@@ -153,16 +138,16 @@ class BaseTrackerCreationViewController: UIViewController {
         cell.isLastCell = indexPath.row == numberOfRowsInTable() - 1
         return cell
     }
-    
-    func didSelectRow(at indexPath: IndexPath, tableView: UITableView) { }
+
+    func didSelectRow(at _: IndexPath, tableView _: UITableView) {}
 }
 
-
 extension BaseTrackerCreationViewController: UITableViewDataSource, UITableViewDelegate {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { numberOfRowsInTable() }
+    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int { numberOfRowsInTable() }
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         tableViewCell(for: tableView, indexPath: indexPath)
     }
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         didSelectRow(at: indexPath, tableView: tableView)
     }

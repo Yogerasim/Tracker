@@ -2,42 +2,29 @@ import Foundation
 import UIKit
 
 final class TrackerCellViewModel {
-    
-    
     var tracker: Tracker
     private let recordStore: TrackerRecordStore
-    
-    
     private(set) var isCompleted: Bool
     private(set) var daysCount: Int
     var currentDate: Date
-    
-    
     var onStateChanged: (() -> Void)?
-    
-    
     init(tracker: Tracker, recordStore: TrackerRecordStore, currentDate: Date = Date()) {
         self.tracker = tracker
         self.recordStore = recordStore
         self.currentDate = currentDate
-        
         if let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) {
-            self.isCompleted = recordStore.isCompleted(for: trackerCoreData, date: currentDate)
+            isCompleted = recordStore.isCompleted(for: trackerCoreData, date: currentDate)
         } else {
-            self.isCompleted = false
+            isCompleted = false
         }
-        
-        self.daysCount = recordStore.completedTrackers.filter { $0.trackerId == tracker.id }.count
+        daysCount = recordStore.completedTrackers.filter { $0.trackerId == tracker.id }.count
     }
-    
-    
+
     func toggleCompletion() {
-        
         let oldState = isCompleted
         isCompleted.toggle()
         daysCount += isCompleted ? 1 : -1
         onStateChanged?()
-
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
             if oldState {
@@ -49,13 +36,12 @@ final class TrackerCellViewModel {
                     self.recordStore.addRecord(for: self.tracker.id, date: self.currentDate)
                 }
             }
-
             DispatchQueue.main.async {
                 NotificationCenter.default.post(name: .trackerRecordsDidChange, object: self.tracker)
             }
         }
     }
-    
+
     func refreshState() {
         guard recordStore.fetchTrackerInViewContext(by: tracker.id) != nil else {
             isCompleted = false
@@ -63,42 +49,40 @@ final class TrackerCellViewModel {
             onStateChanged?()
             return
         }
-        
         isCompleted = recordStore.completedTrackers.contains(where: { $0.trackerId == tracker.id })
         daysCount = recordStore.completedTrackers.filter { $0.trackerId == tracker.id }.count
         onStateChanged?()
     }
-    
+
     func refreshStateIfNeeded() {
         if recordStore.fetchTrackerInViewContext(by: tracker.id) != nil {
-            self.daysCount = recordStore.completedTrackers.filter { $0.trackerId == tracker.id }.count
+            daysCount = recordStore.completedTrackers.filter { $0.trackerId == tracker.id }.count
         } else {
-            self.daysCount = 0
+            daysCount = 0
         }
         onStateChanged?()
     }
-    
+
     func isTrackerCompletedEver(_ trackerId: UUID) -> Bool {
         recordStore.completedTrackers.contains { $0.trackerId == trackerId }
     }
-    
-    
+
     func dayLabelText() -> String {
         String.localizedStringWithFormat(
             NSLocalizedString("days_count", comment: "Number of days tracker completed"),
             daysCount
         )
     }
-    
+
     func buttonSymbol() -> String {
         isCompleted ? "checkmark" : "plus"
     }
-    
+
     func updateCurrentDate(_ date: Date) {
-        self.currentDate = date
+        currentDate = date
         refreshState()
     }
-    
+
     func trackerEmoji() -> String { tracker.emoji }
     func trackerTitle() -> String { tracker.name }
     func trackerColor() -> UIColor { UIColor(hex: tracker.color) }

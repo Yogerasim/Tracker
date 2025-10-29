@@ -1,8 +1,6 @@
 import UIKit
 
 final class ButonnsPanelView: UIView {
-    
-    
     let cancelButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle(NSLocalizedString("cancel_button", comment: "Отмена"), for: .normal)
@@ -14,7 +12,7 @@ final class ButonnsPanelView: UIView {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-    
+
     let createButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle(NSLocalizedString("create_button", comment: "Создать"), for: .normal)
@@ -25,7 +23,7 @@ final class ButonnsPanelView: UIView {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-    
+
     private lazy var stackView: UIStackView = {
         let stack = UIStackView(arrangedSubviews: [cancelButton, createButton])
         stack.axis = .horizontal
@@ -34,10 +32,8 @@ final class ButonnsPanelView: UIView {
         stack.translatesAutoresizingMaskIntoConstraints = false
         return stack
     }()
-    
-    
+
     var onCreateTapped: (() -> Void)?
-    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupLayout()
@@ -45,30 +41,26 @@ final class ButonnsPanelView: UIView {
         createButton.addTarget(self, action: #selector(createTapped), for: .touchUpInside)
         setCreateButton(enabled: false)
     }
-    
+
     @objc private func createTapped() {
         onCreateTapped?()
     }
-    
+
     @available(*, unavailable)
-    required init?(coder: NSCoder) { nil }
-    
-    
+    required init?(coder _: NSCoder) { nil }
     func setCreateButton(enabled: Bool) {
         createButton.isEnabled = enabled
         createButton.alpha = enabled ? 1.0 : 0.5
     }
-    
-    
+
     private func setupLayout() {
         addSubview(stackView)
-        
         NSLayoutConstraint.activate([
             stackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: UIConstants.horizontalPadding),
             stackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -UIConstants.horizontalPadding),
             stackView.topAnchor.constraint(equalTo: topAnchor),
             stackView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor),
-            stackView.heightAnchor.constraint(equalToConstant: 60)
+            stackView.heightAnchor.constraint(equalToConstant: 60),
         ])
     }
 }

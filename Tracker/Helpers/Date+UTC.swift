@@ -7,9 +7,9 @@ extension Date {
         components.timeZone = TimeZone(abbreviation: "UTC")
         return calendar.date(from: components)!
     }
-    
+
     func endOfDayUTC() -> Date {
         return Calendar(identifier: .gregorian)
-            .date(byAdding: .day, value: 1, to: self.startOfDayUTC())!
+            .date(byAdding: .day, value: 1, to: startOfDayUTC())!
     }
 }
