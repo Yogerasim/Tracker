@@ -63,8 +63,9 @@ final class TrackersViewController: UIViewController {
         setupTapGesture()
         setupLoadingIndicator()
         updateColorsForCurrentTraitCollection()
-        viewModel.loadData()
         reloadFromCoreData()
+        viewModel.loadData()
+        
         if let savedIndex = UserDefaults.standard.value(forKey: "selectedFilterIndex") as? Int {
             filtersViewModel.selectFilter(index: savedIndex)
             AppLogger.trackers.info("[VC] 🎛 selectedFilterIndex восстановлен: \(savedIndex)")
@@ -84,6 +85,11 @@ final class TrackersViewController: UIViewController {
         super.viewWillDisappear(animated)
         AppLogger.trackers.info("[VC] 💤 viewWillDisappear()")
         AnalyticsService.trackClose(screen: "Main")
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        AppLogger.trackers.info("[UI] 📐 viewDidLayoutSubviews() → collectionView frame = \(ui.collectionView.frame), isHidden = \(ui.collectionView.isHidden)")
     }
     
     
@@ -156,6 +162,8 @@ final class TrackersViewController: UIViewController {
     
     
     private func setupPlaceholder() {
+        AppLogger.trackers.info("[UI] 🪄 setupPlaceholder() — создаём placeholderView")
+
         view.addSubview(ui.placeholderView)
         ui.placeholderView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -166,7 +174,11 @@ final class TrackersViewController: UIViewController {
             imageName: "Star",
             text: NSLocalizedString("trackers.placeholder_text", comment: "")
         )
+
+        AppLogger.trackers.debug("[UI] 📏 placeholder добавлен в иерархию, isHidden = \(ui.placeholderView.isHidden)")
+
         updatePlaceholder()
+        AppLogger.trackers.debug("[UI] 🔁 setupPlaceholder() завершён — после updatePlaceholder(), isHidden = \(ui.placeholderView.isHidden)")
     }
     
     func updatePlaceholder() {
@@ -516,31 +528,46 @@ final class TrackersViewController: UIViewController {
     var visibleCategories: [TrackerCategory] = []
     
     func recalculateVisibleCategories() {
+        AppLogger.trackers.info("[VC] 🧮 recalculateVisibleCategories() — пересчитываем категории")
+
+        // Покажем все категории до фильтрации
+        AppLogger.trackers.debug("[VC] 📂 Все категории до фильтрации: \(viewModel.categories.map { $0.title })")
+
         visibleCategories = viewModel.categories.filter { category in
             filtersViewModel.filteredTrackers.contains { tracker in
                 (tracker.trackerCategory?.title ?? "Мои трекеры") == category.title
             }
         }
-        AppLogger.trackers.debug("[UI] 📊 recalculateVisibleCategories() count = \(visibleCategories.count)")
+
+        // После фильтрации — какие реально видим
+        if visibleCategories.isEmpty {
+            AppLogger.trackers.warning("[VC] ⚠️ visibleCategories пуст! — filteredTrackers.count = \(filtersViewModel.filteredTrackers.count)")
+        } else {
+            AppLogger.trackers.info("[VC] 📊 Видимые категории: \(visibleCategories.map { $0.title })")
+        }
     }
 }
 extension TrackersViewController {
     func reloadFromCoreData() {
         AppLogger.trackers.info("[VC] 🔁 reloadFromCoreData() — чистая перезагрузка")
 
-        // Устанавливаем обработчик для фильтров после обновления трекеров
         viewModel.onTrackersUpdated = { [weak self] in
             guard let self = self else { return }
             AppLogger.trackers.info("[VC] 🔄 onTrackersUpdated → обновляем фильтры")
 
-            // Уведомляем FiltersViewModel, что начальные данные готовы
             self.filtersViewModel.setInitialDataLoaded()
-            
-            // Применяем фильтры к текущей дате (триггерит onFilteredTrackersUpdated → scheduleUIRefresh)
             self.filtersViewModel.applyAllFilters(for: self.viewModel.currentDate)
+            self.recalculateVisibleCategories()
+            self.ui.collectionView.reloadData()
+            self.updatePlaceholder()
         }
 
-        // Перезагружаем трекеры (это вызовет onTrackersUpdated)
+        // Применяем фильтры сразу, чтобы UI не был пуст при старте
+        self.filtersViewModel.applyAllFilters(for: self.viewModel.currentDate)
+        self.recalculateVisibleCategories()
+        self.ui.collectionView.reloadData()
+
+        // Загружаем трекеры из CoreData
         viewModel.reloadTrackers()
     }
 }

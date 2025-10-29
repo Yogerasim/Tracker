@@ -15,6 +15,7 @@ final class TrackerStore: NSObject {
     weak var delegate: TrackerStoreDelegate?
     
     init(context: NSManagedObjectContext) {
+        AppLogger.coreData.info("[TrackerStore] ⚙️ init()")
         self.context = context
         super.init()
         setupFetchedResultsController()

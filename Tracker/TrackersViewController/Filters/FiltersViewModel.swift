@@ -3,13 +3,11 @@ import Combine
 
 final class FiltersViewModel {
     
-    // MARK: - Published properties
     @Published private(set) var filteredTrackers: [Tracker] = []
-    @Published var selectedFilterIndex: Int = 0 { didSet { applyAllFilters(for: selectedDate) } }
-    @Published var selectedDate: Date = Date() { didSet { applyAllFilters(for: selectedDate) } }
+    @Published var selectedFilterIndex: Int = 0
+    @Published var selectedDate: Date = Date()
+    @Published var searchText: String = ""
     
-    // MARK: - Other properties
-    var searchText: String = "" { didSet { applyAllFilters(for: selectedDate) } }
     var selectedCategory: TrackerCategory?
     var onFilteredTrackersUpdated: (() -> Void)?
     
@@ -17,6 +15,8 @@ final class FiltersViewModel {
     private let isCompletedProvider: (Tracker, Date) -> Bool
     private let dateFilter: TrackersDateFilter
     private let calendar = Calendar.current
+    private var cancellables = Set<AnyCancellable>()
+    private var hasInitialDataLoaded = false
     
     // MARK: - Init
     init(
@@ -27,30 +27,35 @@ final class FiltersViewModel {
         self.trackersProvider = trackersProvider
         self.isCompletedProvider = isCompletedProvider
         self.dateFilter = dateFilter
+        
+        setupFilteringPipeline()
     }
     
-    // MARK: - Unified filtering
-    private var hasInitialDataLoaded = false
+    // MARK: - Combine pipeline
+    private func setupFilteringPipeline() {
+        Publishers.CombineLatest3($selectedDate, $selectedFilterIndex, $searchText)
+            .debounce(for: .milliseconds(150), scheduler: DispatchQueue.main)
+            .sink { [weak self] (date, filterIndex, text) in
+                guard let self else { return }
+                guard self.hasInitialDataLoaded else {
+                    AppLogger.trackers.debug("[Filter] ⏳ Пропускаем фильтрацию — данные ещё не загружены")
+                    return
+                }
+                self.applyAllFilters(for: date)
+            }
+            .store(in: &cancellables)
+    }
     
     func setInitialDataLoaded() {
         hasInitialDataLoaded = true
         AppLogger.trackers.info("[Filter] ⚙️ Initial data loaded, filters can now apply")
         applyAllFilters(for: selectedDate)
     }
-    
+
+    // MARK: - Filtering logic
     func applyAllFilters(for date: Date) {
-        guard hasInitialDataLoaded else {
-            AppLogger.trackers.debug("[Filter] ⏳ Пропускаем фильтрацию — данные ещё не загружены")
-            return
-        }
-
         var trackers = trackersProvider()
-        AppLogger.trackers.info("[Filter] 🔄 Начинаем фильтрацию для даты \(date.startOfDayUTC().formatted()) — всего \(trackers.count) трекеров")
-
-        // 🧩 Новый лог
-        for t in trackers {
-            AppLogger.trackers.debug("[Filter] ⚙️ \(t.name) schedule: \(t.schedule.map { $0.rawValue })")
-        }
+        AppLogger.trackers.info("[Filter] 🔄 Начинаем фильтрацию — всего \(trackers.count) трекеров")
 
         trackers = dateFilter.filterTrackersByDay(trackers, date: date)
         trackers = dateFilter.filterTrackersByIndex(
@@ -60,12 +65,12 @@ final class FiltersViewModel {
             searchText: searchText,
             completionChecker: isCompletedProvider
         )
+
         AppLogger.trackers.info("[Filter] ✅ Финальное количество после всех фильтров: \(trackers.count)")
         filteredTrackers = trackers
         onFilteredTrackersUpdated?()
     }
     
-    // MARK: - Helpers
     func selectFilter(index: Int) {
         selectedFilterIndex = index
     }

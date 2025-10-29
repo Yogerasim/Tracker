@@ -12,17 +12,29 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     }
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        let sections = visibleCategories.isEmpty ? 1 : visibleCategories.count
+        AppLogger.trackers.info("[UI] 📊 numberOfSections → visibleCategories.count = \(visibleCategories.count), filteredTrackers.count = \(filtersViewModel.filteredTrackers.count)")
         
-        return sections
+        if visibleCategories.isEmpty && !filtersViewModel.filteredTrackers.isEmpty {
+            AppLogger.trackers.info("[UI] ⚙️ Возвращаем 1 секцию (нет категорий, но есть трекеры)")
+            return 1
+        } else {
+            AppLogger.trackers.info("[UI] ⚙️ Возвращаем \(visibleCategories.count) секций")
+            return visibleCategories.count
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        guard !visibleCategories.isEmpty else { return 0 }
+        if visibleCategories.isEmpty {
+            AppLogger.trackers.warning("[UI] ⚠️ visibleCategories пуст — секция \(section) вернёт 0 элементов")
+            return 0
+        }
+        
         let category = visibleCategories[section]
         let trackersInCategory = filtersViewModel.filteredTrackers.filter {
             $0.trackerCategory?.title == category.title
         }
+        
+        AppLogger.trackers.info("[UI] 📦 numberOfItemsInSection[\(section)] = \(trackersInCategory.count) для категории \(category.title)")
         return trackersInCategory.count
     }
     
@@ -72,6 +84,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         AppLogger.trackers.debug("[UI] 🔄 Перезагружаем collectionView")
         
         ui.collectionView.reloadData()
+        AppLogger.trackers.info("[UI] 🔁 reloadData() вызван — ожидаем обновление UICollectionView")
     }
     
     func debugPrintTrackersSchedule() {

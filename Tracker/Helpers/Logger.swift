@@ -6,10 +6,11 @@ struct AppLogger {
     static let analytics = Logger(label: "com.myapp.analytics")
     static let coreData = Logger(label: "com.myapp.coredata")
     
+    
     static func setup() {
         LoggingSystem.bootstrap { label in
             var handler = StreamLogHandler.standardOutput(label: label)
-            handler.logLevel = .error
+            handler.logLevel = .info
             return handler
         }
     }
