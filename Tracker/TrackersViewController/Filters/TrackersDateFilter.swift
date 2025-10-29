@@ -14,27 +14,21 @@ final class TrackersDateFilter {
         let adjusted = weekday == 1 ? 7 : weekday - 1
         guard let weekDay = WeekDay(rawValue: adjusted) else { return [] }
 
-        AppLogger.trackers.info("[Filter] 📅 Сегодня = \(weekDay.rawValue) (\(weekDay))")
 
         // (1) Выведем ВСЕ трекеры с их schedule, как они реально приходят из CoreData
-        AppLogger.trackers.info("[Filter] 🧩 Проверяем schedule всех трекеров:")
 
         for tracker in trackers {
             // Лог raw-массива и имя
-            let scheduleValues = tracker.schedule.map { String($0.rawValue) }.joined(separator: ", ")
-            AppLogger.trackers.info("[Filter] \(tracker.name) — schedule raw = [\(scheduleValues)]")
+            _ = tracker.schedule.map { String($0.rawValue) }.joined(separator: ", ")
         }
 
         // (2) Проверим совпадение текущего дня
-        AppLogger.trackers.info("[Filter] 🧮 Фильтруем по \(weekDay) (\(weekDay.rawValue))")
 
         let filtered = trackers.filter { tracker in
             let contains = tracker.schedule.contains(weekDay)
-            AppLogger.trackers.debug("[Filter] \(contains ? "✅" : "❌") \(tracker.name) содержит \(weekDay)? schedule = \(tracker.schedule.map { $0.rawValue })")
             return contains
         }
 
-        AppLogger.trackers.info("[Filter] ✅ После фильтрации по дню недели осталось \(filtered.count) трекеров")
         return filtered
     }
     

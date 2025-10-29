@@ -38,7 +38,6 @@ final class FiltersViewModel {
             .sink { [weak self] (date, filterIndex, text) in
                 guard let self else { return }
                 guard self.hasInitialDataLoaded else {
-                    AppLogger.trackers.debug("[Filter] ⏳ Пропускаем фильтрацию — данные ещё не загружены")
                     return
                 }
                 self.applyAllFilters(for: date)
@@ -48,16 +47,17 @@ final class FiltersViewModel {
     
     func setInitialDataLoaded() {
         hasInitialDataLoaded = true
-        AppLogger.trackers.info("[Filter] ⚙️ Initial data loaded, filters can now apply")
         applyAllFilters(for: selectedDate)
     }
 
     // MARK: - Filtering logic
     func applyAllFilters(for date: Date) {
         var trackers = trackersProvider()
-        AppLogger.trackers.info("[Filter] 🔄 Начинаем фильтрацию — всего \(trackers.count) трекеров")
 
+        // 1️⃣ Фильтр по дате
         trackers = dateFilter.filterTrackersByDay(trackers, date: date)
+
+        // 2️⃣ Фильтр по выполнению / индексу
         trackers = dateFilter.filterTrackersByIndex(
             trackers,
             selectedFilterIndex: selectedFilterIndex,
@@ -66,7 +66,12 @@ final class FiltersViewModel {
             completionChecker: isCompletedProvider
         )
 
-        AppLogger.trackers.info("[Filter] ✅ Финальное количество после всех фильтров: \(trackers.count)")
+        // 3️⃣ (опционально) Фильтр по категории
+        trackers = trackers.filter { tracker in
+            // Можно добавить кастомный фильтр по категории, если нужно
+            true
+        }
+
         filteredTrackers = trackers
         onFilteredTrackersUpdated?()
     }

@@ -12,20 +12,16 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     }
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        AppLogger.trackers.info("[UI] 📊 numberOfSections → visibleCategories.count = \(visibleCategories.count), filteredTrackers.count = \(filtersViewModel.filteredTrackers.count)")
         
         if visibleCategories.isEmpty && !filtersViewModel.filteredTrackers.isEmpty {
-            AppLogger.trackers.info("[UI] ⚙️ Возвращаем 1 секцию (нет категорий, но есть трекеры)")
             return 1
         } else {
-            AppLogger.trackers.info("[UI] ⚙️ Возвращаем \(visibleCategories.count) секций")
             return visibleCategories.count
         }
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if visibleCategories.isEmpty {
-            AppLogger.trackers.warning("[UI] ⚠️ visibleCategories пуст — секция \(section) вернёт 0 элементов")
             return 0
         }
         
@@ -34,19 +30,16 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
             $0.trackerCategory?.title == category.title
         }
         
-        AppLogger.trackers.info("[UI] 📦 numberOfItemsInSection[\(section)] = \(trackersInCategory.count) для категории \(category.title)")
         return trackersInCategory.count
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        AppLogger.trackers.debug("[UI] 📱 cellForItemAt section: \(indexPath.section) item: \(indexPath.item)")
         
         guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: TrackerCell.reuseIdentifier,
             for: indexPath
         ) as? TrackerCell else {
-            AppLogger.trackers.error("[UI] ⚠️ Failed to dequeue TrackerCell")
             return UICollectionViewCell()
         }
         
@@ -58,7 +51,6 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         guard trackersInCategory.indices.contains(indexPath.item) else { return cell }
         
         let tracker = trackersInCategory[indexPath.item]
-        AppLogger.trackers.debug("[UI] 🧩 configuring cell for tracker \(tracker.name) in category \(category.title)")
         
         let cellViewModel = viewModel.makeCellViewModel(for: tracker)
         cell.configure(with: cellViewModel)
@@ -71,20 +63,15 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     }
     
     func addNewTracker(_ tracker: Tracker) {
-        AppLogger.trackers.info("[UI] ➕ Добавляем новый трекер: \(tracker.name)")
         let categoryTitle = tracker.trackerCategory?.title ?? "Без категории"
         
         viewModel.addTracker(tracker, to: categoryTitle)
-        AppLogger.trackers.debug("[UI] 🗂 Добавлен в категорию: \(categoryTitle)")
         
         // ⚠️ Вот тут можно проверить расписание перед фильтрацией
-        AppLogger.trackers.debug("[UI] 📅 Schedule нового трекера: \(tracker.schedule.map { $0.rawValue })")
         
         filtersViewModel.applyAllFilters(for: filtersViewModel.selectedDate)
-        AppLogger.trackers.debug("[UI] 🔄 Перезагружаем collectionView")
         
         ui.collectionView.reloadData()
-        AppLogger.trackers.info("[UI] 🔁 reloadData() вызван — ожидаем обновление UICollectionView")
     }
     
     func debugPrintTrackersSchedule() {

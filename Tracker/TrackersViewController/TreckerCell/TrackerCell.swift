@@ -73,7 +73,6 @@ final class TrackerCell: UICollectionViewCell {
     
     
     @objc private func toggleTapped() {
-        AppLogger.trackers.info("[UI] 🔘 toggleTapped() → \(viewModel?.tracker.name ?? "nil")")
         viewModel?.toggleCompletion()
     }
     
@@ -84,7 +83,6 @@ final class TrackerCell: UICollectionViewCell {
     
     
     func configure(with viewModel: TrackerCellViewModel) {
-        AppLogger.trackers.info("[UI] ⚙️ configure cell for \(viewModel.tracker.name)")
         self.viewModel = viewModel
 
         emojiLabel.text = viewModel.trackerEmoji()
@@ -97,7 +95,6 @@ final class TrackerCell: UICollectionViewCell {
         viewModel.onStateChanged = { [weak self] in
             guard let self else { return }
             DispatchQueue.main.async {
-                AppLogger.trackers.debug("[UI] 🔁 onStateChanged → \(viewModel.tracker.name)")
                 guard self.viewModel === viewModel else { return }
                 self.updateUI()
             }

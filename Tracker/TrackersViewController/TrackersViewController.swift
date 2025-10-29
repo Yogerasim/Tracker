@@ -26,7 +26,6 @@ final class TrackersViewController: UIViewController {
         )
         
         super.init(nibName: nil, bundle: nil)
-        AppLogger.trackers.info("[VC] 🧩 TrackersViewController init()")
     }
     
     required init?(coder: NSCoder) {
@@ -42,14 +41,12 @@ final class TrackersViewController: UIViewController {
             dateFilter: dateFilter
         )
         super.init(coder: coder)
-        AppLogger.trackers.info("[VC] 🧩 TrackersViewController init(coder:)")
     }
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = AppColors.background
-        AppLogger.trackers.info("[VC] 🚀 viewDidLoad()")
         
         registerCollectionViewCells()
         setupNavigationBarButtons()
@@ -68,7 +65,6 @@ final class TrackersViewController: UIViewController {
         
         if let savedIndex = UserDefaults.standard.value(forKey: "selectedFilterIndex") as? Int {
             filtersViewModel.selectFilter(index: savedIndex)
-            AppLogger.trackers.info("[VC] 🎛 selectedFilterIndex восстановлен: \(savedIndex)")
         } else {
             filtersViewModel.selectFilter(index: 0)
         }
@@ -77,19 +73,16 @@ final class TrackersViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        AppLogger.trackers.info("[VC] 👁 viewDidAppear()")
         AnalyticsService.trackOpen(screen: "Main")
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        AppLogger.trackers.info("[VC] 💤 viewWillDisappear()")
         AnalyticsService.trackClose(screen: "Main")
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        AppLogger.trackers.info("[UI] 📐 viewDidLayoutSubviews() → collectionView frame = \(ui.collectionView.frame), isHidden = \(ui.collectionView.isHidden)")
     }
     
     
@@ -115,7 +108,6 @@ final class TrackersViewController: UIViewController {
         )
         ui.collectionView.dataSource = self
         ui.collectionView.delegate = self
-        AppLogger.trackers.debug("[VC] 🧱 Коллекция зарегистрирована")
     }
     
     private func setupNavigationBarButtons() {
@@ -162,7 +154,6 @@ final class TrackersViewController: UIViewController {
     
     
     private func setupPlaceholder() {
-        AppLogger.trackers.info("[UI] 🪄 setupPlaceholder() — создаём placeholderView")
 
         view.addSubview(ui.placeholderView)
         ui.placeholderView.translatesAutoresizingMaskIntoConstraints = false
@@ -175,10 +166,8 @@ final class TrackersViewController: UIViewController {
             text: NSLocalizedString("trackers.placeholder_text", comment: "")
         )
 
-        AppLogger.trackers.debug("[UI] 📏 placeholder добавлен в иерархию, isHidden = \(ui.placeholderView.isHidden)")
 
         updatePlaceholder()
-        AppLogger.trackers.debug("[UI] 🔁 setupPlaceholder() завершён — после updatePlaceholder(), isHidden = \(ui.placeholderView.isHidden)")
     }
     
     func updatePlaceholder() {
@@ -186,7 +175,6 @@ final class TrackersViewController: UIViewController {
         ui.placeholderView.isHidden = hasTrackers
         ui.collectionView.isHidden = !hasTrackers
         ui.filtersButton.isHidden = !hasTrackers
-        AppLogger.trackers.debug("[UI] 🪶 updatePlaceholder() hidden=\(!hasTrackers)")
     }
     func updateDateText() {
         let df = DateFormatter()
@@ -203,9 +191,8 @@ final class TrackersViewController: UIViewController {
             df.locale = Locale(identifier: "en_US")
             df.dateFormat = "MM/dd/yy"
         }
-        let text = df.string(from: viewModel.currentDate)
+        _ = df.string(from: viewModel.currentDate)
         ui.dateButton.setTitle(df.string(from: viewModel.currentDate), for: .normal)
-        AppLogger.trackers.debug("[UI] 📅 updateDateText() = \(text)")
     }
     
     func editTracker(_ trackerCoreData: TrackerCoreData) {
@@ -288,7 +275,6 @@ final class TrackersViewController: UIViewController {
         viewModel.onTrackersUpdated = { [weak self] in
             guard let self = self else { return }
 
-            AppLogger.trackers.debug("[UI] 🔁 onTrackersUpdated() вызван")
 
             // 1️⃣ Обновляем фильтры и категории перед UI-обновлением
             self.filtersViewModel.applyAllFilters(for: self.filtersViewModel.selectedDate)
@@ -296,7 +282,6 @@ final class TrackersViewController: UIViewController {
 
             // 2️⃣ Проверяем, есть ли обновлённый трекер
             guard let updatedID = self.viewModel.lastUpdatedTrackerID else {
-                AppLogger.trackers.debug("[UI] ⚠️ lastUpdatedTrackerID отсутствует → выполняем полное обновление")
                 self.ui.collectionView.reloadData()
                 return
             }
@@ -305,7 +290,6 @@ final class TrackersViewController: UIViewController {
             let allVisibleTrackers = self.filtersViewModel.filteredTrackers
 
             guard let tracker = allVisibleTrackers.first(where: { $0.id == updatedID }) else {
-                AppLogger.trackers.debug("[UI] ⚠️ Обновлённый трекер отсутствует в фильтре → reloadData()")
                 self.ui.collectionView.reloadData()
                 return
             }
@@ -313,7 +297,6 @@ final class TrackersViewController: UIViewController {
             let categoryTitle = tracker.trackerCategory?.title ?? "Мои трекеры"
 
             guard let sectionIndex = self.visibleCategories.firstIndex(where: { $0.title == categoryTitle }) else {
-                AppLogger.trackers.debug("[UI] ⚠️ Категория '\(categoryTitle)' не найдена → reloadData()")
                 self.ui.collectionView.reloadData()
                 return
             }
@@ -323,7 +306,6 @@ final class TrackersViewController: UIViewController {
             }
 
             guard let itemIndex = trackersInSection.firstIndex(where: { $0.id == updatedID }) else {
-                AppLogger.trackers.debug("[UI] ⚠️ Трекер не найден в своей категории → reloadData()")
                 self.ui.collectionView.reloadData()
                 return
             }
@@ -331,7 +313,6 @@ final class TrackersViewController: UIViewController {
             let indexPath = IndexPath(item: itemIndex, section: sectionIndex)
 
             // 4️⃣ Логируем для отладки
-            AppLogger.trackers.debug("[UI] ✅ Обновляем одну ячейку → \(indexPath) [\(tracker.name)]")
 
             // 5️⃣ Безопасное обновление UI
             DispatchQueue.main.async {
@@ -343,13 +324,11 @@ final class TrackersViewController: UIViewController {
 
         viewModel.onCategoriesUpdated = { [weak self] in
             guard let self = self else { return }
-            AppLogger.trackers.info("[VM→UI] 🗂 onCategoriesUpdated")
             self.scheduleUIRefresh()
         }
 
         viewModel.onDateChanged = { [weak self] date in
             guard let self = self else { return }
-            AppLogger.trackers.info("[VM→UI] 📆 onDateChanged → \(date)")
             self.filtersViewModel.selectedDate = date
             self.filtersViewModel.applyAllFilters(for: date)
             self.updateDateText()
@@ -358,7 +337,6 @@ final class TrackersViewController: UIViewController {
 
         filtersViewModel.onFilteredTrackersUpdated = { [weak self] in
             guard let self = self else { return }
-            AppLogger.trackers.info("[Filter→UI] 🔍 onFilteredTrackersUpdated")
             self.scheduleUIRefresh()
         }
     }
@@ -371,15 +349,15 @@ final class TrackersViewController: UIViewController {
 
         let now = Date()
         if let last = lastUIReloadTime, now.timeIntervalSince(last) < 0.2 {
-            AppLogger.trackers.debug("[UI] ⏸ Пропущен reload — слишком частый вызов")
             return
         }
         lastUIReloadTime = now
 
         let work = DispatchWorkItem { [weak self] in
             guard let self else { return }
-            AppLogger.trackers.debug("[UI] ♻️ scheduleUIRefresh() → reload collection")
+
             self.recalculateVisibleCategories()
+
             self.ui.collectionView.reloadData()
             self.updatePlaceholder()
         }
@@ -389,14 +367,12 @@ final class TrackersViewController: UIViewController {
     
     
     @objc private func addButtonTapped() {
-        AppLogger.trackers.info("[UI] ➕ addButtonTapped()")
         let createVC = CreateTrackerViewController()
         present(createVC, animated: true)
     }
     
     @objc private func toggleCalendar() {
         ui.calendarContainer.isHidden.toggle()
-        AppLogger.trackers.debug("[UI] 📅 toggleCalendar → isHidden = \(ui.calendarContainer.isHidden)")
         if !ui.calendarContainer.isHidden {
             view.bringSubviewToFront(ui.calendarContainer)
         }
@@ -404,22 +380,21 @@ final class TrackersViewController: UIViewController {
     
     @objc private func calendarDateChanged(_ sender: UIDatePicker) {
         let newDate = sender.date
-        AppLogger.trackers.info("[UI] 📆 calendarDateChanged() → \(newDate.formatted(date: .abbreviated, time: .omitted))")
 
         ui.calendarContainer.isHidden = true
+
         viewModel.currentDate = newDate
+        filtersViewModel.selectedDate = newDate
         ui.calendarView.setDate(newDate, animated: true)
         updateDateText()
 
-        filtersViewModel.selectedDate = newDate
-        AppLogger.trackers.debug("[UI] 📆 selectedDate updated → \(newDate)")
 
         filtersViewModel.applyAllFilters(for: newDate)
+
         scheduleUIRefresh()
     }
     
     @objc private func filtersTapped() {
-        AppLogger.trackers.info("[UI] 🧩 filtersTapped()")
         let filtersVC = FiltersViewController(viewModel: filtersViewModel)
         filtersVC.onFilterSelected = { [weak self] index in
             guard let self else { return }
@@ -434,20 +409,19 @@ final class TrackersViewController: UIViewController {
     
     func showTodayTrackers() {
         let today = Date()
-        AppLogger.trackers.info("[UI] 🕒 showTodayTrackers() = \(today)")
-        
+
         // 1️⃣ Обновляем дату во viewModel и календаре
         viewModel.currentDate = today
         filtersViewModel.selectedDate = today
         ui.calendarView.setDate(today, animated: true)
-        
+
         // 2️⃣ Обновляем текст кнопки даты
         updateDateText()
-        
+
         // 3️⃣ Применяем фильтрацию для сегодняшней даты
         filtersViewModel.applyAllFilters(for: today)
-        
-        // 4️⃣ Обновляем UI без лишнего мигания
+
+        // 4️⃣ Обновляем UI
         scheduleUIRefresh()
     }
     
@@ -528,10 +502,8 @@ final class TrackersViewController: UIViewController {
     var visibleCategories: [TrackerCategory] = []
     
     func recalculateVisibleCategories() {
-        AppLogger.trackers.info("[VC] 🧮 recalculateVisibleCategories() — пересчитываем категории")
 
         // Покажем все категории до фильтрации
-        AppLogger.trackers.debug("[VC] 📂 Все категории до фильтрации: \(viewModel.categories.map { $0.title })")
 
         visibleCategories = viewModel.categories.filter { category in
             filtersViewModel.filteredTrackers.contains { tracker in
@@ -541,19 +513,15 @@ final class TrackersViewController: UIViewController {
 
         // После фильтрации — какие реально видим
         if visibleCategories.isEmpty {
-            AppLogger.trackers.warning("[VC] ⚠️ visibleCategories пуст! — filteredTrackers.count = \(filtersViewModel.filteredTrackers.count)")
         } else {
-            AppLogger.trackers.info("[VC] 📊 Видимые категории: \(visibleCategories.map { $0.title })")
         }
     }
 }
 extension TrackersViewController {
     func reloadFromCoreData() {
-        AppLogger.trackers.info("[VC] 🔁 reloadFromCoreData() — чистая перезагрузка")
 
         viewModel.onTrackersUpdated = { [weak self] in
             guard let self = self else { return }
-            AppLogger.trackers.info("[VC] 🔄 onTrackersUpdated → обновляем фильтры")
 
             self.filtersViewModel.setInitialDataLoaded()
             self.filtersViewModel.applyAllFilters(for: self.viewModel.currentDate)
@@ -574,7 +542,6 @@ extension TrackersViewController {
 
 extension TrackersViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        AppLogger.trackers.debug("[UI] 🔎 searchTextChanged → \(searchText)")
         filtersViewModel.searchText = searchText
         updatePlaceholder()
     }
@@ -582,7 +549,6 @@ extension TrackersViewController: UISearchBarDelegate {
 
 extension TrackersViewController {
     func updateUI() {
-        AppLogger.trackers.debug("[UI] 🔄 updateUI()")
         scheduleUIRefresh()
         updatePlaceholder()
         updateDateText()
