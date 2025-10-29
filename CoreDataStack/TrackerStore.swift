@@ -60,42 +60,42 @@ final class TrackerStore: NSObject {
         cdTracker.name = tracker.name
         cdTracker.color = tracker.color
         cdTracker.emoji = tracker.emoji
-        
-        
-        cdTracker.schedule = tracker.schedule as NSObject
+
+        // Сохраняем schedule корректно
+        cdTracker.schedule = try? JSONEncoder().encode(tracker.schedule) as NSData
         AppLogger.coreData.info("💾 Добавлен schedule для \(tracker.name): \(tracker.schedule.map { $0.rawValue })")
-        
+
         if let category = tracker.trackerCategory {
             cdTracker.category = context.object(with: category.objectID) as? TrackerCategoryCoreData
         }
-        
+
         saveContext()
     }
-    
+
     func update(_ tracker: Tracker) {
         let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
-        
+
         do {
             if let cdTracker = try context.fetch(request).first {
                 cdTracker.name = tracker.name
                 cdTracker.color = tracker.color
                 cdTracker.emoji = tracker.emoji
-                
-                
-                cdTracker.schedule = tracker.schedule as NSObject
+
+                // Обновляем schedule через JSON
+                cdTracker.schedule = try? JSONEncoder().encode(tracker.schedule) as NSData
                 AppLogger.coreData.info("🔄 Обновлён schedule для \(tracker.name): \(tracker.schedule.map { $0.rawValue })")
-                
+
                 if let category = tracker.trackerCategory {
                     cdTracker.category = context.object(with: category.objectID) as? TrackerCategoryCoreData
                 } else {
                     cdTracker.category = nil
                 }
-                
+
                 saveContext()
             }
         } catch {
-            
+            AppLogger.coreData.error("❌ Ошибка при обновлении трекера: \(error.localizedDescription)")
         }
     }
     
@@ -144,8 +144,10 @@ final class TrackerStore: NSObject {
     }
     
     private func notifyDelegate() {
+        AppLogger.coreData.info("[TrackerStore] 🔔 notifyDelegate вызван — обновляем делегата")
+
         guard !isNotifyingDelegate else {
-            
+            AppLogger.coreData.info("[TrackerStore] 🚫 notifyDelegate пропущен — уже уведомляем")
             return
         }
         isNotifyingDelegate = true
@@ -189,8 +191,7 @@ final class TrackerStore: NSObject {
 
 extension TrackerStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        _ = Int(Date().timeIntervalSince1970 * 1000)
-        
+        AppLogger.coreData.info("[TrackerStore] ⚙️ controllerDidChangeContent вызван — данные изменились")
         notifyDelegate()
     }
 }
@@ -203,25 +204,16 @@ private extension TrackerCoreData {
               let emoji = emoji else {
             return nil
         }
-        
+
         let scheduleArray: [WeekDay]
-        if let stored = schedule as? [WeekDay] {
-            scheduleArray = stored
-        } else if let stored = schedule as? [NSNumber] {
-            scheduleArray = stored.compactMap { WeekDay(rawValue: $0.intValue) }
-        } else if let stored = schedule as? NSArray {
-            scheduleArray = stored.compactMap {
-                if let num = $0 as? NSNumber {
-                    return WeekDay(rawValue: num.intValue)
-                }
-                return nil
-            }
+        if let data = schedule as? Data {
+            scheduleArray = (try? JSONDecoder().decode([WeekDay].self, from: data)) ?? []
+        } else if let arr = schedule as? [NSNumber] {
+            scheduleArray = arr.compactMap { WeekDay(rawValue: $0.intValue) }
         } else {
             scheduleArray = []
         }
-        
-        let category = self.category
-        
+
         let tracker = Tracker(
             id: id,
             name: name,
@@ -233,7 +225,6 @@ private extension TrackerCoreData {
         return tracker
     }
 }
-
 extension TrackerStore {
     func debugPrintSchedules() {
         let trackers = getTrackers()

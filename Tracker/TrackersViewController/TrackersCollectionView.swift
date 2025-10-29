@@ -59,9 +59,18 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     }
     
     func addNewTracker(_ tracker: Tracker) {
+        AppLogger.trackers.info("[UI] ➕ Добавляем новый трекер: \(tracker.name)")
+        let categoryTitle = tracker.trackerCategory?.title ?? "Без категории"
         
-        viewModel.addTracker(tracker, to: tracker.trackerCategory?.title ?? "")
-        filtersViewModel.applyFilter()
+        viewModel.addTracker(tracker, to: categoryTitle)
+        AppLogger.trackers.debug("[UI] 🗂 Добавлен в категорию: \(categoryTitle)")
+        
+        // ⚠️ Вот тут можно проверить расписание перед фильтрацией
+        AppLogger.trackers.debug("[UI] 📅 Schedule нового трекера: \(tracker.schedule.map { $0.rawValue })")
+        
+        filtersViewModel.applyAllFilters(for: filtersViewModel.selectedDate)
+        AppLogger.trackers.debug("[UI] 🔄 Перезагружаем collectionView")
+        
         ui.collectionView.reloadData()
     }
     

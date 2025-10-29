@@ -72,9 +72,16 @@ final class TrackersViewModel {
     }
     
     func reloadTrackers() {
-        AppLogger.trackers.info("[VM] 🔄 reloadTrackers()")
+        AppLogger.trackers.info("[VM] 🔄 reloadTrackers() — начинаем загрузку из CoreData")
+
         trackers = trackerStore.getTrackers()
         completedTrackers = recordStore.completedTrackers
+        AppLogger.trackers.info("[VM] 📦 Загружено \(trackers.count) трекеров из CoreData")
+
+        trackers.forEach {
+            AppLogger.trackers.debug("[VM] • \($0.name) | category: \($0.trackerCategory?.title ?? "nil") | schedule: \($0.schedule.map { $0.rawValue })")
+        }
+
         onTrackersUpdated?()
     }
     
@@ -189,7 +196,11 @@ extension TrackersViewModel {
 
 extension TrackersViewModel: TrackerStoreDelegate {
     func didUpdateTrackers(_ trackers: [Tracker]) {
+        AppLogger.trackers.info("[VM] 🧩 didUpdateTrackers вызван — получено \(trackers.count) трекеров от CoreData")
+        
         self.trackers = trackers
+        
+        AppLogger.trackers.info("[VM] 📤 Отправляем обновление в UI через onTrackersUpdated")
         onTrackersUpdated?()
     }
 }
