@@ -112,7 +112,7 @@ final class TrackersViewController: UIViewController {
             ui.collectionView.topAnchor.constraint(equalTo: ui.searchBar.bottomAnchor, constant: 8),
             ui.collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             ui.collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            ui.collectionView.bottomAnchor.constraint(equalTo: ui.filtersButton.topAnchor, constant: -8),
+            ui.collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             ui.filtersButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             ui.filtersButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             ui.filtersButton.widthAnchor.constraint(equalToConstant: 114),
@@ -120,6 +120,13 @@ final class TrackersViewController: UIViewController {
         ])
         ui.filtersButton.addTarget(self, action: #selector(filtersTapped), for: .touchUpInside)
         ui.dateButton.addTarget(self, action: #selector(toggleCalendar), for: .touchUpInside)
+        ui.collectionView.contentInset = UIEdgeInsets(
+            top: 0,
+            left: 0,
+            bottom: 50,
+            right: 0
+        )
+        ui.collectionView.scrollIndicatorInsets = ui.collectionView.contentInset
     }
     private func setupPlaceholder() {
         view.addSubview(ui.placeholderView)
