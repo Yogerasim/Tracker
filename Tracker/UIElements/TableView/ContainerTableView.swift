@@ -1,5 +1,4 @@
 import UIKit
-
 final class ContainerTableView: UIView {
     private var heightConstraint: NSLayoutConstraint?
     let tableView: UITableView = {
@@ -13,7 +12,6 @@ final class ContainerTableView: UIView {
         table.rowHeight = 75
         return table
     }()
-
     init(backgroundColor: UIColor = .systemGray6, cornerRadius: CGFloat = AppLayout.cornerRadius) {
         super.init(frame: .zero)
         self.backgroundColor = backgroundColor
@@ -21,7 +19,6 @@ final class ContainerTableView: UIView {
         layer.masksToBounds = true
         setupLayout()
     }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
     private func setupLayout() {
@@ -33,7 +30,6 @@ final class ContainerTableView: UIView {
             tableView.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
     }
-
     func updateHeight(forRows count: Int) {
         let newHeight: CGFloat
         if count == 0 {

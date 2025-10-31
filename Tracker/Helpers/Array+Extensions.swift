@@ -1,5 +1,4 @@
 import Foundation
-
 extension Array where Element == WeekDay {
     var descriptionText: String {
         if count == WeekDay.allCases.count {

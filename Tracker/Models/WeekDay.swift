@@ -1,5 +1,4 @@
 import Foundation
-
 enum WeekDay: Int, CaseIterable, Codable {
     case monday = 1, tuesday, wednesday, thursday, friday, saturday, sunday
     static func from(date: Date, calendar: Calendar = .current) -> WeekDay {
@@ -10,7 +9,6 @@ enum WeekDay: Int, CaseIterable, Codable {
         return WeekDay(rawValue: weekday - 1) ?? .monday
     }
 }
-
 extension WeekDay {
     var shortName: String {
         let key: String

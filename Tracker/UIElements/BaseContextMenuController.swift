@@ -1,5 +1,4 @@
 import UIKit
-
 final class BaseContextMenuController<Cell: UIView>: NSObject, UIContextMenuInteractionDelegate {
     private weak var owner: UIViewController?
     private weak var container: UIView?
@@ -17,13 +16,11 @@ final class BaseContextMenuController<Cell: UIView>: NSObject, UIContextMenuInte
         self.actionsProvider = actionsProvider
         super.init()
     }
-
     func attach(to cell: Cell) {
         cell.interactions.forEach { cell.removeInteraction($0) }
         let interaction = UIContextMenuInteraction(delegate: self)
         cell.addInteraction(interaction)
     }
-
     func contextMenuInteraction(
         _ interaction: UIContextMenuInteraction,
         configurationForMenuAtLocation _: CGPoint
@@ -36,7 +33,6 @@ final class BaseContextMenuController<Cell: UIView>: NSObject, UIContextMenuInte
             UIMenu(title: "", children: actions)
         }
     }
-
     func addInteraction(to cell: UICollectionViewCell) {
         if cell.interactions.contains(where: { $0 is UIContextMenuInteraction }) { return }
         let interaction = UIContextMenuInteraction(delegate: self)

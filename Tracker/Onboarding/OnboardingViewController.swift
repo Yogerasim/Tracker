@@ -1,5 +1,4 @@
 import UIKit
-
 final class OnboardingViewController: UIPageViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
     private lazy var pages: [UIViewController] = [
         OnboardingPageViewController(
@@ -11,7 +10,6 @@ final class OnboardingViewController: UIPageViewController, UIPageViewController
             text: NSLocalizedString("onboarding.page2.text", comment: "Текст второй страницы онбординга")
         ),
     ]
-
     private lazy var pageControl: UIPageControl = {
         let pageControl = UIPageControl()
         pageControl.numberOfPages = pages.count
@@ -21,17 +19,14 @@ final class OnboardingViewController: UIPageViewController, UIPageViewController
         pageControl.translatesAutoresizingMaskIntoConstraints = false
         return pageControl
     }()
-
     private lazy var actionButton: BlackButton = {
         let button = BlackButton(title: NSLocalizedString("onboarding.button", comment: "Кнопка завершения онбординга"))
         button.addTarget(self, action: #selector(finishOnboarding), for: .touchUpInside)
         return button
     }()
-
     init() {
         super.init(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
     }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
     override func viewDidLoad() {
@@ -44,7 +39,6 @@ final class OnboardingViewController: UIPageViewController, UIPageViewController
         }
         setupUI()
     }
-
     private func setupUI() {
         view.addSubview(pageControl)
         view.addSubview(actionButton)
@@ -57,25 +51,21 @@ final class OnboardingViewController: UIPageViewController, UIPageViewController
             pageControl.centerXAnchor.constraint(equalTo: view.centerXAnchor),
         ])
     }
-
     @objc private func finishOnboarding() {
         dismiss(animated: true)
     }
-
     func pageViewController(_: UIPageViewController,
                             viewControllerBefore viewController: UIViewController) -> UIViewController?
     {
         guard let index = pages.firstIndex(of: viewController) else { return nil }
         return index == 0 ? pages.last : pages[index - 1]
     }
-
     func pageViewController(_: UIPageViewController,
                             viewControllerAfter viewController: UIViewController) -> UIViewController?
     {
         guard let index = pages.firstIndex(of: viewController) else { return nil }
         return index == pages.count - 1 ? pages.first : pages[index + 1]
     }
-
     func pageViewController(_ pageViewController: UIPageViewController,
                             didFinishAnimating _: Bool,
                             previousViewControllers _: [UIViewController],

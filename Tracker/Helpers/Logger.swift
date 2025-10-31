@@ -1,5 +1,4 @@
 import Logging
-
 enum AppLogger {
     static let ui = Logger(label: "com.myapp.ui")
     static let trackers = Logger(label: "com.myapp.trackers")

@@ -1,5 +1,4 @@
 import UIKit
-
 final class MainTitleLabelView: UIView {
     private let label: UILabel = {
         let label = UILabel()
@@ -12,19 +11,16 @@ final class MainTitleLabelView: UIView {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-
     init(title: String) {
         super.init(frame: .zero)
         translatesAutoresizingMaskIntoConstraints = false
         setupUI()
         setTitle(title)
     }
-
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupUI()
     }
-
     private func setupUI() {
         addSubview(label)
         NSLayoutConstraint.activate([
@@ -34,7 +30,6 @@ final class MainTitleLabelView: UIView {
             label.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
     }
-
     func setTitle(_ text: String) {
         label.text = text
     }

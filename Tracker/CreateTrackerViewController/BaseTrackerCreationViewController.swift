@@ -1,6 +1,5 @@
 import CoreData
 import UIKit
-
 class BaseTrackerCreationViewController: UIViewController {
     let scrollView = UIScrollView()
     let contentStack = UIStackView()
@@ -28,7 +27,6 @@ class BaseTrackerCreationViewController: UIViewController {
         modalHeader = ModalHeaderView(title: title)
         super.init(nibName: nil, bundle: nil)
     }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
     override func viewDidLoad() {
@@ -40,14 +38,12 @@ class BaseTrackerCreationViewController: UIViewController {
         setupSelectionCallbacks()
         setupTextField()
     }
-
     private func setupTextField() {
         nameTextField.onTextChanged = { [weak self] text in
             let hasText = !text.trimmingCharacters(in: .whitespaces).isEmpty
             self?.bottomButtons.setCreateButton(enabled: hasText)
         }
     }
-
     private func setupSelectionCallbacks() {
         emojiCollectionVC.onItemSelected = { [weak self] item in
             if case let .emoji(emoji) = item { self?.selectedEmoji = emoji }
@@ -56,7 +52,6 @@ class BaseTrackerCreationViewController: UIViewController {
             if case let .color(color) = item { self?.selectedColor = color }
         }
     }
-
     private func setupTable() {
         let tableView = tableContainer.tableView
         tableView.dataSource = self
@@ -66,7 +61,6 @@ class BaseTrackerCreationViewController: UIViewController {
         tableView.isScrollEnabled = false
         tableView.rowHeight = 75
     }
-
     private func setupLayout() {
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         contentStack.translatesAutoresizingMaskIntoConstraints = false
@@ -117,15 +111,12 @@ class BaseTrackerCreationViewController: UIViewController {
             colorCollectionVC.view.heightAnchor.constraint(equalToConstant: 200),
         ])
     }
-
     private func setupActions() {
         bottomButtons.cancelButton.addTarget(self, action: #selector(cancelTapped), for: .touchUpInside)
     }
-
     @objc func cancelTapped() {
         dismiss(animated: true)
     }
-
     func numberOfRowsInTable() -> Int { 2 }
     func tableViewCell(for tableView: UITableView, indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell
@@ -138,16 +129,13 @@ class BaseTrackerCreationViewController: UIViewController {
         cell.isLastCell = indexPath.row == numberOfRowsInTable() - 1
         return cell
     }
-
     func didSelectRow(at _: IndexPath, tableView _: UITableView) {}
 }
-
 extension BaseTrackerCreationViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int { numberOfRowsInTable() }
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         tableViewCell(for: tableView, indexPath: indexPath)
     }
-
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         didSelectRow(at: indexPath, tableView: tableView)
     }

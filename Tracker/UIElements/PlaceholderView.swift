@@ -1,5 +1,4 @@
 import UIKit
-
 final class PlaceholderView: UIView {
     private let imageView: UIImageView = {
         let iv = UIImageView()
@@ -8,7 +7,6 @@ final class PlaceholderView: UIView {
         iv.translatesAutoresizingMaskIntoConstraints = false
         return iv
     }()
-
     private let label: UILabel = {
         let lbl = UILabel()
         lbl.font = AppFonts.plug
@@ -22,18 +20,15 @@ final class PlaceholderView: UIView {
         lbl.translatesAutoresizingMaskIntoConstraints = false
         return lbl
     }()
-
     override init(frame: CGRect) {
         super.init(frame: frame)
         translatesAutoresizingMaskIntoConstraints = false
         setupLayout()
     }
-
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupLayout()
     }
-
     func configure(imageName: String?, text: String) {
         if let imageName = imageName {
             imageView.image = UIImage(named: imageName)
@@ -42,7 +37,6 @@ final class PlaceholderView: UIView {
         }
         label.text = text
     }
-
     private func setupLayout() {
         addSubview(imageView)
         addSubview(label)

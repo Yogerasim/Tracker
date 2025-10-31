@@ -1,5 +1,4 @@
 import UIKit
-
 extension UIViewController {
     func presentFullScreenSheet(_ viewController: UIViewController) {
         viewController.modalPresentationStyle = .pageSheet

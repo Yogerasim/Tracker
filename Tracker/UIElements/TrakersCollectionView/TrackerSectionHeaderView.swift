@@ -1,5 +1,4 @@
 import UIKit
-
 final class TrackerSectionHeaderView: UICollectionReusableView {
     static let reuseIdentifier = "TrackerSectionHeaderView"
     private let titleLabel: UILabel = {
@@ -11,7 +10,6 @@ final class TrackerSectionHeaderView: UICollectionReusableView {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-
     override init(frame: CGRect) {
         super.init(frame: frame)
         addSubview(titleLabel)
@@ -22,7 +20,6 @@ final class TrackerSectionHeaderView: UICollectionReusableView {
             titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
     }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
     func configure(with title: String) {

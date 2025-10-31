@@ -1,5 +1,4 @@
 import UIKit
-
 final class SelectableCollectionViewController: UIViewController {
     private let items: [CollectionItem]
     private let headerTitle: String
@@ -10,7 +9,6 @@ final class SelectableCollectionViewController: UIViewController {
         self.headerTitle = headerTitle
         super.init(nibName: nil, bundle: nil)
     }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
     private lazy var collectionView: UICollectionView = {
@@ -29,7 +27,6 @@ final class SelectableCollectionViewController: UIViewController {
                                 withReuseIdentifier: HeaderView.reuseId)
         return collectionView
     }()
-
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = AppColors.background
@@ -43,13 +40,11 @@ final class SelectableCollectionViewController: UIViewController {
         ])
     }
 }
-
 extension SelectableCollectionViewController: UICollectionViewDataSource {
     func numberOfSections(in _: UICollectionView) -> Int { 1 }
     func collectionView(_: UICollectionView, numberOfItemsInSection _: Int) -> Int {
         items.count
     }
-
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: SelectableCell.reuseId,
@@ -63,7 +58,6 @@ extension SelectableCollectionViewController: UICollectionViewDataSource {
         }
         return cell
     }
-
     func collectionView(_ collectionView: UICollectionView,
                         viewForSupplementaryElementOfKind kind: String,
                         at indexPath: IndexPath) -> UICollectionReusableView
@@ -79,7 +73,6 @@ extension SelectableCollectionViewController: UICollectionViewDataSource {
         return header
     }
 }
-
 extension SelectableCollectionViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if selectedIndexPath == indexPath {
@@ -91,7 +84,6 @@ extension SelectableCollectionViewController: UICollectionViewDelegate {
         onItemSelected?(items[indexPath.item])
     }
 }
-
 extension SelectableCollectionViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_: UICollectionView,
                         layout _: UICollectionViewLayout,
@@ -100,7 +92,6 @@ extension SelectableCollectionViewController: UICollectionViewDelegateFlowLayout
         return CGSize(width: 52, height: 52)
     }
 }
-
 final class SelectableCell: UICollectionViewCell {
     static let reuseId = "SelectableCell"
     private let label = UILabel()
@@ -110,7 +101,6 @@ final class SelectableCell: UICollectionViewCell {
         view.clipsToBounds = true
         return view
     }()
-
     override init(frame: CGRect) {
         super.init(frame: frame)
         label.font = AppFonts.bigTitle
@@ -131,7 +121,6 @@ final class SelectableCell: UICollectionViewCell {
         contentView.layer.cornerRadius = AppLayout.cornerRadius
         contentView.layer.masksToBounds = true
     }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
     func configure(with item: CollectionItem, isSelected: Bool) {
@@ -163,7 +152,6 @@ final class SelectableCell: UICollectionViewCell {
         }
     }
 }
-
 final class HeaderView: UICollectionReusableView {
     static let reuseId = "HeaderView"
     let titleLabel: UILabel = {
@@ -174,7 +162,6 @@ final class HeaderView: UICollectionReusableView {
         }
         return label
     }()
-
     override init(frame: CGRect) {
         super.init(frame: frame)
         addSubview(titleLabel)
@@ -185,7 +172,6 @@ final class HeaderView: UICollectionReusableView {
             titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
         ])
     }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
 }

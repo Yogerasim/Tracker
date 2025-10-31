@@ -1,5 +1,4 @@
 import UIKit
-
 final class ModalHeaderView: UIView {
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -14,7 +13,6 @@ final class ModalHeaderView: UIView {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-
     init(title: String) {
         super.init(frame: .zero)
         translatesAutoresizingMaskIntoConstraints = false
@@ -22,13 +20,11 @@ final class ModalHeaderView: UIView {
         titleLabel.text = title
         setupLayout()
     }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
     func setTitle(_ title: String) {
         titleLabel.text = title
     }
-
     private func setupLayout() {
         addSubview(titleLabel)
         NSLayoutConstraint.activate([

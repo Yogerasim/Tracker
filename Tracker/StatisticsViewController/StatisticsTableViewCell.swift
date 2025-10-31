@@ -1,5 +1,4 @@
 import UIKit
-
 final class StatisticsTableViewCell: UITableViewCell {
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -13,7 +12,6 @@ final class StatisticsTableViewCell: UITableViewCell {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-
     private let subtitleLabel: UILabel = {
         let label = UILabel()
         label.font = AppFonts.medium(12)
@@ -26,7 +24,6 @@ final class StatisticsTableViewCell: UITableViewCell {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-
     private let gradientLayer = CAGradientLayer()
     private let shapeLayer = CAShapeLayer()
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -37,14 +34,12 @@ final class StatisticsTableViewCell: UITableViewCell {
         setupLayout()
         setupGradientBorder()
     }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
     func configure(title: Int, subtitle: String) {
         titleLabel.text = String(title)
         subtitleLabel.text = subtitle
     }
-
     private func setupLayout() {
         contentView.addSubview(titleLabel)
         contentView.addSubview(subtitleLabel)
@@ -60,7 +55,6 @@ final class StatisticsTableViewCell: UITableViewCell {
         contentView.layer.cornerRadius = 16
         contentView.layer.masksToBounds = true
     }
-
     private func setupGradientBorder() {
         gradientLayer.colors = [
             AppColors.gradientRed.cgColor,
@@ -75,7 +69,6 @@ final class StatisticsTableViewCell: UITableViewCell {
         gradientLayer.mask = shapeLayer
         contentView.layer.addSublayer(gradientLayer)
     }
-
     override func layoutSubviews() {
         super.layoutSubviews()
         gradientLayer.frame = contentView.bounds

@@ -1,5 +1,4 @@
 import Foundation
-
 final class HabitFlowPresenter {
     private let categoryStore: TrackerCategoryStore
     private let defaultCategoryTitle = NSLocalizedString(
@@ -9,7 +8,6 @@ final class HabitFlowPresenter {
     init(categoryStore: TrackerCategoryStore) {
         self.categoryStore = categoryStore
     }
-
     func addTracker(_ tracker: Tracker, completion: @escaping () -> Void) {
         if let _ = categoryStore.fetchCategories().first(where: { $0.title == defaultCategoryTitle }) {
             categoryStore.addTracker(tracker, to: defaultCategoryTitle)
@@ -18,7 +16,6 @@ final class HabitFlowPresenter {
             completion()
         }
     }
-
     private func ensureDefaultCategory() {
         if !categoryStore.categories.contains(where: { $0.title == defaultCategoryTitle }) {
             let newCategory = TrackerCategory(

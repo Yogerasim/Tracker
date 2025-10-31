@@ -1,12 +1,10 @@
 import UIKit
-
 final class MainTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configureViewControllers()
         configureTabBarAppearance()
     }
-
     private func configureViewControllers() {
         let trackersVC = UINavigationController(rootViewController: TrackersViewController())
         trackersVC.tabBarItem = UITabBarItem(
@@ -23,7 +21,6 @@ final class MainTabBarController: UITabBarController {
         )
         viewControllers = [trackersVC, statisticsVC]
     }
-
     private func configureTabBarAppearance() {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()

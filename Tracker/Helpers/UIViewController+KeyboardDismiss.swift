@@ -1,10 +1,8 @@
 import ObjectiveC.runtime
 import UIKit
-
 private enum AssociatedKeys {
     static var keyboardDismissAdded: UInt8 = 0
 }
-
 private final class KeyboardDismissGestureDelegate: NSObject, UIGestureRecognizerDelegate {
     static let shared = KeyboardDismissGestureDelegate()
     func gestureRecognizer(_: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
@@ -15,12 +13,10 @@ private final class KeyboardDismissGestureDelegate: NSObject, UIGestureRecognize
         }
         return true
     }
-
     func gestureRecognizer(_: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith _: UIGestureRecognizer) -> Bool {
         return true
     }
 }
-
 extension UIViewController {
     static func enableGlobalKeyboardDismiss() {
         let originalSelector = #selector(UIViewController.viewDidLoad)
@@ -31,7 +27,6 @@ extension UIViewController {
         else { return }
         method_exchangeImplementations(originalMethod, swizzledMethod)
     }
-
     @objc private func swizzled_viewDidLoad() {
         swizzled_viewDidLoad()
         let alreadyAdded = objc_getAssociatedObject(self, &AssociatedKeys.keyboardDismissAdded) as? Bool ?? false
@@ -42,7 +37,6 @@ extension UIViewController {
         view.addGestureRecognizer(tap)
         objc_setAssociatedObject(self, &AssociatedKeys.keyboardDismissAdded, true, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
     }
-
     @objc private func dismissKeyboardFromTap(_ sender: UITapGestureRecognizer) {
         let location = sender.location(in: view)
         if let touched = view.hitTest(location, with: nil) {

@@ -1,5 +1,4 @@
 import UIKit
-
 final class TrackerCell: UICollectionViewCell {
     static let reuseIdentifier = "TrackerCell"
     private var viewModel: TrackerCellViewModel?
@@ -11,7 +10,6 @@ final class TrackerCell: UICollectionViewCell {
         view.layer.masksToBounds = true
         return view
     }()
-
     private let emojiLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 12, weight: .medium)
@@ -21,7 +19,6 @@ final class TrackerCell: UICollectionViewCell {
         label.layer.masksToBounds = true
         return label
     }()
-
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 12, weight: .medium)
@@ -30,7 +27,6 @@ final class TrackerCell: UICollectionViewCell {
         label.textColor = .white
         return label
     }()
-
     private let bottomContainer = UIView()
     private let dayLabel: UILabel = {
         let label = UILabel()
@@ -38,7 +34,6 @@ final class TrackerCell: UICollectionViewCell {
         label.textColor = UIColor { $0.userInterfaceStyle == .dark ? .white : .black }
         return label
     }()
-
     private lazy var toggleButton: UIButton = {
         let button = UIButton(type: .system)
         button.layer.cornerRadius = 17
@@ -48,7 +43,6 @@ final class TrackerCell: UICollectionViewCell {
         button.addTarget(self, action: #selector(toggleTapped), for: .touchUpInside)
         return button
     }()
-
     override init(frame: CGRect) {
         super.init(frame: frame)
         contentView.addSubview(cardView)
@@ -59,27 +53,22 @@ final class TrackerCell: UICollectionViewCell {
         bottomContainer.addSubview(toggleButton)
         setupConstraints()
     }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
     @objc private func toggleTapped() {
         guard !isToggling else { return }
         isToggling = true
-
         guard let vm = viewModel else { return }
         let newValue = !vm.isCompleted
         onToggleCompletion?(newValue)
-
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             self.isToggling = false
         }
     }
-
     func setCompletionEnabled(_ enabled: Bool) {
         toggleButton.isEnabled = enabled
         toggleButton.alpha = enabled ? 1.0 : 0.5
     }
-
     func configure(with viewModel: TrackerCellViewModel) {
         self.viewModel = viewModel
         emojiLabel.text = viewModel.trackerEmoji()
@@ -87,8 +76,6 @@ final class TrackerCell: UICollectionViewCell {
         cardView.backgroundColor = viewModel.trackerColor()
         toggleButton.backgroundColor = viewModel.trackerColor()
         updateUI()
-        
-        // Подписка на изменение состояния
         viewModel.onStateChanged = { [weak self] in
             guard let self else { return }
             DispatchQueue.main.async {
@@ -96,11 +83,9 @@ final class TrackerCell: UICollectionViewCell {
             }
         }
     }
-
     func refreshCellState() {
         viewModel?.refreshStateIfNeeded()
     }
-
     private func updateUI() {
         guard let vm = viewModel else { return }
         dayLabel.text = vm.dayLabelText()
@@ -110,7 +95,6 @@ final class TrackerCell: UICollectionViewCell {
         toggleButton.tintColor = .white
         toggleButton.setTitle(nil, for: .normal)
     }
-
     private func setupConstraints() {
         [cardView, emojiLabel, titleLabel, bottomContainer, dayLabel, toggleButton].forEach { $0.translatesAutoresizingMaskIntoConstraints = false }
         NSLayoutConstraint.activate([
@@ -139,7 +123,6 @@ final class TrackerCell: UICollectionViewCell {
         ])
     }
 }
-
 private extension UIColor {
     convenience init?(hexString: String) {
         var hex = hexString.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()

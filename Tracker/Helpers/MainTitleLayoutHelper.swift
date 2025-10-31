@@ -1,5 +1,4 @@
 import UIKit
-
 enum MainHeaderLayoutHelper {
     static func setupTrackerLayout(
         in view: UIView,
@@ -43,7 +42,6 @@ enum MainHeaderLayoutHelper {
         view.bringSubviewToFront(addButton)
         view.bringSubviewToFront(dateButton)
     }
-
     static func setupSimpleTitle(in view: UIView, titleView: UIView) {
         view.addSubview(titleView)
         titleView.translatesAutoresizingMaskIntoConstraints = false

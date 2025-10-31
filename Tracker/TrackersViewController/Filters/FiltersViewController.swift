@@ -1,6 +1,5 @@
 import Combine
 import UIKit
-
 final class FiltersViewController: UIViewController {
     private let header = ModalHeaderView(title: NSLocalizedString("filters.title", comment: "Filters"))
     private let tableContainer = ContainerTableView()
@@ -18,12 +17,10 @@ final class FiltersViewController: UIViewController {
         static let checkmarkImageName = "ic 24x24"
         static let rowHeight: CGFloat = 75
     }
-
     init(viewModel: FiltersViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) { fatalError("init(coder:) has not been implemented") }
     override func viewDidLoad() {
@@ -32,9 +29,7 @@ final class FiltersViewController: UIViewController {
         setupLayout()
         setupTableView()
         bindViewModel()
-        
     }
-
     private func bindViewModel() {
         viewModel.$selectedFilterIndex
             .receive(on: DispatchQueue.main)
@@ -45,7 +40,6 @@ final class FiltersViewController: UIViewController {
             }
             .store(in: &cancellables)
     }
-
     private func setupLayout() {
         for item in [header, tableContainer] {
             item.translatesAutoresizingMaskIntoConstraints = false
@@ -64,7 +58,6 @@ final class FiltersViewController: UIViewController {
             tableContainer.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor),
         ])
     }
-
     private func setupTableView() {
         let tableView = tableContainer.tableView
         tableView.dataSource = self
@@ -74,7 +67,6 @@ final class FiltersViewController: UIViewController {
         tableView.isScrollEnabled = false
         tableView.rowHeight = Constants.rowHeight
     }
-
     private func configureCheckmark(for cell: UITableViewCell, at indexPath: IndexPath) {
         if indexPath.row == viewModel.selectedFilterIndex {
             let checkmark = UIImageView(image: UIImage(named: Constants.checkmarkImageName))
@@ -88,12 +80,10 @@ final class FiltersViewController: UIViewController {
         }
     }
 }
-
 extension FiltersViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         filters.count
     }
-
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as? ContainerTableViewCell else {
             return UITableViewCell()
@@ -105,7 +95,6 @@ extension FiltersViewController: UITableViewDataSource, UITableViewDelegate {
         }
         return cell
     }
-
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let previousIndex = viewModel.selectedFilterIndex

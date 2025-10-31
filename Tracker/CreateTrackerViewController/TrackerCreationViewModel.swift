@@ -1,6 +1,5 @@
 import CoreData
 import UIKit
-
 class TrackerCreationViewModel: BaseTrackerCreationViewController {
     var onTrackerCreated: ((Tracker) -> Void)?
     private var isCreating = false
@@ -8,17 +7,14 @@ class TrackerCreationViewModel: BaseTrackerCreationViewController {
         super.viewDidLoad()
         bottomButtons.createButton.addTarget(self, action: #selector(createTapped), for: .touchUpInside)
     }
-
     @objc func createTapped() {
         fatalError("Subclasses must override createTapped()")
     }
-
     func enableCreateButton() {
         DispatchQueue.main.async { [weak self] in
             self?.bottomButtons.createButton.isEnabled = true
         }
     }
-
     func createTracker(with schedule: [WeekDay]) {
         guard !isCreating else { return }
         isCreating = true

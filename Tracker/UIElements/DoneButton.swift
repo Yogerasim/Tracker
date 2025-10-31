@@ -1,16 +1,13 @@
 import UIKit
-
 final class DoneButton: UIButton {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupStyle()
     }
-
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupStyle()
     }
-
     private func setupStyle() {
         setTitle(NSLocalizedString("done_button", comment: "Готово"), for: .normal)
         setTitleColor(AppColors.textPrimary, for: .normal)

@@ -1,5 +1,4 @@
 import UIKit
-
 extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     private enum Layout {
         static let itemWidth: CGFloat = 160
@@ -9,7 +8,6 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         static let sectionInsets = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
         static let headerHeight: CGFloat = 30
     }
-
     func numberOfSections(in _: UICollectionView) -> Int {
         if visibleCategories.isEmpty && !filtersViewModel.filteredTrackers.isEmpty {
             return 1
@@ -17,7 +15,6 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
             return visibleCategories.count
         }
     }
-
     func collectionView(_: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if visibleCategories.isEmpty { return 0 }
         let category = visibleCategories[section]
@@ -25,7 +22,6 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
             $0.trackerCategory?.title == category.title
         }.count
     }
-
     func collectionView(_ collectionView: UICollectionView,
                         cellForItemAt indexPath: IndexPath) -> UICollectionViewCell
     {
@@ -35,44 +31,34 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         ) as? TrackerCell else {
             return UICollectionViewCell()
         }
-
         guard visibleCategories.indices.contains(indexPath.section) else { return cell }
         let category = visibleCategories[indexPath.section]
         let trackersInCategory = filtersViewModel.filteredTrackers.filter {
             $0.trackerCategory?.title == category.title
         }
         guard trackersInCategory.indices.contains(indexPath.item) else { return cell }
-
         let tracker = trackersInCategory[indexPath.item]
         let cellViewModel = viewModel.makeCellViewModel(for: tracker)
         cellViewModel.updateCurrentDate(filtersViewModel.selectedDate)
-
         cell.configure(with: cellViewModel)
-
         let isFuture = viewModel.currentDate.startOfDayUTC() > Date().startOfDayUTC()
         cell.setCompletionEnabled(!isFuture)
-
-        // 🔄 Обновление галочки мгновенно
         cell.onToggleCompletion = { [weak self] completed in
             guard let self = self else { return }
-
             self.filtersViewModel.updateSingleTracker(tracker, completed: completed)
             self.refreshCell(for: tracker)
         }
-
         contextMenuController?.addInteraction(to: cell)
         return cell
     }
-
     func addNewTracker(_ tracker: Tracker) {
         let categoryTitle = tracker.trackerCategory?.title ?? "Без категории"
         viewModel.addTracker(tracker, to: categoryTitle)
-        filtersViewModel.applyAllFilters(for: filtersViewModel.selectedDate) // теперь доступен
+        filtersViewModel.applyAllFilters(for: filtersViewModel.selectedDate) 
         ui.collectionView.reloadData()
     }
     func refreshCell(for tracker: Tracker) {
         guard let indexPath = indexPathForTracker(tracker) else { return }
-
         DispatchQueue.main.async {
             UIView.performWithoutAnimation {
                 self.ui.collectionView.reloadItems(at: [indexPath])
@@ -90,7 +76,6 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         }
         return nil
     }
-
     func debugPrintTrackersSchedule() {
         for tracker in filtersViewModel.filteredTrackers {
             if !tracker.schedule.isEmpty {
@@ -98,7 +83,6 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
             }
         }
     }
-
     func collectionView(_ collectionView: UICollectionView,
                         viewForSupplementaryElementOfKind kind: String,
                         at indexPath: IndexPath) -> UICollectionReusableView
@@ -106,13 +90,11 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         guard kind == UICollectionView.elementKindSectionHeader else {
             return UICollectionReusableView()
         }
-
         let header = collectionView.dequeueReusableSupplementaryView(
             ofKind: kind,
             withReuseIdentifier: TrackerSectionHeaderView.reuseIdentifier,
             for: indexPath
         ) as! TrackerSectionHeaderView
-
         if visibleCategories.indices.contains(indexPath.section) {
             let category = visibleCategories[indexPath.section]
             header.configure(with: category.title)
@@ -121,7 +103,6 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         }
         return header
     }
-
     func collectionView(_ collectionView: UICollectionView,
                         layout _: UICollectionViewLayout,
                         referenceSizeForHeaderInSection section: Int) -> CGSize
@@ -133,28 +114,24 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         }
         return trackersInCategory.isEmpty ? .zero : CGSize(width: collectionView.bounds.width, height: Layout.headerHeight)
     }
-
     func collectionView(_: UICollectionView,
                         layout _: UICollectionViewLayout,
                         sizeForItemAt _: IndexPath) -> CGSize
     {
         CGSize(width: Layout.itemWidth, height: Layout.itemHeight)
     }
-
     func collectionView(_: UICollectionView,
                         layout _: UICollectionViewLayout,
                         minimumLineSpacingForSectionAt _: Int) -> CGFloat
     {
         Layout.lineSpacing
     }
-
     func collectionView(_: UICollectionView,
                         layout _: UICollectionViewLayout,
                         minimumInteritemSpacingForSectionAt _: Int) -> CGFloat
     {
         Layout.interitemSpacing
     }
-
     func collectionView(_: UICollectionView,
                         layout _: UICollectionViewLayout,
                         insetForSectionAt _: Int) -> UIEdgeInsets
@@ -162,7 +139,6 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         Layout.sectionInsets
     }
 }
-
 extension TrackersViewController: UICollectionViewDelegate {
     func collectionView(_: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let category = visibleCategories[indexPath.section]

@@ -1,5 +1,4 @@
 import UIKit
-
 final class CreateTrackerViewController: UIViewController {
     private let modalHeader = ModalHeaderView(
         title: NSLocalizedString("create_tracker_title", comment: "Заголовок создания трекера")
@@ -23,7 +22,6 @@ final class CreateTrackerViewController: UIViewController {
         irregularButton.addTarget(self, action: #selector(irregularButtonTapped), for: .touchUpInside)
         setupConstraints()
     }
-
     @objc private func habitButtonTapped() {
         let newHabitVC = NewHabitView()
         newHabitVC.onTrackerCreated = { [weak self] tracker in
@@ -31,7 +29,6 @@ final class CreateTrackerViewController: UIViewController {
         }
         presentFullScreenSheet(newHabitVC)
     }
-
     @objc private func irregularButtonTapped() {
         let irregularVC = NewIrregularEventView()
         irregularVC.onTrackerCreated = { [weak self] tracker in
@@ -39,7 +36,6 @@ final class CreateTrackerViewController: UIViewController {
         }
         presentFullScreenSheet(irregularVC)
     }
-
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             modalHeader.topAnchor.constraint(equalTo: view.topAnchor),

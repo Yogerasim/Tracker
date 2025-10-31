@@ -1,6 +1,5 @@
 import CoreData
 import Foundation
-
 final class EditCategoryViewModel {
     private let category: TrackerCategoryCoreData
     private let context: NSManagedObjectContext
@@ -9,7 +8,6 @@ final class EditCategoryViewModel {
             isButtonEnabled?(!categoryName.trimmingCharacters(in: .whitespaces).isEmpty)
         }
     }
-
     var isButtonEnabled: ((Bool) -> Void)?
     var onCategoryEdited: (() -> Void)?
     init(category: TrackerCategoryCoreData, context: NSManagedObjectContext) {
@@ -17,7 +15,6 @@ final class EditCategoryViewModel {
         self.context = context
         categoryName = category.title ?? ""
     }
-
     func saveChanges() {
         let trimmedName = categoryName.trimmingCharacters(in: .whitespaces)
         guard !trimmedName.isEmpty else { return }

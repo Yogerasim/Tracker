@@ -1,5 +1,4 @@
 import UIKit
-
 final class StatisticsViewController: UIViewController {
     private let trackerRecordStore: TrackerRecordStore
     private let placeholderView = PlaceholderView()
@@ -7,7 +6,6 @@ final class StatisticsViewController: UIViewController {
         self.trackerRecordStore = trackerRecordStore
         super.init(nibName: nil, bundle: nil)
     }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
     private let titleView = MainTitleLabelView(
@@ -23,7 +21,6 @@ final class StatisticsViewController: UIViewController {
         table.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 20, right: 0)
         return table
     }()
-
     private var titleTopConstraint: NSLayoutConstraint!
     private var tableViewCenterYConstraint: NSLayoutConstraint!
     private var tableViewHeightConstraint: NSLayoutConstraint!
@@ -48,12 +45,10 @@ final class StatisticsViewController: UIViewController {
             object: nil
         )
     }
-
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         loadStatistics()
     }
-
     private func loadStatistics() {
         let calculator = CalculateStatistics(trackerRecordStore: trackerRecordStore)
         let stats = calculator.calculateStatistics()
@@ -67,7 +62,6 @@ final class StatisticsViewController: UIViewController {
         updateTableHeight()
         updatePlaceholderVisibility()
     }
-
     private func updatePlaceholderVisibility() {
         let trackerStore = TrackerStore(context: trackerRecordStore.context)
         let trackers = trackerStore.getTrackers()
@@ -81,7 +75,6 @@ final class StatisticsViewController: UIViewController {
             )
         }
     }
-
     private func setupLayout() {
         view.addSubview(titleView)
         titleView.translatesAutoresizingMaskIntoConstraints = false
@@ -108,26 +101,21 @@ final class StatisticsViewController: UIViewController {
         ])
         placeholderView.isHidden = true
     }
-
     private func updateTableHeight() {
         let totalHeight = CGFloat(items.count * 90 + (items.count - 1) * 16)
         tableViewHeightConstraint.constant = totalHeight
     }
-
     private func setupTableView() {
         tableView.register(StatisticsTableViewCell.self, forCellReuseIdentifier: "StatisticsCell")
         tableView.dataSource = self
         tableView.delegate = self
     }
-
     @objc private func handleTrackerRecordsDidChange() {
         loadStatistics()
     }
-
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-
     func moveTitle(upBy offset: CGFloat) {
         titleTopConstraint.constant = 44 - offset
         UIView.animate(withDuration: 0.25) {
@@ -135,16 +123,13 @@ final class StatisticsViewController: UIViewController {
         }
     }
 }
-
 extension StatisticsViewController: UITableViewDataSource {
     func numberOfSections(in _: UITableView) -> Int {
         items.count
     }
-
     func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         1
     }
-
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "StatisticsCell", for: indexPath) as? StatisticsTableViewCell else {
             return UITableViewCell()
@@ -154,16 +139,13 @@ extension StatisticsViewController: UITableViewDataSource {
         return cell
     }
 }
-
 extension StatisticsViewController: UITableViewDelegate {
     func tableView(_: UITableView, heightForRowAt _: IndexPath) -> CGFloat {
         90
     }
-
     func tableView(_: UITableView, heightForFooterInSection _: Int) -> CGFloat {
         16
     }
-
     func tableView(_: UITableView, viewForFooterInSection _: Int) -> UIView? {
         let view = UIView()
         view.backgroundColor = .clear

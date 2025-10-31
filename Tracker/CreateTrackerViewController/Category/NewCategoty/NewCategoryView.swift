@@ -1,5 +1,4 @@
 import UIKit
-
 final class NewCategoryView: UIView {
     let header = ModalHeaderView(
         title: NSLocalizedString("new_category_title", comment: "")
@@ -17,7 +16,6 @@ final class NewCategoryView: UIView {
         setupLayout()
         configureInitialState()
     }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
     private func setupLayout() {
@@ -51,7 +49,6 @@ final class NewCategoryView: UIView {
         placeholderView.setContentHuggingPriority(.required, for: .vertical)
         placeholderView.setContentCompressionResistancePriority(.required, for: .vertical)
     }
-
     private func configureInitialState() {
         doneButton.isEnabled = false
         doneButton.backgroundColor = AppColors.gray

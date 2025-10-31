@@ -1,5 +1,4 @@
 import UIKit
-
 final class ScheduleViewController: UIViewController {
     var selectedDays: [WeekDay] = []
     var onDone: (([WeekDay]) -> Void)?
@@ -30,7 +29,6 @@ final class ScheduleViewController: UIViewController {
         tableContainer.updateHeight(forRows: daysOfWeek.count)
         updateDoneButtonState()
     }
-
     private func setupLayout() {
         for item in [modalHeader, tableContainer, doneButton] {
             item.translatesAutoresizingMaskIntoConstraints = false
@@ -49,22 +47,18 @@ final class ScheduleViewController: UIViewController {
             doneButton.heightAnchor.constraint(equalToConstant: 60),
         ])
     }
-
     private func setupActions() {
         doneButton.addTarget(self, action: #selector(doneTapped), for: .touchUpInside)
     }
-
     @objc private func doneTapped() {
         onDone?(selectedDays)
         dismiss(animated: true)
     }
-
     private func updateDoneButtonState() {
         doneButton.isEnabled = !selectedDays.isEmpty
         doneButton.alpha = doneButton.isEnabled ? 1.0 : 0.5
     }
 }
-
 extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int { daysOfWeek.count }
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -83,10 +77,8 @@ extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
         }
         return cell
     }
-
     func tableView(_ tableView: UITableView, heightForRowAt _: IndexPath) -> CGFloat { tableView.rowHeight }
 }
-
 extension ScheduleViewController {
     @objc private func toggleChanged(_ sender: UISwitch) {
         let day = daysOfWeek[sender.tag].day

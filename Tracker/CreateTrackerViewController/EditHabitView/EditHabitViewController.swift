@@ -1,5 +1,4 @@
 import UIKit
-
 final class EditHabitViewController: BaseTrackerCreationViewController {
     private let viewModel: EditHabitViewModel
     private let daysCountLabel: UILabel = {
@@ -9,7 +8,6 @@ final class EditHabitViewController: BaseTrackerCreationViewController {
         label.textAlignment = .center
         return label
     }()
-
     init(viewModel: EditHabitViewModel) {
         self.viewModel = viewModel
         super.init(title: NSLocalizedString("edit_habit.title", comment: "Редактировать привычку"))
@@ -19,7 +17,6 @@ final class EditHabitViewController: BaseTrackerCreationViewController {
         selectedDays = viewModel.selectedDays
         nameTextField.setText(viewModel.name)
     }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
     override func viewDidLoad() {
@@ -29,7 +26,6 @@ final class EditHabitViewController: BaseTrackerCreationViewController {
         updateDaysCountLabel()
     }
 }
-
 private extension EditHabitViewController {
     func setupDaysCountLabel() {
         contentStack.insertArrangedSubview(daysCountLabel, at: 0)
@@ -37,7 +33,6 @@ private extension EditHabitViewController {
         daysCountLabel.heightAnchor.constraint(equalToConstant: 50).isActive = true
         daysCountLabel.topAnchor.constraint(equalTo: contentStack.topAnchor, constant: -20).isActive = true
     }
-
     func setupSaveButton() {
         bottomButtons.createButton.setTitle(
             NSLocalizedString("edit_habit.save", comment: "Сохранить"),
@@ -45,12 +40,10 @@ private extension EditHabitViewController {
         )
         bottomButtons.createButton.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
     }
-
     func updateDaysCountLabel() {
         let count = selectedDays.count
         daysCountLabel.text = localizedDaysText(for: count)
     }
-
     func localizedDaysText(for count: Int) -> String {
         let localeIdentifier: String
         if #available(iOS 16.0, *) {
@@ -82,7 +75,6 @@ private extension EditHabitViewController {
         }
     }
 }
-
 private extension EditHabitViewController {
     @objc func saveTapped() {
         let title = nameTextField.textValue.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -99,7 +91,6 @@ private extension EditHabitViewController {
         dismiss(animated: true)
     }
 }
-
 extension EditHabitViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)

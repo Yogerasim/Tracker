@@ -1,6 +1,5 @@
 import CoreData
 import UIKit
-
 final class EditHabitViewModel {
     private(set) var tracker: TrackerCoreData
     private let context: NSManagedObjectContext
@@ -9,7 +8,6 @@ final class EditHabitViewModel {
             isButtonEnabled?(!name.trimmingCharacters(in: .whitespaces).isEmpty)
         }
     }
-
     var selectedEmoji: String
     var selectedColor: UIColor
     var selectedCategory: TrackerCategoryCoreData
@@ -35,7 +33,6 @@ final class EditHabitViewModel {
             selectedDays = []
         }
     }
-
     func saveChanges() {
         let trimmedName = name.trimmingCharacters(in: .whitespaces)
         guard !trimmedName.isEmpty else { return }

@@ -1,12 +1,10 @@
 import UIKit
-
 final class TrackersUI {
     lazy var filtersButton: FiltersButton = {
         let button = FiltersButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-
     lazy var addButton: UIButton = {
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -24,7 +22,6 @@ final class TrackersUI {
         button.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 11.5, bottom: 12, trailing: 11.5)
         return button
     }()
-
     lazy var dateButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -44,7 +41,6 @@ final class TrackersUI {
         }, for: .normal)
         return button
     }()
-
     let searchBar: UISearchBar = {
         let sb = UISearchBar()
         sb.placeholder = NSLocalizedString("trackers.search_placeholder", comment: "")
@@ -53,7 +49,6 @@ final class TrackersUI {
         sb.translatesAutoresizingMaskIntoConstraints = false
         return sb
     }()
-
     lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewCompositionalLayout { _, _ in
             let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.5),
@@ -84,7 +79,6 @@ final class TrackersUI {
                     withReuseIdentifier: TrackerSectionHeaderView.reuseIdentifier)
         return cv
     }()
-
     let titleView = MainTitleLabelView(title: NSLocalizedString("trackers.title", comment: ""))
     let placeholderView = PlaceholderView()
     lazy var calendarView: UIDatePicker = {
@@ -97,7 +91,6 @@ final class TrackersUI {
         dp.backgroundColor = AppColors.background
         return dp
     }()
-
     lazy var calendarContainer: UIView = {
         let container = UIView()
         container.translatesAutoresizingMaskIntoConstraints = false

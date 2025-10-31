@@ -1,10 +1,8 @@
 import UIKit
-
 final class NewHabitView: TrackerCreationViewModel {
     init() {
         super.init(title: NSLocalizedString("new_habit.title", comment: "Новая привычка"))
     }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
     override func createTapped() {
@@ -13,7 +11,6 @@ final class NewHabitView: TrackerCreationViewModel {
         }
         createTracker(with: selectedDays)
     }
-
     override func numberOfRowsInTable() -> Int { 2 }
     override func tableViewCell(for tableView: UITableView, indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell
@@ -32,7 +29,6 @@ final class NewHabitView: TrackerCreationViewModel {
         cell.isLastCell = indexPath.row == numberOfRowsInTable() - 1
         return cell
     }
-
     override func didSelectRow(at indexPath: IndexPath, tableView: UITableView) {
         tableView.deselectRow(at: indexPath, animated: true)
         if indexPath.row == 0 {

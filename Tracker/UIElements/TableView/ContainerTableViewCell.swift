@@ -1,12 +1,10 @@
 import UIKit
-
 final class ContainerTableViewCell: UITableViewCell {
     private let leftPadding: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
-
     private let separatorLine: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -14,18 +12,15 @@ final class ContainerTableViewCell: UITableViewCell {
         view.layer.zPosition = 1
         return view
     }()
-
     var isLastCell: Bool = false {
         didSet {
             separatorLine.isHidden = isLastCell
         }
     }
-
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupStyle()
     }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
     private func setupStyle() {
@@ -59,7 +54,6 @@ final class ContainerTableViewCell: UITableViewCell {
         ])
     }
 }
-
 extension ContainerTableViewCell {
     func configure(title: String, detail: String?) {
         contentView.viewWithTag(101)?.removeFromSuperview()

@@ -1,7 +1,6 @@
 import Combine
 import CoreData
 import Logging
-
 final class TrackersViewModel {
     private let categoryStore: TrackerCategoryStore
     var recordStore: TrackerRecordStore
@@ -14,7 +13,6 @@ final class TrackersViewModel {
     @Published var currentDate: Date = .init() {
         didSet { onDateChanged?(currentDate) }
     }
-
     private var originalCategoryMap: [UUID: String] = [:]
     private var reloadWorkItem: DispatchWorkItem?
     var onTrackersUpdated: (() -> Void)?
@@ -30,7 +28,6 @@ final class TrackersViewModel {
         self.init(categoryStore: categoryStore, trackerStore: trackerStore, recordStore: recordStore)
         loadData()
     }
-
     init(
         categoryStore: TrackerCategoryStore,
         trackerStore: TrackerStore,
@@ -43,21 +40,18 @@ final class TrackersViewModel {
         self.categoryStore.delegate = self
         self.recordStore.delegate = self
     }
-
     func loadData() {
         trackers = trackerStore.getTrackers()
         completedTrackers = recordStore.completedTrackers
         categories = categoryStore.categories
         scheduleTrackersUpdate()
     }
-
     func reloadTrackers() {
         trackers = trackerStore.getTrackers()
         completedTrackers = recordStore.completedTrackers
         trackers.forEach { _ = makeCellViewModel(for: $0) }
         scheduleTrackersUpdate()
     }
-
     private func scheduleTrackersUpdate() {
         reloadWorkItem?.cancel()
         let workItem = DispatchWorkItem { [weak self] in
@@ -67,7 +61,6 @@ final class TrackersViewModel {
         reloadWorkItem = workItem
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: workItem)
     }
-
     func addTracker(_ tracker: Tracker, to categoryTitle: String) {
         guard !trackers.contains(where: { $0.id == tracker.id }) else { return }
         categoryStore.addTracker(tracker, to: categoryTitle)
@@ -81,56 +74,43 @@ final class TrackersViewModel {
                                          currentDate: currentDate)
         cellViewModels[tracker.id] = newVM
     }
-
-    // MARK: - TrackersViewModel
     func markTrackerAsCompleted(_ tracker: Tracker, on date: Date, completion: (() -> Void)? = nil) {
         AppLogger.trackers.info("[VM] markTrackerAsCompleted called for tracker: \(tracker.name) (\(tracker.id)) on \(date.short)")
-
         guard let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) else {
             AppLogger.trackers.warning("[VM] Tracker not found in CoreData for id \(tracker.id)")
             return
         }
-
         recordStore.addRecord(for: trackerCoreData, date: date)
         lastUpdatedTrackerID = tracker.id
         AppLogger.trackers.info("[VM] Record added, lastUpdatedTrackerID = \(self.lastUpdatedTrackerID?.uuidString ?? "nil")")
-
         if let updated = trackerStore.getTrackers().first(where: { $0.id == tracker.id }) {
             AppLogger.trackers.info("[VM] Notifying FiltersVM about updated tracker: \(updated.name)")
-            onSingleTrackerUpdated?(updated, true)  // FiltersVM получит свежий трекер
+            onSingleTrackerUpdated?(updated, true)  
         }
-
         scheduleTrackersUpdate()
         completion?()
     }
-
     func unmarkTrackerAsCompleted(_ tracker: Tracker, on date: Date, completion: (() -> Void)? = nil) {
         AppLogger.trackers.info("[VM] unmarkTrackerAsCompleted called for tracker: \(tracker.name) (\(tracker.id)) on \(date.short)")
-
         guard let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) else {
             AppLogger.trackers.warning("[VM] Tracker not found in CoreData for id \(tracker.id)")
             return
         }
-
         recordStore.removeRecord(for: trackerCoreData, date: date)
         lastUpdatedTrackerID = tracker.id
         AppLogger.trackers.info("[VM] Record removed, lastUpdatedTrackerID = \(self.lastUpdatedTrackerID?.uuidString ?? "nil")")
-
         if let updated = trackerStore.getTrackers().first(where: { $0.id == tracker.id }) {
             AppLogger.trackers.info("[VM] Notifying FiltersVM about updated tracker: \(updated.name)")
             onSingleTrackerUpdated?(updated, false)
         }
-
         scheduleTrackersUpdate()
         completion?()
     }
-    
     func isTrackerCompleted(_ tracker: Tracker, on date: Date) -> Bool {
         let normalized = normalizedDate(date)
         guard let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) else { return false }
         return recordStore.isCompleted(for: trackerCoreData, date: normalized)
     }
-
     func makeCellViewModel(for tracker: Tracker) -> TrackerCellViewModel {
         if let existingVM = cellViewModels[tracker.id] {
             existingVM.updateCurrentDate(currentDate)
@@ -141,12 +121,10 @@ final class TrackersViewModel {
             return newVM
         }
     }
-
     private func normalizedDate(_ date: Date) -> Date {
         date.startOfDayUTC()
     }
 }
-
 extension TrackersViewModel {
     func pinTracker(_ tracker: Tracker) {
         var pinnedCategory = categories.first(where: { $0.title == pinnedCategoryTitle })
@@ -160,7 +138,6 @@ extension TrackersViewModel {
         categoryStore.moveTracker(tracker, to: pinnedCategoryTitle)
         reloadTrackers()
     }
-
     func unpinTracker(_ tracker: Tracker) {
         guard let originalTitle = originalCategoryMap[tracker.id] else { return }
         categoryStore.moveTracker(tracker, to: originalTitle)
@@ -168,7 +145,6 @@ extension TrackersViewModel {
         reloadTrackers()
     }
 }
-
 extension TrackersViewModel {
     func editTracker(_ tracker: Tracker) {
         if let vm = cellViewModels[tracker.id] {
@@ -179,41 +155,35 @@ extension TrackersViewModel {
         onEditTracker?(tracker)
         scheduleTrackersUpdate()
     }
-
     func deleteTracker(_ tracker: Tracker) {
         trackerStore.delete(tracker)
         reloadTrackers()
         NotificationCenter.default.post(name: .trackersDidChange, object: nil)
     }
 }
-
 extension TrackersViewModel: TrackerStoreDelegate {
     func didUpdateTrackers(_ trackers: [Tracker]) {
         self.trackers = trackers
         scheduleTrackersUpdate()
     }
 }
-
 extension TrackersViewModel: TrackerCategoryStoreDelegate {
     func didUpdateCategories() {
         categories = categoryStore.categories
         onCategoriesUpdated?()
     }
 }
-
 extension TrackersViewModel: TrackerRecordStoreDelegate {
     func didUpdateRecords() {
         completedTrackers = recordStore.completedTrackers
         scheduleTrackersUpdate()
     }
 }
-
 extension Date {
     var weekDay: WeekDay {
         WeekDay.from(date: self)
     }
 }
-
 extension TrackersViewModel {
     func searchTrackers(by text: String) -> [Tracker] {
         guard !text.isEmpty else { return trackers }

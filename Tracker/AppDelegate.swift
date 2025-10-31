@@ -2,7 +2,6 @@ import CoreData
 import Logging
 import UIKit
 import YandexMobileMetrica
-
 @main
 final class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?

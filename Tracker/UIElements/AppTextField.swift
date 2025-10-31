@@ -1,5 +1,4 @@
 import UIKit
-
 final class AppTextField: UIView, UITextFieldDelegate {
     let textField: CustomTextField
     private let charLimitLabel: UILabel
@@ -15,7 +14,6 @@ final class AppTextField: UIView, UITextFieldDelegate {
         setupUI(placeholder: placeholder)
         setupClearButton()
     }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
     private func setupUI(placeholder: String) {
@@ -48,7 +46,6 @@ final class AppTextField: UIView, UITextFieldDelegate {
             charLimitLabel.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
     }
-
     private func setupClearButton() {
         clearButton.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
         clearButton.tintColor = UIColor.systemGray3
@@ -59,36 +56,30 @@ final class AppTextField: UIView, UITextFieldDelegate {
         textField.rightView = container
         textField.rightViewMode = .whileEditing
     }
-
     @objc private func clearText() {
         textField.text = ""
         textChanged()
     }
-
     @objc private func textChanged() {
         let text = textField.text ?? ""
         charLimitLabel.isHidden = text.count < maxCharacters
         onTextChanged?(text)
     }
-
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         let currentText = textField.text ?? ""
         guard let stringRange = Range(range, in: currentText) else { return false }
         let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
         return updatedText.count <= maxCharacters
     }
-
     var textValue: String {
         get { textField.text ?? "" }
         set { textField.text = newValue }
     }
-
     func setText(_ text: String) {
         textField.text = text
         textChanged()
     }
 }
-
 final class CustomTextField: UITextField {
     override func rightViewRect(forBounds bounds: CGRect) -> CGRect {
         var rect = super.rightViewRect(forBounds: bounds)

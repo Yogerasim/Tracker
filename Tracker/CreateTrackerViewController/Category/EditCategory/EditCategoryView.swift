@@ -1,5 +1,4 @@
 import UIKit
-
 final class EditCategoryView: UIView {
     let header = ModalHeaderView(
         title: NSLocalizedString("edit_category_title", comment: "Заголовок экрана редактирования категории")
@@ -16,7 +15,6 @@ final class EditCategoryView: UIView {
         setupLayout()
         configureInitialState()
     }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
     private func setupLayout() {
@@ -37,16 +35,13 @@ final class EditCategoryView: UIView {
             doneButton.heightAnchor.constraint(equalToConstant: 60),
         ])
     }
-
     private func configureInitialState() {
         doneButton.isEnabled = false
         doneButton.backgroundColor = AppColors.gray
     }
-
     func setCategoryName(_ text: String) {
         nameTextField.textField.text = text
     }
-
     var categoryName: String? {
         get { nameTextField.textField.text }
         set { nameTextField.textField.text = newValue }

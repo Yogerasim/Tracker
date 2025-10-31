@@ -1,5 +1,4 @@
 import UIKit
-
 enum CategorySelector {
     static func presentCategorySelector(
         from viewController: UIViewController,

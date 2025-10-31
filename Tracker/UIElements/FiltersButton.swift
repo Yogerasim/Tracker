@@ -1,16 +1,13 @@
 import UIKit
-
 final class FiltersButton: UIButton {
     init() {
         super.init(frame: .zero)
         setupUI()
     }
-
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupUI()
     }
-
     private func setupUI() {
         translatesAutoresizingMaskIntoConstraints = false
         backgroundColor = AppColors.darkBlue

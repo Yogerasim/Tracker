@@ -1,10 +1,8 @@
 import UIKit
-
 enum CollectionItem {
     case emoji(String)
     case color(UIColor)
 }
-
 enum CollectionData {
     static let emojis: [CollectionItem] = [
         .emoji("😀"), .emoji("😎"), .emoji("🥳"),

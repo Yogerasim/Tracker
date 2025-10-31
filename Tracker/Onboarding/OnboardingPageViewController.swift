@@ -1,5 +1,4 @@
 import UIKit
-
 final class OnboardingPageViewController: UIViewController {
     private let imageName: String
     private let text: String
@@ -8,7 +7,6 @@ final class OnboardingPageViewController: UIViewController {
         self.text = text
         super.init(nibName: nil, bundle: nil)
     }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
     override func viewDidLoad() {

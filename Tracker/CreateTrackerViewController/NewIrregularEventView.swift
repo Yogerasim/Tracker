@@ -1,17 +1,14 @@
 import UIKit
-
 final class NewIrregularEventView: TrackerCreationViewModel {
     init() {
         super.init(title: NSLocalizedString("new_irregular_event.title", comment: ""))
         tableContainer.updateHeight(forRows: 1)
     }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
     override func createTapped() {
         createTracker(with: WeekDay.allCases)
     }
-
     override func numberOfRowsInTable() -> Int { 1 }
     override func tableViewCell(for tableView: UITableView, indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ContainerTableViewCell
@@ -22,7 +19,6 @@ final class NewIrregularEventView: TrackerCreationViewModel {
         cell.isLastCell = true
         return cell
     }
-
     override func didSelectRow(at indexPath: IndexPath, tableView: UITableView) {
         tableView.deselectRow(at: indexPath, animated: true)
         let store = TrackerCategoryStore(context: context)

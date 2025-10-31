@@ -1,6 +1,5 @@
 import CoreData
 import UIKit
-
 final class CategoryViewController: UIViewController {
     private let header = ModalHeaderView(
         title: NSLocalizedString("category_title", comment: "Заголовок экрана выбора категории")
@@ -18,13 +17,11 @@ final class CategoryViewController: UIViewController {
         static let checkmarkImageName = "ic 24x24"
         static let rowHeight: CGFloat = 75
     }
-
     init(store: TrackerCategoryStore) {
         categoryStore = store
         super.init(nibName: nil, bundle: nil)
         categoryStore.delegate = self
     }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
     override func viewDidLoad() {
@@ -36,7 +33,6 @@ final class CategoryViewController: UIViewController {
         setupActions()
         updateUI()
     }
-
     private func setupLayout() {
         for item in [header, tableContainer, placeholderView, addButton] {
             item.translatesAutoresizingMaskIntoConstraints = false
@@ -60,7 +56,6 @@ final class CategoryViewController: UIViewController {
         let categories = categoryStore.fetchCategories()
         tableContainer.updateHeight(forRows: categories.count)
     }
-
     private func setupTableView() {
         let tableView = tableContainer.tableView
         tableView.dataSource = self
@@ -70,11 +65,9 @@ final class CategoryViewController: UIViewController {
         tableView.isScrollEnabled = false
         tableView.rowHeight = Constants.rowHeight
     }
-
     private func setupActions() {
         addButton.addTarget(self, action: #selector(addCategoryTapped), for: .touchUpInside)
     }
-
     private func updateUI() {
         let categories = categoryStore.fetchCategories()
         let hasCategories = !categories.isEmpty
@@ -90,7 +83,6 @@ final class CategoryViewController: UIViewController {
         tableContainer.updateHeight(forRows: categories.count)
         tableContainer.tableView.reloadData()
     }
-
     @objc private func addCategoryTapped() {
         let newCategoryVM = NewCategoryViewModel(store: categoryStore)
         newCategoryVM.onCategoryCreated = { [weak self] category in
@@ -100,7 +92,6 @@ final class CategoryViewController: UIViewController {
         let newCategoryVC = NewCategoryViewController(viewModel: newCategoryVM)
         present(newCategoryVC, animated: true)
     }
-
     private func setupContextMenuController() {
         contextMenuController = BaseContextMenuController(
             owner: self,
@@ -130,14 +121,12 @@ final class CategoryViewController: UIViewController {
             }
         )
     }
-
     private func editCategory(_ category: TrackerCategoryCoreData) {
         guard let context = category.managedObjectContext else { return }
         let editVM = EditCategoryViewModel(category: category, context: context)
         let editVC = EditCategoryViewController(viewModel: editVM)
         present(editVC, animated: true)
     }
-
     private func deleteCategory(_ category: TrackerCategoryCoreData) {
         guard let title = category.title else { return }
         let alert = UIAlertController(
@@ -158,7 +147,6 @@ final class CategoryViewController: UIViewController {
         alert.addAction(UIAlertAction(title: NSLocalizedString("category.action.cancel", comment: "Cancel"), style: .cancel))
         present(alert, animated: true)
     }
-
     private func configureCheckmark(for cell: UITableViewCell, at indexPath: IndexPath) {
         if indexPath.row == selectedCategoryIndex {
             let checkmark = UIImageView(image: UIImage(named: Constants.checkmarkImageName))
@@ -172,12 +160,10 @@ final class CategoryViewController: UIViewController {
         }
     }
 }
-
 extension CategoryViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         categoryStore.fetchCategories().count
     }
-
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as? ContainerTableViewCell else {
             return UITableViewCell()
@@ -192,7 +178,6 @@ extension CategoryViewController: UITableViewDataSource, UITableViewDelegate {
         }
         return cell
     }
-
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let previousIndex = selectedCategoryIndex
@@ -206,7 +191,6 @@ extension CategoryViewController: UITableViewDataSource, UITableViewDelegate {
         onCategorySelected?(selectedCategory)
     }
 }
-
 extension CategoryViewController: TrackerCategoryStoreDelegate {
     func didUpdateCategories() {
         updateUI()
