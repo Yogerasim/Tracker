@@ -86,3 +86,38 @@ private extension EditHabitViewController {
         dismiss(animated: true)
     }
 }
+extension EditHabitViewController {
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+
+        if indexPath.row == 0 {
+            let categoryVC = CategoryViewController(store: TrackerCategoryStore(context: context))
+            categoryVC.onCategorySelected = { [weak self] category in
+                self?.selectedCategory = category
+                tableView.reloadRows(at: [indexPath], with: .automatic)
+            }
+            if let sheet = categoryVC.sheetPresentationController {
+                sheet.detents = [.large()]
+                sheet.prefersGrabberVisible = true
+                sheet.preferredCornerRadius = 16
+            }
+            present(categoryVC, animated: true)
+        }
+
+        if indexPath.row == 1 {
+            let scheduleVC = ScheduleViewController()
+            scheduleVC.selectedDays = selectedDays
+            scheduleVC.onDone = { [weak self] days in
+                self?.selectedDays = days
+                self?.updateDaysCountLabel()
+                tableView.reloadRows(at: [indexPath], with: .automatic)
+            }
+            if let sheet = scheduleVC.sheetPresentationController {
+                sheet.detents = [.large()]
+                sheet.prefersGrabberVisible = true
+                sheet.preferredCornerRadius = 16
+            }
+            present(scheduleVC, animated: true)
+        }
+    }
+}
