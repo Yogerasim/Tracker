@@ -3,7 +3,8 @@ import UIKit
 final class TrackerCell: UICollectionViewCell {
     static let reuseIdentifier = "TrackerCell"
     private var viewModel: TrackerCellViewModel?
-    var onToggleCompletion: (() -> Void)?
+    private var isToggling = false
+    var onToggleCompletion: ((Bool) -> Void)?
     private let cardView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 12
@@ -62,9 +63,16 @@ final class TrackerCell: UICollectionViewCell {
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
     @objc private func toggleTapped() {
-        // 🔄 Меняем локальный стейт сразу
-        viewModel?.toggleCompletion()
-        onToggleCompletion?()
+        guard !isToggling else { return }
+        isToggling = true
+
+        guard let vm = viewModel else { return }
+        let newValue = !vm.isCompleted
+        onToggleCompletion?(newValue)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            self.isToggling = false
+        }
     }
 
     func setCompletionEnabled(_ enabled: Bool) {
@@ -129,9 +137,6 @@ final class TrackerCell: UICollectionViewCell {
             toggleButton.widthAnchor.constraint(equalToConstant: 34),
             toggleButton.heightAnchor.constraint(equalToConstant: 34),
         ])
-    }
-    @objc private func toggleCompletionAction() {
-        onToggleCompletion?()
     }
 }
 

@@ -45,6 +45,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
 
         let tracker = trackersInCategory[indexPath.item]
         let cellViewModel = viewModel.makeCellViewModel(for: tracker)
+        cellViewModel.updateCurrentDate(filtersViewModel.selectedDate)
 
         cell.configure(with: cellViewModel)
 
@@ -52,10 +53,13 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         cell.setCompletionEnabled(!isFuture)
 
         // 🔄 Обновление галочки мгновенно
-        cell.onToggleCompletion = { [weak self] in
-            guard let self else { return }
-            self.filtersViewModel.updateSingleTracker(cellViewModel.tracker)
+        cell.onToggleCompletion = { [weak self] completed in
+            guard let self = self else { return }
+
+            self.filtersViewModel.updateSingleTracker(tracker, completed: completed)
+            self.refreshCell(for: tracker)
         }
+
         contextMenuController?.addInteraction(to: cell)
         return cell
     }
@@ -67,18 +71,24 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         ui.collectionView.reloadData()
     }
     func refreshCell(for tracker: Tracker) {
-        let categoryTitle = tracker.trackerCategory?.title ?? "Без категории"
-        guard let sectionIndex = visibleCategories.firstIndex(where: { $0.title == categoryTitle }) else { return }
+        guard let indexPath = indexPathForTracker(tracker) else { return }
 
-        let trackersInSection = filtersViewModel.filteredTrackers.filter { $0.trackerCategory?.title == categoryTitle }
-        guard let itemIndex = trackersInSection.firstIndex(where: { $0.id == tracker.id }) else { return }
-
-        let indexPath = IndexPath(item: itemIndex, section: sectionIndex)
         DispatchQueue.main.async {
             UIView.performWithoutAnimation {
                 self.ui.collectionView.reloadItems(at: [indexPath])
             }
         }
+    }
+    func indexPathForTracker(_ tracker: Tracker) -> IndexPath? {
+        for (sectionIndex, category) in visibleCategories.enumerated() {
+            let trackers = filtersViewModel.filteredTrackers.filter {
+                $0.trackerCategory?.title == category.title
+            }
+            if let itemIndex = trackers.firstIndex(where: { $0.id == tracker.id }) {
+                return IndexPath(item: itemIndex, section: sectionIndex)
+            }
+        }
+        return nil
     }
 
     func debugPrintTrackersSchedule() {

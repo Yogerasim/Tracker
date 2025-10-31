@@ -14,12 +14,14 @@ final class FiltersViewModel {
 
     var selectedCategory: TrackerCategory?
     var onFilteredTrackersUpdated: (() -> Void)?
+    var onSingleTrackerUpdated: ((Tracker, Bool) -> Void)?
 
     private let trackersProvider: () -> [Tracker]
     private let isCompletedProvider: (Tracker, Date) -> Bool
     private let dateFilter: TrackersDateFilter
     private var cancellables = Set<AnyCancellable>()
     private var hasInitialDataLoaded = false
+  
 
     // 🔹 Защита от дублирующихся вызовов
     private var isApplyingFilters = false
@@ -116,6 +118,7 @@ final class FiltersViewModel {
         } else {
             AppLogger.trackers.debug("[FiltersVM] No change in filtered trackers list")
         }
+        
     }
 
     func selectFilter(index: Int) {
@@ -134,11 +137,7 @@ final class FiltersViewModel {
             AppLogger.trackers.warning("[FiltersVM] Tracker \(tracker.name) not found in filtered list")
         }
     }
-    func updateSingleTracker(_ tracker: Tracker) {
-            if let index = filteredTrackers.firstIndex(where: { $0.id == tracker.id }) {
-                filteredTrackers[index] = tracker
-                AppLogger.trackers.info("[FiltersVM] updateSingleTracker: \(tracker.name) updated")
-                onFilteredTrackersUpdated?()
-            }
-        }
+    func updateSingleTracker(_ tracker: Tracker, completed: Bool) {
+        onSingleTrackerUpdated?(tracker, completed)
+    }
 }

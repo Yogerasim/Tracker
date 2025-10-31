@@ -103,6 +103,7 @@ final class TrackerRecordStore: NSObject {
             do {
                 if self.viewContext.hasChanges {
                     try self.viewContext.save()
+                    self.viewContext.refreshAllObjects()
                 }
             } catch {}
         }

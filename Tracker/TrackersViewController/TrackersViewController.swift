@@ -11,6 +11,7 @@ final class TrackersViewController: UIViewController {
     init(viewModel: TrackersViewModel = TrackersViewModel()) {
         self.viewModel = viewModel
         let dateFilter = TrackersDateFilter()
+
         filtersViewModel = FiltersViewModel(
             trackersProvider: { viewModel.trackers },
             isCompletedProvider: { tracker, date in
@@ -18,6 +19,7 @@ final class TrackersViewController: UIViewController {
             },
             dateFilter: dateFilter
         )
+
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -239,10 +241,15 @@ final class TrackersViewController: UIViewController {
     }
 
     private func setupBindings() {
-        viewModel.onSingleTrackerUpdated = { [weak self] updatedTracker in
-            guard let self else { return }
+        viewModel.onSingleTrackerUpdated = { [weak self] updatedTracker, completed in
+            guard let self = self else { return }
             AppLogger.trackers.info("[VC] Single tracker updated: \(updatedTracker.name)")
+
+            // ✅ Обновляем FiltersVM
             self.filtersViewModel.updateTracker(updatedTracker)
+
+            // ✅ Обновляем UI ячейки
+            self.refreshCell(for: updatedTracker)
         }
         viewModel.onTrackersUpdated = { [weak self] in
             guard let self = self else { return }
@@ -287,6 +294,19 @@ final class TrackersViewController: UIViewController {
         filtersViewModel.onFilteredTrackersUpdated = { [weak self] in
             guard let self = self else { return }
             self.scheduleUIRefresh()
+        }
+        filtersViewModel.onSingleTrackerUpdated = { [weak self] tracker, completed in
+            guard let self else { return }
+
+            if completed {
+                self.viewModel.markTrackerAsCompleted(tracker, on: self.filtersViewModel.selectedDate)
+            } else {
+                self.viewModel.unmarkTrackerAsCompleted(tracker, on: self.filtersViewModel.selectedDate)
+            }
+        }
+
+        viewModel.onSingleTrackerUpdated = { [weak self] updatedTracker, completed in
+            self?.filtersViewModel.updateTracker(updatedTracker)
         }
     }
 

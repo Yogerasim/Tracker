@@ -2,74 +2,72 @@ import Foundation
 import UIKit
 
 final class TrackerCellViewModel {
+    // MARK: - Properties
+
     var tracker: Tracker
     private let recordStore: TrackerRecordStore
-    private(set) var isCompleted: Bool
-    private(set) var daysCount: Int
+
+    /// ✅ computed — состояние всегда читается из CoreData, больше нет локального дубля
+    var isCompleted: Bool {
+        guard let cd = recordStore.fetchTrackerInViewContext(by: tracker.id) else { return false }
+        return recordStore.isCompleted(for: cd, date: currentDate)
+    }
+
+    /// ✅ daysCount тоже нужно всегда вычислять, иначе он рассинхронизируется
+    var daysCount: Int {
+        recordStore.completedTrackers.filter { $0.trackerId == tracker.id }.count
+    }
+
     var currentDate: Date
     var onStateChanged: (() -> Void)?
+
+    // MARK: - Init
+
     init(tracker: Tracker, recordStore: TrackerRecordStore, currentDate: Date = Date()) {
         self.tracker = tracker
         self.recordStore = recordStore
         self.currentDate = currentDate
-        if let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) {
-            isCompleted = recordStore.isCompleted(for: trackerCoreData, date: currentDate)
-        } else {
-            isCompleted = false
-        }
-        daysCount = recordStore.completedTrackers.filter { $0.trackerId == tracker.id }.count
     }
 
-    // MARK: - TrackerCellViewModel
+    // MARK: - Public
+
     func toggleCompletion() {
         AppLogger.trackers.info("[CellVM] toggleCompletion called for tracker: \(tracker.name) (\(tracker.id))")
 
-        let oldState = isCompleted
-        isCompleted.toggle()
-        daysCount += isCompleted ? 1 : -1
-        onStateChanged?()
-        AppLogger.trackers.info("[CellVM] Local state changed: isCompleted = \(isCompleted), daysCount = \(daysCount)")
+        let wasCompleted = isCompleted
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
 
-            if oldState {
-                AppLogger.trackers.info("[CellVM] Removing record for tracker: \(self.tracker.name) on \(self.currentDate.short)")
+            if wasCompleted {
+                AppLogger.trackers.info("[CellVM] Removing record for \(self.tracker.name) on \(self.currentDate.short)")
                 self.recordStore.deleteRecord(for: self.tracker.id, date: self.currentDate)
             } else {
-                AppLogger.trackers.info("[CellVM] Adding record for tracker: \(self.tracker.name) on \(self.currentDate.short)")
-                if let trackerCore = self.recordStore.fetchTrackerInViewContext(by: self.tracker.id) {
-                    self.recordStore.addRecord(for: trackerCore, date: self.currentDate)
+                AppLogger.trackers.info("[CellVM] Adding record for \(self.tracker.name) on \(self.currentDate.short)")
+                if let cd = self.recordStore.fetchTrackerInViewContext(by: self.tracker.id) {
+                    self.recordStore.addRecord(for: cd, date: self.currentDate)
                 } else {
                     self.recordStore.addRecord(for: self.tracker.id, date: self.currentDate)
                 }
             }
 
             DispatchQueue.main.async {
-                AppLogger.trackers.info("[CellVM] Posting trackerRecordsDidChange notification for tracker: \(self.tracker.name)")
-                NotificationCenter.default.post(name: .trackerRecordsDidChange, object: self.tracker)
+                AppLogger.trackers.info("[CellVM] Posting trackerRecordsDidChange for \(self.tracker.name)")
+                
+
+                // ✅ UI обновится после записи в CoreData
+                self.onStateChanged?()
             }
         }
     }
 
+    /// ✅ Просто говорит UI обновиться на основании свежих данных
     func refreshState() {
-        guard recordStore.fetchTrackerInViewContext(by: tracker.id) != nil else {
-            isCompleted = false
-            daysCount = 0
-            onStateChanged?()
-            return
-        }
-        isCompleted = recordStore.completedTrackers.contains(where: { $0.trackerId == tracker.id })
-        daysCount = recordStore.completedTrackers.filter { $0.trackerId == tracker.id }.count
         onStateChanged?()
     }
 
+    /// ✅ Теперь идентичен refreshState — локального состояния больше нет
     func refreshStateIfNeeded() {
-        if recordStore.fetchTrackerInViewContext(by: tracker.id) != nil {
-            daysCount = recordStore.completedTrackers.filter { $0.trackerId == tracker.id }.count
-        } else {
-            daysCount = 0
-        }
         onStateChanged?()
     }
 
@@ -92,6 +90,8 @@ final class TrackerCellViewModel {
         currentDate = date
         refreshState()
     }
+
+    // MARK: - Convenience
 
     func trackerEmoji() -> String { tracker.emoji }
     func trackerTitle() -> String { tracker.name }

@@ -21,7 +21,7 @@ final class TrackersViewModel {
     var onCategoriesUpdated: (() -> Void)?
     var onDateChanged: ((Date) -> Void)?
     var onEditTracker: ((Tracker) -> Void)?
-    var onSingleTrackerUpdated: ((Tracker) -> Void)?
+    var onSingleTrackerUpdated: ((Tracker, Bool) -> Void)?
     var lastUpdatedTrackerID: UUID?
     convenience init(container: NSPersistentContainer = CoreDataStack.shared.persistentContainer) {
         let categoryStore = TrackerCategoryStore(context: container.viewContext)
@@ -75,6 +75,12 @@ final class TrackersViewModel {
         trackers.forEach { _ = makeCellViewModel(for: $0) }
         scheduleTrackersUpdate()
     }
+    func refreshViewModel(for tracker: Tracker) {
+        let newVM = TrackerCellViewModel(tracker: tracker,
+                                         recordStore: recordStore,
+                                         currentDate: currentDate)
+        cellViewModels[tracker.id] = newVM
+    }
 
     // MARK: - TrackersViewModel
     func markTrackerAsCompleted(_ tracker: Tracker, on date: Date, completion: (() -> Void)? = nil) {
@@ -91,7 +97,7 @@ final class TrackersViewModel {
 
         if let updated = trackerStore.getTrackers().first(where: { $0.id == tracker.id }) {
             AppLogger.trackers.info("[VM] Notifying FiltersVM about updated tracker: \(updated.name)")
-            onSingleTrackerUpdated?(updated)  // FiltersVM получит свежий трекер
+            onSingleTrackerUpdated?(updated, true)  // FiltersVM получит свежий трекер
         }
 
         scheduleTrackersUpdate()
@@ -112,7 +118,7 @@ final class TrackersViewModel {
 
         if let updated = trackerStore.getTrackers().first(where: { $0.id == tracker.id }) {
             AppLogger.trackers.info("[VM] Notifying FiltersVM about updated tracker: \(updated.name)")
-            onSingleTrackerUpdated?(updated)
+            onSingleTrackerUpdated?(updated, false)
         }
 
         scheduleTrackersUpdate()
