@@ -1,6 +1,8 @@
 import CoreData
 import UIKit
 class BaseTrackerCreationViewController: UIViewController {
+    @objc func categoryFieldTapped() {}
+        @objc func scheduleFieldTapped() {}
     let scrollView = UIScrollView()
     let contentStack = UIStackView()
     let modalHeader: ModalHeaderView

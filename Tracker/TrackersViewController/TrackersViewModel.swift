@@ -7,13 +7,13 @@ final class TrackersViewModel {
     let trackerStore: TrackerStore
     var cellViewModels: [UUID: TrackerCellViewModel] = [:]
     let pinnedCategoryTitle = NSLocalizedString("trackers.pinned_category", comment: "Закрепленные")
+    private let defaultCategoryTitle = NSLocalizedString("trackers.default_category", comment: "Мои трекеры")
     @Published private(set) var trackers: [Tracker] = []
     @Published private(set) var categories: [TrackerCategory] = []
     @Published var completedTrackers: [TrackerRecord] = []
     @Published var currentDate: Date = .init() {
         didSet { onDateChanged?(currentDate) }
     }
-    private let defaultCategoryTitle = NSLocalizedString("trackers.default_category", comment: "Мои трекеры")
     private var originalCategoryMap: [UUID: String] = [:]
     private var reloadWorkItem: DispatchWorkItem?
     var onTrackersUpdated: (() -> Void)?
@@ -22,7 +22,6 @@ final class TrackersViewModel {
     var onEditTracker: ((Tracker) -> Void)?
     var onSingleTrackerUpdated: ((Tracker, Bool) -> Void)?
     var lastUpdatedTrackerID: UUID?
-    var filtersViewModel: FiltersViewModel?
     convenience init(container: NSPersistentContainer = CoreDataStack.shared.persistentContainer) {
         let categoryStore = TrackerCategoryStore(context: container.viewContext)
         let trackerStore = TrackerStore(context: container.viewContext)
@@ -33,13 +32,11 @@ final class TrackersViewModel {
     init(
         categoryStore: TrackerCategoryStore,
         trackerStore: TrackerStore,
-        recordStore: TrackerRecordStore,
-        filtersViewModel: FiltersViewModel? = nil
+        recordStore: TrackerRecordStore
     ) {
         self.categoryStore = categoryStore
         self.trackerStore = trackerStore
         self.recordStore = recordStore
-        self.filtersViewModel = filtersViewModel
         self.trackerStore.delegate = self
         self.categoryStore.delegate = self
         self.recordStore.delegate = self
