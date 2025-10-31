@@ -12,4 +12,9 @@ extension Date {
         return Calendar(identifier: .gregorian)
             .date(byAdding: .day, value: 1, to: startOfDayUTC())!
     }
+    var short: String {
+        let f = DateFormatter()
+        f.dateFormat = "dd.MM"
+        return f.string(from: self)
+    }
 }

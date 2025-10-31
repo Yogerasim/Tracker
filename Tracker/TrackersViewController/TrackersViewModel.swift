@@ -21,6 +21,7 @@ final class TrackersViewModel {
     var onCategoriesUpdated: (() -> Void)?
     var onDateChanged: ((Date) -> Void)?
     var onEditTracker: ((Tracker) -> Void)?
+    var onSingleTrackerUpdated: ((Tracker) -> Void)?
     var lastUpdatedTrackerID: UUID?
     convenience init(container: NSPersistentContainer = CoreDataStack.shared.persistentContainer) {
         let categoryStore = TrackerCategoryStore(context: container.viewContext)
@@ -76,21 +77,43 @@ final class TrackersViewModel {
     }
 
     func markTrackerAsCompleted(_ tracker: Tracker, on date: Date, completion: (() -> Void)? = nil) {
-        guard let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) else { return }
+        AppLogger.trackers.info("[Mark] Start marking tracker \(tracker.name) (\(tracker.id)) as completed on \(date.short)")
+        guard let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) else {
+            AppLogger.trackers.warning("[Mark] Tracker not found in CoreData for id \(tracker.id)")
+            return
+        }
+
         recordStore.addRecord(for: trackerCoreData, date: date)
         lastUpdatedTrackerID = tracker.id
+        AppLogger.trackers.info("[Mark] Record added successfully. lastUpdatedTrackerID = \(self.lastUpdatedTrackerID?.uuidString ?? "nil")")
+
+        if let updated = trackerStore.getTrackers().first(where: { $0.id == tracker.id }) {
+            onSingleTrackerUpdated?(updated)   // ✅ теперь FiltersVM получит свежий Tracker
+        }
+
         scheduleTrackersUpdate()
         completion?()
     }
 
     func unmarkTrackerAsCompleted(_ tracker: Tracker, on date: Date, completion: (() -> Void)? = nil) {
-        guard let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) else { return }
+        AppLogger.trackers.info("[Unmark] Start unmarking tracker \(tracker.name) (\(tracker.id)) on \(date.short)")
+        guard let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) else {
+            AppLogger.trackers.warning("[Unmark] Tracker not found in CoreData for id \(tracker.id)")
+            return
+        }
+
         recordStore.removeRecord(for: trackerCoreData, date: date)
         lastUpdatedTrackerID = tracker.id
+        AppLogger.trackers.info("[Unmark] Record removed successfully. lastUpdatedTrackerID = \(self.lastUpdatedTrackerID?.uuidString ?? "nil")")
+
+        if let updated = trackerStore.getTrackers().first(where: { $0.id == tracker.id }) {
+            onSingleTrackerUpdated?(updated)   // ✅ всегда свежая модель
+        }
+
         scheduleTrackersUpdate()
         completion?()
     }
-
+    
     func isTrackerCompleted(_ tracker: Tracker, on date: Date) -> Bool {
         let normalized = normalizedDate(date)
         guard let trackerCoreData = recordStore.fetchTrackerInViewContext(by: tracker.id) else { return false }
@@ -179,3 +202,4 @@ extension Date {
         WeekDay.from(date: self)
     }
 }
+

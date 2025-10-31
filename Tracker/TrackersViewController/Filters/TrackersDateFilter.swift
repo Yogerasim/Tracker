@@ -2,25 +2,24 @@ import Foundation
 
 final class TrackersDateFilter {
     private let calendar: Calendar
+
     init(calendar: Calendar = .current) {
         self.calendar = calendar
     }
 
+    /// Фильтрует трекеры по выбранному дню недели
     func filterTrackersByDay(_ trackers: [Tracker], date: Date) -> [Tracker] {
-        let calendar = Calendar.current
         let weekday = calendar.component(.weekday, from: date)
         let adjusted = weekday == 1 ? 7 : weekday - 1
         guard let weekDay = WeekDay(rawValue: adjusted) else { return [] }
-        for tracker in trackers {
-            _ = tracker.schedule.map { $0.shortName }.joined(separator: ", ")
-        }
-        let filtered = trackers.filter { tracker in
-            let contains = tracker.schedule.contains(weekDay)
-            return contains
-        }
-        return filtered
+
+        let result = trackers.filter { $0.schedule.contains(weekDay) }
+        AppLogger.trackers.debug("[DateFilter] \(result.count)/\(trackers.count) trackers match weekday \(weekDay)")
+        return result
     }
 
+    /// Фильтрация по поиску и состоянию (выполнен / не выполнен)
+    
     func filterTrackersByIndex(
         _ trackers: [Tracker],
         selectedFilterIndex: Int,
@@ -30,20 +29,17 @@ final class TrackersDateFilter {
     ) -> [Tracker] {
         let normalized = calendar.startOfDay(for: currentDate)
         let text = searchText.lowercased()
-        let searchFiltered = trackers.filter {
-            text.isEmpty || $0.name.lowercased().contains(text)
-        }
+        let searchFiltered = trackers.filter { text.isEmpty || $0.name.lowercased().contains(text) }
+
+        var result: [Tracker]
         switch selectedFilterIndex {
-        case 1:
-            let weekdayInt = calendar.component(.weekday, from: normalized)
-            guard let weekday = WeekDay(rawValue: weekdayInt) else { return [] }
-            return searchFiltered.filter { $0.schedule.contains(weekday) }
-        case 2:
-            return searchFiltered.filter { completionChecker($0, normalized) }
-        case 3:
-            return searchFiltered.filter { !completionChecker($0, normalized) }
-        default:
-            return searchFiltered
+        case 1: result = searchFiltered
+        case 2: result = searchFiltered.filter { completionChecker($0, normalized) }
+        case 3: result = searchFiltered.filter { !completionChecker($0, normalized) }
+        default: result = searchFiltered
         }
+
+        AppLogger.trackers.debug("[DateFilter] After index=\(selectedFilterIndex): \(result.count)/\(trackers.count)")
+        return result
     }
 }

@@ -32,11 +32,7 @@ final class FiltersViewController: UIViewController {
         setupLayout()
         setupTableView()
         bindViewModel()
-        if let savedIndex = UserDefaults.standard.value(forKey: "selectedFilterIndex") as? Int {
-            viewModel.selectFilter(index: savedIndex)
-        } else {
-            viewModel.selectFilter(index: 0)
-        }
+        
     }
 
     private func bindViewModel() {

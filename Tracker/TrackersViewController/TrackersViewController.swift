@@ -52,11 +52,7 @@ final class TrackersViewController: UIViewController {
         updateColorsForCurrentTraitCollection()
         reloadFromCoreData()
         viewModel.loadData()
-        if let savedIndex = UserDefaults.standard.value(forKey: "selectedFilterIndex") as? Int {
-            filtersViewModel.selectFilter(index: savedIndex)
-        } else {
-            filtersViewModel.selectFilter(index: 0)
-        }
+        
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -243,32 +239,34 @@ final class TrackersViewController: UIViewController {
     }
 
     private func setupBindings() {
+        viewModel.onSingleTrackerUpdated = { [weak self] updatedTracker in
+            guard let self else { return }
+            AppLogger.trackers.info("[VC] Single tracker updated: \(updatedTracker.name)")
+            self.filtersViewModel.updateTracker(updatedTracker)
+        }
         viewModel.onTrackersUpdated = { [weak self] in
             guard let self = self else { return }
-            self.filtersViewModel.applyAllFilters(for: self.filtersViewModel.selectedDate)
-            self.recalculateVisibleCategories()
-            guard let updatedID = self.viewModel.lastUpdatedTrackerID else {
-                self.ui.collectionView.reloadData()
-                return
-            }
+
+            
+
+            // ✅ 2. Локально обновляем ТОЛЬКО одну ячейку — без reloadData
+            guard let updatedID = self.viewModel.lastUpdatedTrackerID else { return }
+
+            // Обновлённый список уже в filteredTrackers после applyAllFilters
             let allVisibleTrackers = self.filtersViewModel.filteredTrackers
-            guard let tracker = allVisibleTrackers.first(where: { $0.id == updatedID }) else {
-                self.ui.collectionView.reloadData()
-                return
-            }
+            guard let tracker = allVisibleTrackers.first(where: { $0.id == updatedID }) else { return }
+
             let categoryTitle = tracker.trackerCategory?.title ?? "Мои трекеры"
-            guard let sectionIndex = self.visibleCategories.firstIndex(where: { $0.title == categoryTitle }) else {
-                self.ui.collectionView.reloadData()
-                return
-            }
+            guard let sectionIndex = self.visibleCategories.firstIndex(where: { $0.title == categoryTitle }) else { return }
+
             let trackersInSection = allVisibleTrackers.filter {
                 $0.trackerCategory?.title == categoryTitle
             }
-            guard let itemIndex = trackersInSection.firstIndex(where: { $0.id == updatedID }) else {
-                self.ui.collectionView.reloadData()
-                return
-            }
+
+            guard let itemIndex = trackersInSection.firstIndex(where: { $0.id == updatedID }) else { return }
+
             let indexPath = IndexPath(item: itemIndex, section: sectionIndex)
+
             DispatchQueue.main.async {
                 UIView.performWithoutAnimation {
                     self.ui.collectionView.reloadItems(at: [indexPath])
