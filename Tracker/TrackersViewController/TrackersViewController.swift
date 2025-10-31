@@ -479,17 +479,24 @@ extension TrackersViewController {
     }
 }
 
-extension TrackersViewController: UISearchBarDelegate {
-    func searchBar(_: UISearchBar, textDidChange searchText: String) {
-        filtersViewModel.searchText = searchText
-        updatePlaceholder()
-    }
-}
-
 extension TrackersViewController {
     func updateUI() {
         scheduleUIRefresh()
         updatePlaceholder()
         updateDateText()
+    }
+}
+extension TrackersViewController: UISearchBarDelegate {
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        let filtered = viewModel.searchTrackers(by: searchText)
+        filtersViewModel.searchText = searchText // ⚡ уведомляем об обновлении
+        
+        // visibleCategories можно тоже обновить
+        visibleCategories = viewModel.categories.filter { category in
+            filtered.contains { $0.trackerCategory?.title == category.title }
+        }
+
+        ui.collectionView.reloadData()
+        updatePlaceholder()
     }
 }

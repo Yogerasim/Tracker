@@ -214,3 +214,10 @@ extension Date {
     }
 }
 
+extension TrackersViewModel {
+    func searchTrackers(by text: String) -> [Tracker] {
+        guard !text.isEmpty else { return trackers }
+        let lowercased = text.lowercased()
+        return trackers.filter { $0.name.lowercased().contains(lowercased) }
+    }
+}
