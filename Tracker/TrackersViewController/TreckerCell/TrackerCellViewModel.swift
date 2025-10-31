@@ -33,8 +33,14 @@ final class TrackerCellViewModel {
 
     func toggleCompletion() {
         AppLogger.trackers.info("[CellVM] toggleCompletion called for tracker: \(tracker.name) (\(tracker.id))")
-
+        
         let wasCompleted = isCompleted
+
+        // Если трекер уже достиг максимума и пытаются поставить галочку — ничего не делаем
+        if !wasCompleted && daysCount >= tracker.schedule.count {
+            AppLogger.trackers.info("[CellVM] Max days reached for \(tracker.name), cannot add more")
+            return
+        }
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
@@ -53,9 +59,6 @@ final class TrackerCellViewModel {
 
             DispatchQueue.main.async {
                 AppLogger.trackers.info("[CellVM] Posting trackerRecordsDidChange for \(self.tracker.name)")
-                
-
-                // ✅ UI обновится после записи в CoreData
                 self.onStateChanged?()
             }
         }

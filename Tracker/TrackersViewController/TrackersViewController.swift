@@ -452,6 +452,14 @@ final class TrackersViewController: UIViewController {
         if visibleCategories.isEmpty {
         } else {}
     }
+    func setRecordStoreForTesting(_ store: TrackerRecordStore) {
+        viewModel.recordStore = store
+    }
+    func refreshAllVisibleCellsForTesting() {
+        ui.collectionView.visibleCells
+            .compactMap { $0 as? TrackerCell }
+            .forEach { $0.refreshCellState() }
+    }
 }
 
 extension TrackersViewController {

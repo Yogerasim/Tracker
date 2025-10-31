@@ -4,7 +4,7 @@ import Logging
 
 final class TrackersViewModel {
     private let categoryStore: TrackerCategoryStore
-    let recordStore: TrackerRecordStore
+    var recordStore: TrackerRecordStore
     let trackerStore: TrackerStore
     var cellViewModels: [UUID: TrackerCellViewModel] = [:]
     let pinnedCategoryTitle = NSLocalizedString("trackers.pinned_category", comment: "Закрепленные")
