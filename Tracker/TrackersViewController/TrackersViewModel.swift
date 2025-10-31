@@ -21,6 +21,7 @@ final class TrackersViewModel {
     var onEditTracker: ((Tracker) -> Void)?
     var onSingleTrackerUpdated: ((Tracker, Bool) -> Void)?
     var lastUpdatedTrackerID: UUID?
+    var filtersViewModel: FiltersViewModel?
     convenience init(container: NSPersistentContainer = CoreDataStack.shared.persistentContainer) {
         let categoryStore = TrackerCategoryStore(context: container.viewContext)
         let trackerStore = TrackerStore(context: container.viewContext)
@@ -31,11 +32,13 @@ final class TrackersViewModel {
     init(
         categoryStore: TrackerCategoryStore,
         trackerStore: TrackerStore,
-        recordStore: TrackerRecordStore
+        recordStore: TrackerRecordStore,
+        filtersViewModel: FiltersViewModel? = nil
     ) {
         self.categoryStore = categoryStore
         self.trackerStore = trackerStore
         self.recordStore = recordStore
+        self.filtersViewModel = filtersViewModel
         self.trackerStore.delegate = self
         self.categoryStore.delegate = self
         self.recordStore.delegate = self
@@ -132,17 +135,25 @@ extension TrackersViewModel {
             pinnedCategory = TrackerCategory(id: UUID(), title: pinnedCategoryTitle, trackers: [])
             categoryStore.add(pinnedCategory!)
             categories.insert(pinnedCategory!, at: 0)
-            onCategoriesUpdated?()
         }
         originalCategoryMap[tracker.id] = tracker.trackerCategory?.title ?? ""
         categoryStore.moveTracker(tracker, to: pinnedCategoryTitle)
+
         reloadTrackers()
+        onCategoriesUpdated?()
+        onTrackersUpdated?()
+        filtersViewModel?.applyAllFilters(for: currentDate)
     }
+
     func unpinTracker(_ tracker: Tracker) {
         guard let originalTitle = originalCategoryMap[tracker.id] else { return }
         categoryStore.moveTracker(tracker, to: originalTitle)
         originalCategoryMap.removeValue(forKey: tracker.id)
+
         reloadTrackers()
+        onCategoriesUpdated?()
+        onTrackersUpdated?()
+        filtersViewModel?.applyAllFilters(for: currentDate)
     }
 }
 extension TrackersViewModel {

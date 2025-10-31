@@ -5,6 +5,7 @@ final class TrackersViewController: UIViewController {
     let ui = TrackersUI()
     private let placeholderView = PlaceholderView()
     private let loadingIndicator = UIActivityIndicatorView(style: .large)
+    private var cancellables = Set<AnyCancellable>()
     let filtersViewModel: FiltersViewModel
     var contextMenuController: BaseContextMenuController<TrackerCell>?
     init(viewModel: TrackersViewModel = TrackersViewModel()) {
@@ -228,34 +229,21 @@ final class TrackersViewController: UIViewController {
         ui.calendarView.addTarget(self, action: #selector(calendarDateChanged(_:)), for: .valueChanged)
     }
     private func setupBindings() {
+        // MARK: - Single tracker updates
         viewModel.onSingleTrackerUpdated = { [weak self] updatedTracker, completed in
             guard let self = self else { return }
             AppLogger.trackers.info("[VC] Single tracker updated: \(updatedTracker.name)")
             self.filtersViewModel.updateTracker(updatedTracker)
             self.refreshCell(for: updatedTracker)
         }
-        viewModel.onTrackersUpdated = { [weak self] in
-            guard let self = self else { return }
-            guard let updatedID = self.viewModel.lastUpdatedTrackerID else { return }
-            let allVisibleTrackers = self.filtersViewModel.filteredTrackers
-            guard let tracker = allVisibleTrackers.first(where: { $0.id == updatedID }) else { return }
-            let categoryTitle = tracker.trackerCategory?.title ?? "Мои трекеры"
-            guard let sectionIndex = self.visibleCategories.firstIndex(where: { $0.title == categoryTitle }) else { return }
-            let trackersInSection = allVisibleTrackers.filter {
-                $0.trackerCategory?.title == categoryTitle
-            }
-            guard let itemIndex = trackersInSection.firstIndex(where: { $0.id == updatedID }) else { return }
-            let indexPath = IndexPath(item: itemIndex, section: sectionIndex)
-            DispatchQueue.main.async {
-                UIView.performWithoutAnimation {
-                    self.ui.collectionView.reloadItems(at: [indexPath])
-                }
-            }
-        }
+
+        // MARK: - Categories updates
         viewModel.onCategoriesUpdated = { [weak self] in
             guard let self = self else { return }
             self.scheduleUIRefresh()
         }
+
+        // MARK: - Date updates
         viewModel.onDateChanged = { [weak self] date in
             guard let self = self else { return }
             self.filtersViewModel.selectedDate = date
@@ -263,21 +251,33 @@ final class TrackersViewController: UIViewController {
             self.updateDateText()
             self.scheduleUIRefresh()
         }
+
+        // MARK: - FiltersViewModel updates
         filtersViewModel.onFilteredTrackersUpdated = { [weak self] in
             guard let self = self else { return }
             self.scheduleUIRefresh()
         }
+
         filtersViewModel.onSingleTrackerUpdated = { [weak self] tracker, completed in
-            guard let self else { return }
+            guard let self = self else { return }
             if completed {
                 self.viewModel.markTrackerAsCompleted(tracker, on: self.filtersViewModel.selectedDate)
             } else {
                 self.viewModel.unmarkTrackerAsCompleted(tracker, on: self.filtersViewModel.selectedDate)
             }
         }
-        viewModel.onSingleTrackerUpdated = { [weak self] updatedTracker, completed in
-            self?.filtersViewModel.updateTracker(updatedTracker)
-        }
+
+        // MARK: - React to trackers array changes
+        viewModel.$trackers
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.filtersViewModel.applyAllFilters(for: self.viewModel.currentDate)
+                self.recalculateVisibleCategories()
+                self.ui.collectionView.reloadData()
+                self.updatePlaceholder()
+            }
+            .store(in: &cancellables)
     }
     private var uiUpdateWorkItem: DispatchWorkItem?
     private var lastUIReloadTime: Date?
@@ -421,14 +421,6 @@ final class TrackersViewController: UIViewController {
 }
 extension TrackersViewController {
     func reloadFromCoreData() {
-        viewModel.onTrackersUpdated = { [weak self] in
-            guard let self = self else { return }
-            self.filtersViewModel.setInitialDataLoaded()
-            self.filtersViewModel.applyAllFilters(for: self.viewModel.currentDate)
-            self.recalculateVisibleCategories()
-            self.ui.collectionView.reloadData()
-            self.updatePlaceholder()
-        }
         filtersViewModel.applyAllFilters(for: viewModel.currentDate)
         recalculateVisibleCategories()
         ui.collectionView.reloadData()
