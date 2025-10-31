@@ -3,6 +3,7 @@ import UIKit
 final class EditHabitViewModel {
     private(set) var tracker: TrackerCoreData
     private let context: NSManagedObjectContext
+    private let recordStore: TrackerRecordStore
     var name: String {
         didSet {
             isButtonEnabled?(!name.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -14,40 +15,51 @@ final class EditHabitViewModel {
     var selectedDays: [WeekDay]
     var isButtonEnabled: ((Bool) -> Void)?
     var onHabitEdited: (() -> Void)?
-    init?(tracker: TrackerCoreData, context: NSManagedObjectContext) {
+    init?(
+        tracker: TrackerCoreData,
+        context: NSManagedObjectContext,
+        recordStore: TrackerRecordStore
+    ) {
         guard let name = tracker.name,
               let emoji = tracker.emoji,
               let colorHex = tracker.color,
-              let category = tracker.category else { return nil }
+              let category = tracker.category
+        else {
+            return nil
+        }
         self.tracker = tracker
         self.context = context
+        self.recordStore = recordStore
         self.name = name
-        selectedEmoji = emoji
-        selectedColor = UIColor(hex: colorHex)
-        selectedCategory = category
-        if let scheduleData = tracker.schedule as? Data,
-           let decoded = try? JSONDecoder().decode([WeekDay].self, from: scheduleData)
+        self.selectedEmoji = emoji
+        self.selectedColor = UIColor(hex: colorHex)
+        self.selectedCategory = category
+        if let data = tracker.schedule as? Data,
+           let decoded = try? JSONDecoder().decode([WeekDay].self, from: data)
         {
             selectedDays = decoded
         } else {
             selectedDays = []
         }
     }
+    var completedDaysCount: Int {
+        recordStore.completedTrackers.filter { $0.trackerId == tracker.id }.count
+    }
     func saveChanges() {
-        let trimmedName = name.trimmingCharacters(in: .whitespaces)
-        guard !trimmedName.isEmpty else { return }
-        tracker.name = trimmedName
+        let trimmed = name.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return }
+        tracker.name = trimmed
         tracker.emoji = selectedEmoji
         tracker.color = selectedColor.toHexString()
         tracker.category = selectedCategory
         if let encoded = try? JSONEncoder().encode(selectedDays) {
             tracker.schedule = encoded as NSData
-        } else {
-            tracker.schedule = (try? JSONEncoder().encode([WeekDay]())) as NSData?
         }
         do {
             try context.save()
             onHabitEdited?()
-        } catch {}
+        } catch {
+            print("❌ EditHabitViewModel: failed to save tracker:", error)
+        }
     }
 }

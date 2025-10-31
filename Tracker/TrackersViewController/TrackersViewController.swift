@@ -167,7 +167,11 @@ final class TrackersViewController: UIViewController {
     }
     func editTracker(_ trackerCoreData: TrackerCoreData) {
         guard let context = trackerCoreData.managedObjectContext else { return }
-        guard let editVM = EditHabitViewModel(tracker: trackerCoreData, context: context) else { return }
+        guard let editVM = EditHabitViewModel(
+                tracker: trackerCoreData,
+                context: context,
+                recordStore: viewModel.recordStore
+            ) else { return }
         let editVC = EditHabitViewController(viewModel: editVM)
         editVM.onHabitEdited = { [weak self] in
             guard let self else { return }

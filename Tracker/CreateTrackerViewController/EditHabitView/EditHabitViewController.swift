@@ -15,10 +15,11 @@ final class EditHabitViewController: BaseTrackerCreationViewController {
         selectedColor = viewModel.selectedColor
         selectedCategory = viewModel.selectedCategory
         selectedDays = viewModel.selectedDays
+
         nameTextField.setText(viewModel.name)
     }
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { nil }
+    required init?(coder: NSCoder) { return nil }
     override func viewDidLoad() {
         super.viewDidLoad()
         setupDaysCountLabel()
@@ -41,37 +42,31 @@ private extension EditHabitViewController {
         bottomButtons.createButton.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
     }
     func updateDaysCountLabel() {
-        let count = selectedDays.count
+        let count = viewModel.completedDaysCount
         daysCountLabel.text = localizedDaysText(for: count)
     }
     func localizedDaysText(for count: Int) -> String {
-        let localeIdentifier: String
+        let locale: String
         if #available(iOS 16.0, *) {
-            localeIdentifier = Locale.current.language.languageCode?.identifier ?? "en"
+            locale = Locale.current.language.languageCode?.identifier ?? "en"
         } else {
-            localeIdentifier = Locale.current.languageCode ?? "en"
+            locale = Locale.current.languageCode ?? "en"
         }
-        if localeIdentifier == "ru" {
-            let nAbs = abs(count) % 100
-            let n1 = nAbs % 10
+        if locale == "ru" {
+            let absVal = abs(count) % 100
+            let last = absVal % 10
+
             let key: String
-            if nAbs > 10 && nAbs < 20 {
-                key = "edit_habit.days_count.many"
-            } else if n1 == 1 {
-                key = "edit_habit.days_count.one"
-            } else if n1 >= 2 && n1 <= 4 {
-                key = "edit_habit.days_count.few"
-            } else {
-                key = "edit_habit.days_count.many"
-            }
-            let format = NSLocalizedString(key, comment: "Количество дней")
-            return String(format: format, count)
+            if absVal > 10 && absVal < 20 { key = "edit_habit.days_count.many" }
+            else if last == 1 { key = "edit_habit.days_count.one" }
+            else if last >= 2 && last <= 4 { key = "edit_habit.days_count.few" }
+            else { key = "edit_habit.days_count.many" }
+            return String(format: NSLocalizedString(key, comment: ""), count)
         } else {
-            let key = (count == 1)
+            let key = count == 1
                 ? "edit_habit.days_count.one"
                 : "edit_habit.days_count.other"
-            let format = NSLocalizedString(key, comment: "Number of days")
-            return String(format: format, count)
+            return String(format: NSLocalizedString(key, comment: ""), count)
         }
     }
 }
@@ -89,38 +84,5 @@ private extension EditHabitViewController {
         viewModel.selectedDays = selectedDays
         viewModel.saveChanges()
         dismiss(animated: true)
-    }
-}
-extension EditHabitViewController {
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-        if indexPath.row == 0 {
-            let categoryVC = CategoryViewController(store: TrackerCategoryStore(context: context))
-            categoryVC.onCategorySelected = { [weak self] category in
-                self?.selectedCategory = category
-                tableView.reloadRows(at: [indexPath], with: .automatic)
-            }
-            if let sheet = categoryVC.sheetPresentationController {
-                sheet.detents = [.large()]
-                sheet.prefersGrabberVisible = true
-                sheet.preferredCornerRadius = 16
-            }
-            present(categoryVC, animated: true)
-        }
-        if indexPath.row == 1 {
-            let scheduleVC = ScheduleViewController()
-            scheduleVC.selectedDays = selectedDays
-            scheduleVC.onDone = { [weak self] days in
-                self?.selectedDays = days
-                self?.updateDaysCountLabel()
-                tableView.reloadRows(at: [indexPath], with: .automatic)
-            }
-            if let sheet = scheduleVC.sheetPresentationController {
-                sheet.detents = [.large()]
-                sheet.prefersGrabberVisible = true
-                sheet.preferredCornerRadius = 16
-            }
-            present(scheduleVC, animated: true)
-        }
     }
 }
