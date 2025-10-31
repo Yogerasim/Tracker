@@ -13,6 +13,7 @@ final class TrackersViewModel {
     @Published var currentDate: Date = .init() {
         didSet { onDateChanged?(currentDate) }
     }
+    private let defaultCategoryTitle = NSLocalizedString("trackers.default_category", comment: "Мои трекеры")
     private var originalCategoryMap: [UUID: String] = [:]
     private var reloadWorkItem: DispatchWorkItem?
     var onTrackersUpdated: (() -> Void)?
@@ -135,25 +136,25 @@ extension TrackersViewModel {
             pinnedCategory = TrackerCategory(id: UUID(), title: pinnedCategoryTitle, trackers: [])
             categoryStore.add(pinnedCategory!)
             categories.insert(pinnedCategory!, at: 0)
+            onCategoriesUpdated?()
         }
-        originalCategoryMap[tracker.id] = tracker.trackerCategory?.title ?? ""
+        originalCategoryMap[tracker.id] = tracker.trackerCategory?.title ?? defaultCategoryTitle
         categoryStore.moveTracker(tracker, to: pinnedCategoryTitle)
-
         reloadTrackers()
-        onCategoriesUpdated?()
+        if let updated = trackers.first(where: { $0.id == tracker.id }) {
+            onSingleTrackerUpdated?(updated, false)
+        }
         onTrackersUpdated?()
-        filtersViewModel?.applyAllFilters(for: currentDate)
     }
-
     func unpinTracker(_ tracker: Tracker) {
         guard let originalTitle = originalCategoryMap[tracker.id] else { return }
         categoryStore.moveTracker(tracker, to: originalTitle)
         originalCategoryMap.removeValue(forKey: tracker.id)
-
         reloadTrackers()
-        onCategoriesUpdated?()
+        if let updated = trackers.first(where: { $0.id == tracker.id }) {
+            onSingleTrackerUpdated?(updated, false)
+        }
         onTrackersUpdated?()
-        filtersViewModel?.applyAllFilters(for: currentDate)
     }
 }
 extension TrackersViewModel {

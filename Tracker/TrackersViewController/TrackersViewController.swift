@@ -229,21 +229,18 @@ final class TrackersViewController: UIViewController {
         ui.calendarView.addTarget(self, action: #selector(calendarDateChanged(_:)), for: .valueChanged)
     }
     private func setupBindings() {
-        // MARK: - Single tracker updates
         viewModel.onSingleTrackerUpdated = { [weak self] updatedTracker, completed in
             guard let self = self else { return }
             AppLogger.trackers.info("[VC] Single tracker updated: \(updatedTracker.name)")
             self.filtersViewModel.updateTracker(updatedTracker)
             self.refreshCell(for: updatedTracker)
         }
-
-        // MARK: - Categories updates
         viewModel.onCategoriesUpdated = { [weak self] in
             guard let self = self else { return }
-            self.scheduleUIRefresh()
+            self.recalculateVisibleCategories()
+            self.ui.collectionView.reloadData()
+            self.updatePlaceholder()
         }
-
-        // MARK: - Date updates
         viewModel.onDateChanged = { [weak self] date in
             guard let self = self else { return }
             self.filtersViewModel.selectedDate = date
@@ -251,11 +248,11 @@ final class TrackersViewController: UIViewController {
             self.updateDateText()
             self.scheduleUIRefresh()
         }
-
-        // MARK: - FiltersViewModel updates
         filtersViewModel.onFilteredTrackersUpdated = { [weak self] in
             guard let self = self else { return }
-            self.scheduleUIRefresh()
+            self.recalculateVisibleCategories()
+            self.ui.collectionView.reloadData()
+            self.updatePlaceholder()
         }
 
         filtersViewModel.onSingleTrackerUpdated = { [weak self] tracker, completed in
@@ -266,12 +263,10 @@ final class TrackersViewController: UIViewController {
                 self.viewModel.unmarkTrackerAsCompleted(tracker, on: self.filtersViewModel.selectedDate)
             }
         }
-
-        // MARK: - React to trackers array changes
         viewModel.$trackers
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                guard let self else { return }
+                guard let self = self else { return }
                 self.filtersViewModel.applyAllFilters(for: self.viewModel.currentDate)
                 self.recalculateVisibleCategories()
                 self.ui.collectionView.reloadData()
