@@ -19,14 +19,11 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     }
 
     func collectionView(_: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        if visibleCategories.isEmpty {
-            return 0
-        }
+        if visibleCategories.isEmpty { return 0 }
         let category = visibleCategories[section]
-        let trackersInCategory = filtersViewModel.filteredTrackers.filter {
+        return filtersViewModel.filteredTrackers.filter {
             $0.trackerCategory?.title == category.title
-        }
-        return trackersInCategory.count
+        }.count
     }
 
     func collectionView(_ collectionView: UICollectionView,
@@ -38,17 +35,27 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         ) as? TrackerCell else {
             return UICollectionViewCell()
         }
+
         guard visibleCategories.indices.contains(indexPath.section) else { return cell }
         let category = visibleCategories[indexPath.section]
         let trackersInCategory = filtersViewModel.filteredTrackers.filter {
             $0.trackerCategory?.title == category.title
         }
         guard trackersInCategory.indices.contains(indexPath.item) else { return cell }
+
         let tracker = trackersInCategory[indexPath.item]
         let cellViewModel = viewModel.makeCellViewModel(for: tracker)
+
         cell.configure(with: cellViewModel)
+
         let isFuture = viewModel.currentDate.startOfDayUTC() > Date().startOfDayUTC()
         cell.setCompletionEnabled(!isFuture)
+
+        // 🔄 Обновление галочки мгновенно
+        cell.onToggleCompletion = { [weak self] in
+            guard let self else { return }
+            self.filtersViewModel.updateSingleTracker(cellViewModel.tracker)
+        }
         contextMenuController?.addInteraction(to: cell)
         return cell
     }
@@ -56,15 +63,29 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
     func addNewTracker(_ tracker: Tracker) {
         let categoryTitle = tracker.trackerCategory?.title ?? "Без категории"
         viewModel.addTracker(tracker, to: categoryTitle)
-        filtersViewModel.applyAllFilters(for: filtersViewModel.selectedDate)
+        filtersViewModel.applyAllFilters(for: filtersViewModel.selectedDate) // теперь доступен
         ui.collectionView.reloadData()
+    }
+    func refreshCell(for tracker: Tracker) {
+        let categoryTitle = tracker.trackerCategory?.title ?? "Без категории"
+        guard let sectionIndex = visibleCategories.firstIndex(where: { $0.title == categoryTitle }) else { return }
+
+        let trackersInSection = filtersViewModel.filteredTrackers.filter { $0.trackerCategory?.title == categoryTitle }
+        guard let itemIndex = trackersInSection.firstIndex(where: { $0.id == tracker.id }) else { return }
+
+        let indexPath = IndexPath(item: itemIndex, section: sectionIndex)
+        DispatchQueue.main.async {
+            UIView.performWithoutAnimation {
+                self.ui.collectionView.reloadItems(at: [indexPath])
+            }
+        }
     }
 
     func debugPrintTrackersSchedule() {
         for tracker in filtersViewModel.filteredTrackers {
             if !tracker.schedule.isEmpty {
                 _ = tracker.schedule.map { $0.shortName }.joined(separator: ", ")
-            } else {}
+            }
         }
     }
 
@@ -75,11 +96,13 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         guard kind == UICollectionView.elementKindSectionHeader else {
             return UICollectionReusableView()
         }
+
         let header = collectionView.dequeueReusableSupplementaryView(
             ofKind: kind,
             withReuseIdentifier: TrackerSectionHeaderView.reuseIdentifier,
             for: indexPath
         ) as! TrackerSectionHeaderView
+
         if visibleCategories.indices.contains(indexPath.section) {
             let category = visibleCategories[indexPath.section]
             header.configure(with: category.title)

@@ -3,6 +3,7 @@ import UIKit
 final class TrackerCell: UICollectionViewCell {
     static let reuseIdentifier = "TrackerCell"
     private var viewModel: TrackerCellViewModel?
+    var onToggleCompletion: (() -> Void)?
     private let cardView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 12
@@ -61,7 +62,9 @@ final class TrackerCell: UICollectionViewCell {
     @available(*, unavailable)
     required init?(coder _: NSCoder) { nil }
     @objc private func toggleTapped() {
+        // 🔄 Меняем локальный стейт сразу
         viewModel?.toggleCompletion()
+        onToggleCompletion?()
     }
 
     func setCompletionEnabled(_ enabled: Bool) {
@@ -76,10 +79,11 @@ final class TrackerCell: UICollectionViewCell {
         cardView.backgroundColor = viewModel.trackerColor()
         toggleButton.backgroundColor = viewModel.trackerColor()
         updateUI()
+        
+        // Подписка на изменение состояния
         viewModel.onStateChanged = { [weak self] in
             guard let self else { return }
             DispatchQueue.main.async {
-                guard self.viewModel === viewModel else { return }
                 self.updateUI()
             }
         }
@@ -91,15 +95,12 @@ final class TrackerCell: UICollectionViewCell {
 
     private func updateUI() {
         guard let vm = viewModel else { return }
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            self.dayLabel.text = vm.dayLabelText()
-            let symbolName = vm.buttonSymbol()
-            let config = UIImage.SymbolConfiguration(pointSize: 11, weight: .bold)
-            self.toggleButton.setImage(UIImage(systemName: symbolName, withConfiguration: config), for: .normal)
-            self.toggleButton.tintColor = .white
-            self.toggleButton.setTitle(nil, for: .normal)
-        }
+        dayLabel.text = vm.dayLabelText()
+        let symbolName = vm.buttonSymbol()
+        let config = UIImage.SymbolConfiguration(pointSize: 11, weight: .bold)
+        toggleButton.setImage(UIImage(systemName: symbolName, withConfiguration: config), for: .normal)
+        toggleButton.tintColor = .white
+        toggleButton.setTitle(nil, for: .normal)
     }
 
     private func setupConstraints() {
@@ -128,6 +129,9 @@ final class TrackerCell: UICollectionViewCell {
             toggleButton.widthAnchor.constraint(equalToConstant: 34),
             toggleButton.heightAnchor.constraint(equalToConstant: 34),
         ])
+    }
+    @objc private func toggleCompletionAction() {
+        onToggleCompletion?()
     }
 }
 

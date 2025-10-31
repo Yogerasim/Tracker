@@ -20,23 +20,33 @@ final class TrackerCellViewModel {
         daysCount = recordStore.completedTrackers.filter { $0.trackerId == tracker.id }.count
     }
 
+    // MARK: - TrackerCellViewModel
     func toggleCompletion() {
+        AppLogger.trackers.info("[CellVM] toggleCompletion called for tracker: \(tracker.name) (\(tracker.id))")
+
         let oldState = isCompleted
         isCompleted.toggle()
         daysCount += isCompleted ? 1 : -1
         onStateChanged?()
+        AppLogger.trackers.info("[CellVM] Local state changed: isCompleted = \(isCompleted), daysCount = \(daysCount)")
+
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
+
             if oldState {
+                AppLogger.trackers.info("[CellVM] Removing record for tracker: \(self.tracker.name) on \(self.currentDate.short)")
                 self.recordStore.deleteRecord(for: self.tracker.id, date: self.currentDate)
             } else {
+                AppLogger.trackers.info("[CellVM] Adding record for tracker: \(self.tracker.name) on \(self.currentDate.short)")
                 if let trackerCore = self.recordStore.fetchTrackerInViewContext(by: self.tracker.id) {
                     self.recordStore.addRecord(for: trackerCore, date: self.currentDate)
                 } else {
                     self.recordStore.addRecord(for: self.tracker.id, date: self.currentDate)
                 }
             }
+
             DispatchQueue.main.async {
+                AppLogger.trackers.info("[CellVM] Posting trackerRecordsDidChange notification for tracker: \(self.tracker.name)")
                 NotificationCenter.default.post(name: .trackerRecordsDidChange, object: self.tracker)
             }
         }
