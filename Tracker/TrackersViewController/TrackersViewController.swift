@@ -185,7 +185,13 @@ final class TrackersViewController: UIViewController {
                 trackerCategory: trackerCoreData.category
             )
             self.viewModel.editTracker(updatedTracker)
-            self.ui.collectionView.reloadData()
+            self.filtersViewModel.updateTracker(updatedTracker)
+
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.recalculateVisibleCategories()
+                self.refreshCell(for: updatedTracker)
+            }
         }
         present(editVC, animated: true)
     }
