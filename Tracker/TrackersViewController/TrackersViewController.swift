@@ -391,13 +391,6 @@ final class TrackersViewController: UIViewController {
                 }
                 guard trackersInCategory.indices.contains(indexPath.item) else { return [] }
                 let tracker = trackersInCategory[indexPath.item]
-                let isPinned = tracker.trackerCategory?.title == self.viewModel.pinnedCategoryTitle
-                let pinTitle = isPinned
-                    ? NSLocalizedString("tracker.action.unpin", comment: "Открепить трекер")
-                    : NSLocalizedString("tracker.action.pin", comment: "Закрепить трекер")
-                let pinAction = UIAction(title: pinTitle, image: UIImage(systemName: isPinned ? "pin.slash" : "pin")) { _ in
-                    isPinned ? self.viewModel.unpinTracker(tracker) : self.viewModel.pinTracker(tracker)
-                }
                 let editAction = UIAction(title: NSLocalizedString("tracker.action.edit", comment: "Редактировать трекер"), image: UIImage(systemName: "pencil")) { [weak self] _ in
                     guard let self = self else { return }
                     guard let trackerCoreData = self.viewModel.trackerStore.fetchTracker(by: tracker.id) else { return }
@@ -409,7 +402,7 @@ final class TrackersViewController: UIViewController {
                     self.confirmDeleteTracker(tracker)
                     AnalyticsService.trackClick(item: "delete")
                 }
-                return [pinAction, editAction, deleteAction]
+                return [editAction, deleteAction]
             }
         )
     }
