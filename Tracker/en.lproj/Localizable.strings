@@ -1,0 +1,126 @@
+//NewCategoryView
+"new_category_title" = "New Category";
+"new_category_placeholder" = "Enter category name";
+"done_button" = "Done";
+
+//CategoryViewController
+"category_title" = "Category";
+"add_category_button" = "Add category";
+"category_placeholder" = "Habits and events can\nbe grouped by meaning";
+"category.action.edit" = "Edit";
+"category.action.delete" = "Delete";
+"category.action.delete_alert_title" = "Delete category?";
+"category.action.delete_alert_message" = "Are you sure you want to delete the category \"%@\"? This action cannot be undone.";
+"category.action.cancel" = "Cancel";
+
+//CreateTrackerViewController
+"create_tracker_title" = "Create Tracker";
+"habit_button_title" = "Habit";
+"irregular_button_title" = "Irregular Event";
+
+//HabitFlowPresenter
+"default_category_title" = "My trackers";
+
+//MainTabBarController
+"tab_trackers" = "Trackers";
+"tab_statistics" = "Statistics";
+
+//NewHabitViewController
+"new_habit.title" = "New Habit";
+"new_habit.enter_name" = "Enter tracker name";
+"new_habit.emoji" = "Emoji";
+"new_habit.color" = "Color";
+"new_habit.category" = "Category";
+"new_habit.schedule" = "Schedule";
+"new_habit.cancel_log" = "NewHabitViewController: cancel";
+"new_habit.choose_emoji" = "Choose emoji";
+"new_habit.choose_color" = "Choose color";
+
+//NewIrregularEventViewController
+"new_irregular_event.title" = "New irregular event";
+"new_irregular_event.enter_name" = "Enter tracker name";
+"new_irregular_event.emoji" = "Emoji";
+"new_irregular_event.color" = "Color";
+"new_irregular_event.category" = "Category";
+"new_irregular_event.warning_choose_emoji" = "⚠️ Choose an emoji";
+"new_irregular_event.warning_choose_color" = "⚠️ Choose a color";
+
+//OnboardingViewController
+"onboarding.page1.text" = "Track only what you want";
+"onboarding.page2.text" = "Even if it's not liters of water and yoga";
+"onboarding.button" = "That's technology!";
+
+//ScheduleViewController
+"schedule.title" = "Schedule";
+"schedule.done_button" = "Done";
+"schedule.monday" = "Monday";
+"schedule.tuesday" = "Tuesday";
+"schedule.wednesday" = "Wednesday";
+"schedule.thursday" = "Thursday";
+"schedule.friday" = "Friday";
+"schedule.saturday" = "Saturday";
+"schedule.sunday" = "Sunday";
+
+"every_day" = "Every day";
+"new_habit.schedule_not_selected" = "Not selected";
+
+"weekdays.short.monday" = "Mon";
+"weekdays.short.tuesday" = "Tue";
+"weekdays.short.wednesday" = "Wed";
+"weekdays.short.thursday" = "Thu";
+"weekdays.short.friday" = "Fri";
+"weekdays.short.saturday" = "Sat";
+"weekdays.short.sunday" = "Sun";
+
+//StatisticsViewController
+"statistics.title" = "Statistics";
+"statistics.placeholder_text" = "There is nothing to analyze yet";
+"statistics.best_period_label" = "Best period";
+"statistics.ideal_days_label" = "Ideal days";
+"statistics.completed_trackers_label" = "Trackers completed";
+"statistics.average_label" = "Average value";
+"statistics.placeholder.empty" = "Nothing to analyze yet";
+
+//TrackersViewController
+"trackers.title" = "Trackers";
+"trackers.search_placeholder" = "Search";
+"trackers.placeholder_text" = "What shall we track?";
+"trackers.placeholder_no_results" = "No results found";
+"trackers.pinned_category" = "Pinned";
+"trackers.default_category" = "My Trackers";
+
+"tracker.action.pin" = "Pin";
+"tracker.action.unpin" = "Unpin";
+"tracker.action.edit" = "Edit";
+"tracker.action.delete" = "Delete";
+"tracker.action.delete_alert_title" = "Delete tracker?";
+"tracker.action.delete_alert_message" = "This action cannot be undone.";
+"tracker.action.cancel" = "Cancel";
+
+//ButonsPanelView
+"cancel_button" = "Cancel";
+"create_button" = "Create";
+
+//DoneButton
+"done_button" = "Done";
+//FiltersButton
+"filters.button_title" = "Filters";
+
+//EditHabitViewController
+"edit_habit.save" = "Save";
+"edit_habit.title" = "Edit habit";
+"edit_habit.days_count.one" = "%d day";
+"edit_habit.days_count.other" = "%d days";
+
+//EditCategoryView
+"edit_category_title" = "Editing category";
+
+"edit_category_placeholder" = "Edit the category name";
+
+
+// FiltersViewController
+"filters.title" = "Filters";
+"filters.all_trackers" = "All trackers";
+"filters.today_trackers" = "Trackers for today";
+"filters.completed" = "Completed";
+"filters.not_completed" = "Not completed";

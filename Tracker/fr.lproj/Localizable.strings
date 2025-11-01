@@ -1,0 +1,125 @@
+//NewCategoryView
+"new_category_title" = "Nouvelle catégorie";
+"new_category_placeholder" = "Entrez le nom de la catégorie";
+"done_button" = "Terminé";
+
+//CategoryViewController
+"category_title" = "Catégorie";
+"add_category_button" = "Ajouter une catégorie";
+"category_placeholder" = "Les habitudes et événements peuvent\nêtre regroupés par sens";
+"category.action.edit" = "Modifier";
+"category.action.delete" = "Supprimer";
+"category.action.delete_alert_title" = "Supprimer la catégorie ?";
+"category.action.delete_alert_message" = "Êtes-vous sûr de vouloir supprimer la catégorie \"%@\" ? Cette action est irréversible.";
+"category.action.cancel" = "Annuler";
+
+//CreateTrackerViewController
+"create_tracker_title" = "Créer un tracker";
+"habit_button_title" = "Habitude";
+"irregular_button_title" = "Événement irrégulier";
+
+//HabitFlowPresenter
+"default_category_title" = "Mes trackers";
+
+//MainTabBarController
+"tab_trackers" = "Trackers";
+"tab_statistics" = "Statistiques";
+
+//NewHabitViewController
+"new_habit.title" = "Nouvelle habitude";
+"new_habit.enter_name" = "Entrez le nom du tracker";
+"new_habit.emoji" = "Emoji";
+"new_habit.color" = "Couleur";
+"new_habit.category" = "Catégorie";
+"new_habit.schedule" = "Planning";
+"new_habit.cancel_log" = "NewHabitViewController : annuler";
+"new_habit.choose_emoji" = "Choisir un emoji";
+"new_habit.choose_color" = "Choisir une couleur";
+
+//NewIrregularEventViewController
+"new_irregular_event.title" = "Nouvel événement irrégulier";
+"new_irregular_event.enter_name" = "Entrez le nom du tracker";
+"new_irregular_event.emoji" = "Emoji";
+"new_irregular_event.color" = "Couleur";
+"new_irregular_event.category" = "Catégorie";
+"new_irregular_event.warning_choose_emoji" = "⚠️ Choisissez un emoji";
+"new_irregular_event.warning_choose_color" = "⚠️ Choisissez une couleur";
+
+//OnboardingViewController
+"onboarding.page1.text" = "Suivez uniquement ce que vous voulez";
+"onboarding.page2.text" = "Même si ce n’est pas des litres d’eau ou du yoga";
+"onboarding.button" = "C’est la technologie !";
+
+//ScheduleViewController
+"schedule.title" = "Planning";
+"schedule.done_button" = "Terminé";
+"schedule.monday" = "Lundi";
+"schedule.tuesday" = "Mardi";
+"schedule.wednesday" = "Mercredi";
+"schedule.thursday" = "Jeudi";
+"schedule.friday" = "Vendredi";
+"schedule.saturday" = "Samedi";
+"schedule.sunday" = "Dimanche";
+
+"every_day" = "Chaque jour";
+"new_habit.schedule_not_selected" = "Non sélectionné";
+
+"weekdays.short.monday" = "Lun";
+"weekdays.short.tuesday" = "Mar";
+"weekdays.short.wednesday" = "Mer";
+"weekdays.short.thursday" = "Jeu";
+"weekdays.short.friday" = "Ven";
+"weekdays.short.saturday" = "Sam";
+"weekdays.short.sunday" = "Dim";
+
+//StatisticsViewController
+"statistics.title" = "Statistiques";
+"statistics.placeholder_text" = "Rien à analyser pour le moment";
+"statistics.best_period_label" = "Meilleure période";
+"statistics.ideal_days_label" = "Jours idéaux";
+"statistics.completed_trackers_label" = "Trackers complétés";
+"statistics.average_label" = "Valeur moyenne";
+"statistics.placeholder.empty" = "Rien à analyser pour le moment";
+
+//TrackersViewController
+"trackers.title" = "Trackers";
+"trackers.search_placeholder" = "Rechercher";
+"trackers.placeholder_text" = "Que voulons-nous suivre ?";
+"trackers.placeholder_no_results" = "Aucun résultat trouvé";
+"trackers.pinned_category" = "Épinglé";
+"trackers.default_category" = "Mes trackers";
+
+"tracker.action.pin" = "Épingler";
+"tracker.action.unpin" = "Désépingler";
+"tracker.action.edit" = "Modifier";
+"tracker.action.delete" = "Supprimer";
+"tracker.action.delete_alert_title" = "Supprimer le tracker ?";
+"tracker.action.delete_alert_message" = "Cette action est irréversible.";
+"tracker.action.cancel" = "Annuler";
+
+//ButonsPanelView
+"cancel_button" = "Annuler";
+"create_button" = "Créer";
+
+//DoneButton
+"done_button" = "Terminé";
+//FiltersButton
+"filters.button_title" = "Filtres";
+
+//EditHabitViewController
+"edit_habit.save" = "Enregistrer";
+"edit_habit.title" = "Modifier l’habitude";
+"edit_habit.days_count.one" = "%d jour";
+"edit_habit.days_count.other" = "%d jours";
+
+//EditCategoryView
+"edit_category_title" = "Modifier la catégorie";
+
+"edit_category_placeholder" = "Modifier le nom de la catégorie";
+
+// FiltersViewController
+"filters.title" = "Filtres";
+"filters.all_trackers" = "Tous les trackers";
+"filters.today_trackers" = "Trackers d'aujourd'hui";
+"filters.completed" = "Terminés";
+"filters.not_completed" = "Non terminés";

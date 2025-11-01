@@ -1,0 +1,132 @@
+//NewCategoryView
+"new_category_title" = "Новая категория";
+"new_category_placeholder" = "Введите название категории";
+"done_button" = "Готово";
+
+//CategoryViewController
+"category_title" = "Категория";
+"add_category_button" = "Добавьте категорию";
+"category_placeholder" = "Привычки и события можно\nобъединить по смыслу";
+"category.action.edit" = "Редактировать";
+"category.action.delete" = "Удалить";
+"category.action.delete_alert_title" = "Удалить категорию?";
+"category.action.delete_alert_message" = "Вы точно хотите удалить категорию \"%@\"? Это действие нельзя отменить.";
+"category.action.cancel" = "Отмена";
+
+//CreateTrackerViewController
+"create_tracker_title" = "Создание трекера";
+"habit_button_title" = "Привычка";
+"irregular_button_title" = "Нерегулярное событие";
+
+//HabitFlowPresenter
+"default_category_title" = "Мои трекеры";
+
+//MainTabBarController
+"tab_trackers" = "Трекеры";
+"tab_statistics" = "Статистика";
+
+//NewHabitViewController
+"new_habit.title" = "Новая привычка";
+"new_habit.enter_name" = "Введите название трекера";
+"new_habit.emoji" = "Emoji";
+"new_habit.color" = "Цвет";
+"new_habit.category" = "Категория";
+"new_habit.schedule" = "Расписание";
+"new_habit.cancel_log" = "NewHabitViewController: отмена";
+"new_habit.choose_emoji" = "Выберите эмодзи";
+"new_habit.choose_color" = "Выберите цвет";
+
+//NewIrregularEventViewController
+"new_irregular_event.title" = "Новое нерегулярное событие";
+"new_irregular_event.enter_name" = "Введите название трекера";
+"new_irregular_event.emoji" = "Emoji";
+"new_irregular_event.color" = "Цвет";
+"new_irregular_event.category" = "Категория";
+"new_irregular_event.warning_choose_emoji" = "⚠️ Выберите эмодзи";
+"new_irregular_event.warning_choose_color" = "⚠️ Выберите цвет";
+
+//OnboardingViewController
+"onboarding.page1.text" = "Отслеживайте только то, что хотите";
+"onboarding.page2.text" = "Даже если это\nне литры воды и йога";
+"onboarding.button" = "Вот это технологии!";
+
+//ScheduleViewController
+"schedule.title" = "Расписание";
+"schedule.done_button" = "Готово";
+"schedule.monday" = "Понедельник";
+"schedule.tuesday" = "Вторник";
+"schedule.wednesday" = "Среда";
+"schedule.thursday" = "Четверг";
+"schedule.friday" = "Пятница";
+"schedule.saturday" = "Суббота";
+"schedule.sunday" = "Воскресенье";
+
+"every_day" = "Каждый день";
+"new_habit.schedule_not_selected" = "Не выбрано";
+
+"weekdays.short.monday" = "Пн";
+"weekdays.short.tuesday" = "Вт";
+"weekdays.short.wednesday" = "Ср";
+"weekdays.short.thursday" = "Чт";
+"weekdays.short.friday" = "Пт";
+"weekdays.short.saturday" = "Сб";
+"weekdays.short.sunday" = "Вс";
+
+//StatisticsViewController
+"statistics.title" = "Статистика";
+"statistics.placeholder_text" = "Пока нет данных для анализа";
+
+"statistics.best_period_label" = "Лучший период";
+"statistics.ideal_days_label" = "Идеальные дни";
+"statistics.completed_trackers_label" = "Трекеров завершено";
+"statistics.average_label" = "Среднее значение";
+"statistics.placeholder.empty" = "Анализировать пока нечего";
+
+//TrackersViewController
+"trackers.title" = "Трекеры";
+"trackers.search_placeholder" = "Поиск";
+"trackers.placeholder_text" = "Что будем отслеживать?";
+"trackers.placeholder_no_results" = "Ничего не найдено";
+"trackers.pinned_category" = "Закрепленные";
+"trackers.default_category" = "Мои трекеры";
+
+"tracker.action.pin" = "Закрепить";
+"tracker.action.unpin" = "Открепить";
+"tracker.action.edit" = "Редактировать";
+"tracker.action.delete" = "Удалить";
+"tracker.action.delete_alert_title" = "Удалить трекер?";
+"tracker.action.delete_alert_message" = "Это действие нельзя отменить.";
+"tracker.action.cancel" = "Отмена";
+
+//ButonsPanelView
+"cancel_button" = "Отменить";
+"create_button" = "Создать";
+
+//DoneButton
+"done_button" = "Готово";
+
+//EditCategoryView
+"edit_category_title" = "Редактирование категории";
+
+//EditHabitViewController
+
+"edit_habit.save" = "Сохранить";
+"edit_habit.title" = "Редактировать привычку";
+"edit_habit.days_count.one" = "%d день";
+"edit_habit.days_count.few" = "%d дня";
+"edit_habit.days_count.many" = "%d дней";
+
+//FiltersButton
+"filters.button_title" = "Фильтры";
+
+"edit_category_placeholder" = "Отредактируйте название категории";
+
+// FiltersViewController
+"filters.title" = "Фильтры";
+"filters.all_trackers" = "Все трекеры";
+"filters.today_trackers" = "Трекеры на сегодня";
+"filters.completed" = "Завершенные";
+"filters.not_completed" = "Не завершенные";
+
+
+
