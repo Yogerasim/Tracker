@@ -187,13 +187,16 @@ final class TrackersViewController: UIViewController {
             self.viewModel.editTracker(updatedTracker)
             self.filtersViewModel.updateTracker(updatedTracker)
 
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.recalculateVisibleCategories()
-                self.refreshCell(for: updatedTracker)
+            DispatchQueue.main.async {
+                self.fullReloadUI()
             }
         }
         present(editVC, animated: true)
+    }
+    private func fullReloadUI() {
+        recalculateVisibleCategories()
+        ui.collectionView.reloadData()
+        updatePlaceholder()
     }
     func confirmDeleteTracker(_ tracker: Tracker) {
         let alert = UIAlertController(
