@@ -91,9 +91,10 @@ final class TrackersViewController: UIViewController {
         NSLayoutConstraint.activate([
             ui.addButton.topAnchor.constraint(equalTo: container.topAnchor),
             ui.addButton.bottomAnchor.constraint(equalTo: container.bottomAnchor),
-            ui.addButton.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 10),
+            ui.addButton.leadingAnchor.constraint(equalTo: container.leadingAnchor),
             ui.addButton.trailingAnchor.constraint(equalTo: container.trailingAnchor),
         ])
+        container.frame = ui.addButton.bounds
         navigationItem.leftBarButtonItem = UIBarButtonItem(customView: container)
     }
     private func setupLayout() {
@@ -223,8 +224,8 @@ final class TrackersViewController: UIViewController {
         NSLayoutConstraint.activate([
             ui.calendarContainer.topAnchor.constraint(equalTo: ui.dateButton.bottomAnchor, constant: 8),
             ui.calendarContainer.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            ui.calendarContainer.widthAnchor.constraint(equalToConstant: 350),
-            ui.calendarContainer.heightAnchor.constraint(equalToConstant: 320),
+            ui.calendarContainer.widthAnchor.constraint(equalToConstant: 300),
+            ui.calendarContainer.heightAnchor.constraint(equalToConstant: 280),
         ])
         let languageCode = Locale.current.language.languageCode?.identifier ?? "en"
         let localeIdentifier: String
