@@ -6,9 +6,8 @@ final class NewCategoryView: UIView {
     let nameTextField = AppTextField(
         placeholder: NSLocalizedString("new_category_placeholder", comment: "")
     )
-    let doneButton = BlackButton(
-        title: NSLocalizedString("done_button", comment: "")
-    )
+    let doneButton = DoneButton()
+    
     let placeholderView = PlaceholderView()
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -51,6 +50,5 @@ final class NewCategoryView: UIView {
     }
     private func configureInitialState() {
         doneButton.isEnabled = false
-        doneButton.backgroundColor = AppColors.gray
     }
 }

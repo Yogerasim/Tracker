@@ -21,7 +21,6 @@ final class EditCategoryViewController: UIViewController {
     private func setupBindings() {
         viewModel.isButtonEnabled = { [weak self] enabled in
             self?.customView.doneButton.isEnabled = enabled
-            self?.customView.doneButton.backgroundColor = enabled ? AppColors.backgroundBlackButton : AppColors.gray
         }
         viewModel.onCategoryEdited = { [weak self] in
             self?.dismiss(animated: true)

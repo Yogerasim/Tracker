@@ -14,8 +14,16 @@ final class ButonnsPanelView: UIView {
     let createButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle(NSLocalizedString("create_button", comment: "Создать"), for: .normal)
-        button.backgroundColor = AppColors.backgroundBlackButton
-        button.setTitleColor(.white, for: .normal)
+        button.backgroundColor = UIColor { trait in
+            trait.userInterfaceStyle == .dark
+            ? UIColor.white
+            : AppColors.backgroundBlackButton
+        }
+        button.setTitleColor(UIColor { trait in
+            trait.userInterfaceStyle == .dark
+            ? AppColors.backgroundBlackButton
+            : UIColor.white
+        }, for: .normal)
         button.layer.cornerRadius = AppLayout.cornerRadius
         button.titleLabel?.font = AppFonts.subheadline
         button.translatesAutoresizingMaskIntoConstraints = false

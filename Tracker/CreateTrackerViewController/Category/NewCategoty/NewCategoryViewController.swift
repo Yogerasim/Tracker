@@ -19,7 +19,6 @@ final class NewCategoryViewController: UIViewController {
     private func setupBindings() {
         viewModel.isButtonEnabled = { [weak self] enabled in
             self?.customView.doneButton.isEnabled = enabled
-            self?.customView.doneButton.backgroundColor = enabled ? AppColors.backgroundBlackButton : AppColors.gray
         }
         viewModel.onCategoryCreated = { [weak self] _ in
             self?.dismiss(animated: true)
