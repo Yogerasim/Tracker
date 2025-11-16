@@ -19,7 +19,7 @@ final class OnboardingPageViewController: UIViewController {
         label.font = AppFonts.bigTitle2
         label.textAlignment = .center
         label.numberOfLines = 0
-        label.textColor = .black
+        label.textColor = .white
         label.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(imageView)
         view.addSubview(label)
