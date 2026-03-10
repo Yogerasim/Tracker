@@ -60,7 +60,7 @@ extension ContainerTableViewCell {
         let titleLabel = UILabel()
         titleLabel.text = title
         titleLabel.font = AppFonts.body
-        titleLabel.textColor = AppColors.backgroundBlackButton
+        titleLabel.textColor = AppColors.textPrimary
         let stack: UIStackView
         if let detail = detail, !detail.isEmpty {
             let detailLabel = UILabel()

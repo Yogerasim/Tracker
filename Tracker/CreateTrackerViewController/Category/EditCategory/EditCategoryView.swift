@@ -6,9 +6,7 @@ final class EditCategoryView: UIView {
     let nameTextField = AppTextField(
         placeholder: NSLocalizedString("edit_category_placeholder", comment: "Плейсхолдер для поля ввода категории")
     )
-    let doneButton = BlackButton(
-        title: NSLocalizedString("done_button", comment: "Кнопка подтверждения")
-    )
+    let doneButton = DoneButton()
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = AppColors.background
@@ -37,7 +35,6 @@ final class EditCategoryView: UIView {
     }
     private func configureInitialState() {
         doneButton.isEnabled = false
-        doneButton.backgroundColor = AppColors.gray
     }
     func setCategoryName(_ text: String) {
         nameTextField.textField.text = text
